@@ -38,6 +38,7 @@ import Score from "../components/Score.astro";
                     checked="checked"
                     class="checkbox checkbox-secondary"
                     id="rule_1"
+                    aria-label="+-1 Rule toggle"
                   />
                 </label>
               </div>
@@ -61,7 +62,7 @@ import Score from "../components/Score.astro";
           </button>
           <button
             class="btn btn-info btn-block mt-2"
-            onclick="location.href = '/';"
+            onclick="location.href = '/wizard/';"
                       >
             Save and Quit
           </button>
@@ -119,8 +120,8 @@ import Score from "../components/Score.astro";
 
 <script>
   //if localstorage game_active is not true then redirect home
-  if (localStorage.getItem("game_active") !== "true") {
-    window.location.href = "/";
+  if (localStorage.getItem("game") == null) {
+    window.location.href = "/wizard/";
   }
 
   //get the game json from localstorage
@@ -174,7 +175,7 @@ import Score from "../components/Score.astro";
     localStorage.removeItem("game");
     //set recent_games in localstorage
     localStorage.setItem("recent_games", JSON.stringify(recent_games));
-    location.href = "/";
+    location.href = "/wizard/";
   }
   //Score
   function score_switch_view(x) {
@@ -437,7 +438,7 @@ import Score from "../components/Score.astro";
     //Graph
 
     let score_chart;
-    if (game.round === 1) {
+    if (game.round == 1 || game.round == 2) {
       $("#icon_chart").addClass("hidden");
     } else {
       $("#icon_chart").removeClass("hidden");
@@ -561,7 +562,7 @@ import Score from "../components/Score.astro";
         `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
             <div class="card-body">
                 <h2 class="card-title text-2xl">${player}</h2>
-                <input type="range" min="0" max="${max}" value="0" class="range" step="1" />
+                <input type="range" min="0" max="${max}" value="0" class="range" step="1" aria-label="Input" />
 <div class="w-full flex justify-between text-xl range-lg insets">
 
 </div>
@@ -813,7 +814,7 @@ import Score from "../components/Score.astro";
 
   $("#rendgame").on("click", () => {
     if (game.round == 1) {
-      location.href = "/";
+      location.href = "/wizard/";
     } else {
       game.step = "3";
       game.display = "1";

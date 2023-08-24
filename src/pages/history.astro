@@ -41,7 +41,7 @@ import Score from "../components/Score.astro";
     // check if past_games exists in local storage if not return
     let past_games = JSON.parse(localStorage.getItem("recent_games"));
     if (past_games === null) {
-      location.href = "/";
+      location.href = "/wizard/";
     }
 
     //reverse the array so the newest game is first
@@ -483,7 +483,7 @@ import Score from "../components/Score.astro";
         end = Date.now() - 10;
         confetti.reset();
       } else {
-        location.href = "/";
+        location.href = "/wizard/";
       }
     });
   </script>

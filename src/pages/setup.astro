@@ -8,7 +8,7 @@ import { Icon } from "astro-icon";
     <div class="flex justify-center flex-wrap flex-col p-5 lg:w:1/3 lg:h-2/3">
       <div class="flex flex-nowrap items-center">
         <div class="" id="tl_container">
-          <button class="btn btn-square btn-outline" id="tlbtn">
+          <button class="btn btn-square btn-outline" id="tlbtn" aria-label="Back">
             <Icon name="mdi:chevron-left" class="w-6 h-6" />
           </button>
         </div>
@@ -21,7 +21,7 @@ import { Icon } from "astro-icon";
         <div class="pb-5">
           <h2 class="pt-10 text-3xl">
             Players (3-6)
-            <button class="btn float-right" onclick="modal_info.showModal(); "
+            <button class="btn float-right" onclick="modal_info.showModal();" id="help"aria-label="Help"
               >?</button
             >
           </h2>
@@ -46,6 +46,7 @@ import { Icon } from "astro-icon";
                 type="text"
                 placeholder="Player Name"
                 id="input_playername"
+                aria-label="Playername"
                 class="input input-bordered input-primary w-2/3 mt-10 mb-3"
               />
               <button
@@ -79,6 +80,7 @@ import { Icon } from "astro-icon";
                   checked="checked"
                   class="checkbox checkbox-secondary"
                   id="rule_1"
+                  aria-label="Button to toggle +-1 rule"
                 />
               </label>
             </div>
@@ -104,6 +106,7 @@ import { Icon } from "astro-icon";
               <label class="cursor-pointer label">
                 <input
                   type="checkbox"
+                  aria-label="Button to toggle random dealer"
                   class="checkbox checkbox-secondary"
                   id="rule_random_dealer"
                 />
@@ -171,7 +174,6 @@ import { Icon } from "astro-icon";
       </div>
     </div>
   </div>
-  <a href="/game" rel="prefetch" class="hidden"></a>
   <!-- Info modal -->
   <dialog id="modal_info" class="modal modal-top sm:modal-middle">
     <form method="dialog" class="modal-box">
@@ -330,9 +332,9 @@ import { Icon } from "astro-icon";
     //insert
     $("#playerlist").append(
       `<div class='appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box'>
-        <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent' id='player'>
-        <input type='checkbox' class='checkbox h-2/4' id='dealer'>
-        <img src='/icon/trash.svg' class='inv h-2/4 pl-2' id='remove'/>
+        <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent' id='player' aria-label="playername">
+        <input type='checkbox' class='checkbox h-2/4' id='dealer' aria-label="toggle dealer">
+        <img src='/wizard/icon/trash.svg' class='inv h-2/4 pl-2' id='remove'/>
         </div>`
     );
     //set the value of the input field to an empty string and place the text in the newly added input field
@@ -521,10 +523,10 @@ import { Icon } from "astro-icon";
       game.score_display = 3;
     }
     localStorage.setItem("game", JSON.stringify(game));
-    location.href = "/game";
+    location.href = "/wizard/game/";
   });
   
   $("#tlbtn").on("click", function () {
-    location.href = "/";
+    location.href = "/wizard/";
   });
 </script>

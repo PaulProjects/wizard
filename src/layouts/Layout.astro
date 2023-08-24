@@ -12,8 +12,7 @@ const { title } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="description" content="Astro description" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <link rel="icon" type="image/svg+xml" href="/wizard/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
@@ -21,26 +20,20 @@ const { title } = Astro.props;
     <slot />
   </body>
 </html>
+<script is:inline src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
 <style is:global>
-  @font-face {
-    font-family: "Inter-Bold";
-    src: url("/font/Inter-Bold.woff2") format("woff2");
-    font-weight: bold;
-  }
   @font-face {
     font-family: "Inter-Regular";
     src: url("/font/Inter-Regular.woff2") format("woff2");
     font-weight: normal;
-  }
-  @font-face {
-    font-family: "Inter-Medium";
-    src: url("/font/Inter-Medium.woff2") format("woff2");
+    font-display: swap;
   }
   @font-face {
     font-family: "Ostrich-Sans-Heavy";
     font-style: normal;
     font-weight: bold;
     src: url("/font/OstrichSans-Heavy.woff2") format("woff2");
+    font-display: swap;
   }
   @media (min-width: 1024px) {
     .box {

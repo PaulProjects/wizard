@@ -9,7 +9,7 @@ import Lightning from "../components/Lightning.astro";
     <div class="box w-full p-5 lg:w-1/3 lg:h-1/3 lg:mt-10">
       <main>
         <div class="flex items-center justify-center">
-          <img class="mt-0 lg:w-4/5" src="/witch.svg" alt="logo" />
+          <img class="mt-0 lg:w-4/5" src="/wizard/witch.svg" alt="logo" />
         </div>
         <h1 class="text-center text-9xl">Wizzard</h1>
         <nav class="boxbuttons mt-10">
@@ -29,19 +29,18 @@ import Lightning from "../components/Lightning.astro";
 
   <div class="credits float-left">
     <div class="flex flex-row w-1/2">
-      <a href="https://github.com/PaulProjects" class="w-full">
+      <a href="https://github.com/PaulProjects/wizard" class="w-full" aria-label="Github">
         <Icon name="mdi:github" /></a
       >
       <button class="w-full" onclick="
-      about.showModal()
-      "
+      about.showModal()" id="buttonAbout" title="Open About Modal"
         ><Icon name="mdi:help-circle-outline" /></button
       >
     </div>
   </div>
   <div class="legal float-right">
-    <a class="underline" href="/Impressum">Impressum</a>
-    <a class="underline" href="/Datenschutz">Datenschutz</a>
+    <a class="underline" href="/wizard/Impressum/">Impressum</a>
+    <a class="underline" href="/wizard/Datenschutz/">Datenschutz</a>
   </div>
   <!-- About Modal -->
   <dialog id="about" class="modal">
@@ -49,7 +48,7 @@ import Lightning from "../components/Lightning.astro";
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
         >✕</button
       >
-      <h3 class="font-bold text-lg">About!</h3>
+      <h1 class="font-bold text-xl">About</h3>
       <p class="py-4">
         This site is a score counter for the popular card game Wizard. It is a
         work in progress and I will add more features as I go along. If you have
@@ -133,12 +132,12 @@ import Lightning from "../components/Lightning.astro";
   $("#new_game").on("click", function () {
     $("#new_game_text").addClass("loading");
     $("#new_game_text").addClass("loading-spinner");
-    location.href = "/setup";
+    location.href = "/wizard/setup/";
   });
 
   $("#resume_game").on("click", function () {
     if (localStorage.getItem("game") !== null) {
-      location.href = "/game";
+      location.href = "/wizard/game/";
     } else {
       document.getElementById("alert_1").showModal();
     }
@@ -146,7 +145,7 @@ import Lightning from "../components/Lightning.astro";
 
   $("#recent_games").on("click", function () {
     if (localStorage.getItem("recent_games") !== null) {
-      location.href = "/history";
+      location.href = "/wizard/history/";
     } else {
       document.getElementById("alert_2").showModal();
     }
