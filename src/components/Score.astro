@@ -1,0 +1,132 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Icon } from "astro-icon";
+import Celebration from "./Celebration.astro";
+---
+
+<div class="wrapper flex justify-center items-center w-screen h-full">
+  <div class="flex items-center justify-center flex-col p-5 w-full lg:h-2/3">
+    <div class="w-full lg:w-2/3">
+      <div class="pb-5">
+        <div class="flex flex-row items-center pl-5 lg:pl-0 gap-4">
+          <h2 class="text-3xl h-full" id="s_round">Please activate js</h2>
+          <div class="flex flex-row flex-nowrap gap-3 pb-1 items-center">
+            <div class="w-8" id="icon_celeb">
+              <Icon name="mdi:trophy-variant" />
+            </div>
+            <div class="w-8" id="icon_top">
+              <Icon name="mdi:podium" />
+            </div>
+            <div class="w-8 icon_underline" id="icon_table">
+              <Icon name="mdi:table-account" />
+            </div>
+            <div class="w-8" id="icon_chart">
+              <Icon name="mdi:chart-timeline-variant" />
+            </div>
+          </div>
+          <button
+            class="btn ml-auto"
+            id="questionbutton"
+            onclick="
+            modal_info.showModal();
+">?</button
+          >
+        </div>
+      </div>
+      <!-- Table -->
+      <div
+        class="overflow-x-auto lg:w-full p-5 lg:p-0 tcontainer"
+        id="table"
+      >
+        <table class="table lg:table-fixed">
+          <!-- head -->
+          <thead>
+            <tr id="names">
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"> </tbody>
+        </table>
+      </div>
+      <!-- Graph -->
+      <div class="hidden h-full w-full flex items-center" id="graph">
+        <div class="chart_content" id="chart_container">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+      <!-- Top -->
+      <div
+        id="top_players"
+        class="flex flex-col flex-wrap items-start justify-center hidden w-full"
+      >
+      </div>
+      <div id="celebration" class="hidden w-full h-full">
+        <Celebration />
+      </div>
+    </div>
+  </div>
+</div>
+<div class="pb-20"></div>
+<!-- Info modal -->
+<dialog id="modal_info" class="modal modal-top sm:modal-middle">
+  <form method="dialog" class="modal-box">
+    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+      >✕</button
+    >
+    <div class="flex flex-col justify-center items-center">
+      <h2 class="font-bold text-3xl mt-5">Info</h2>
+      <div class="prose">
+        <p class="mb-1 mt-5">There are 3 modes:</p>
+        <div class="mt-2">
+          <div class="w-10"><Icon name="mdi:podium" /></div><p>
+            Rank: Ranks players by score
+          </p>
+        </div>
+        <div class="mt-2">
+          <div class="w-10"><Icon name="mdi:table-account" /></div><p>
+            Table: Displays a table containing the score for every player and
+            their bet for that round <span class="text-secondary text-xs">(just like on the physical score sheet)</span>
+          </p>
+        </div>
+        <div class="mt-2">
+          <div class="w-10"><Icon name="mdi:chart-timeline-variant" /></div><p>
+            Chart: Displays a line chart of the score <span class="text-secondary text-xs">(looks better in panorama
+            mode and is disabled for the first round)</span>
+          </p>
+        </div>
+        <span class="badge badge-secondary mt-5">And this is how the dealer looks</span>
+      </div>
+    </div>
+  </form>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+<!-- End of modal -->
+<!-- End of content -->
+
+<style>
+  td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+  }
+  .tcontainer {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .chart_content {
+    width: 60lvw;
+    height: 60lvh;
+  }
+
+  @media screen and (max-width: 600px) {
+    .chart_content {
+      width: 90vw;
+      height: 90vh;
+    }
+  }
+  .icon_underline {
+    border-bottom: 4px solid green;
+  }
+</style>

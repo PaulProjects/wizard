@@ -1,0 +1,826 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Input from "../components/Input.astro";
+import Score from "../components/Score.astro";
+---
+
+<Layout title="Wizzard!">
+  <div class="prose prose-sm md:prose-base w-full flex-grow">
+    <h1 class="text-center text-6xl" id="title">Wizzard</h1>
+  </div>
+
+  <div class="hidden" id="input"><Input /></div>
+  <div class="" id="score"><Score /></div>
+
+  <nav
+    class="boxbuttons self-center w-4/5 lg:w-2/3 fixed bottom-2 lg:bottom-8 inset-x-0 mx-auto"
+  >
+    <button class="btn btn-secondary btn-block" id="nav_button"
+      ><p id="navtext">...</p></button
+    >
+  </nav>
+  <!-- Settings modal -->
+  <dialog id="modal_settings" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">Settings</h2>
+        <div>
+          <!-- +-1 Rule Start -->
+          <div id="box_1Rule">
+            <div class="flex flex-row items-center h-full w-full">
+              <div class="form-control pl-3">
+                <label class="cursor-pointer label">
+                  <input
+                    type="checkbox"
+                    checked="checked"
+                    class="checkbox checkbox-secondary"
+                    id="rule_1"
+                  />
+                </label>
+              </div>
+              <div
+                class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+              >
+                <span class="label-text text-xl bold font-bold w-full"
+                  >&#177;1 Rule</span
+                >
+                <span class="label-text text-sm bold w-full"
+                  >Requires the amount of possible bids to differ from the total
+                  amount of tricks</span
+                >
+              </div>
+            </div>
+          </div>
+          <!-- +-1 Rule End -->
+          <!-- Cancel Game Button that navigates to / -->
+          <button class="btn btn-primary btn-block mt-5" id="endgame">
+            End Game
+          </button>
+          <button
+            class="btn btn-info btn-block mt-2"
+            onclick="location.href = '/';"
+                      >
+            Save and Quit
+          </button>
+        </div>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <!-- End of Settings modal -->
+  <!-- Really End game? modal -->
+  <dialog id="modal_confirmend" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">
+          Do you really want to end the game?
+        </h2>
+        <div>
+          <!-- Cancel Game Button that navigates to / -->
+          <button class="btn btn-primary btn-block mt-5" id="rendgame">
+            End Game
+          </button>
+          <button class="btn btn-info btn-block mt-2"> Cancel</button>
+        </div>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <!-- End of Settings modal -->
+</Layout>
+
+<style>
+  .confetti {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    user-select: none;
+  }
+</style>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script
+  is:inline
+  src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"
+></script>
+
+<script>
+  //if localstorage game_active is not true then redirect home
+  if (localStorage.getItem("game_active") !== "true") {
+    window.location.href = "/";
+  }
+
+  //get the game json from localstorage
+  const game = JSON.parse(localStorage.getItem("game"));
+  //get the players array from localstorage
+  const players = JSON.parse(game.players);
+
+  function update() {
+    if (game.display == "1") {
+      //add class="hidden" to input and remove it from score
+      document.getElementById("input").classList.add("hidden");
+      document.getElementById("score").classList.remove("hidden");
+      updatescore();
+    } else if (game.display == "2") {
+      //add class="hidden" to score and remove it from input
+      document.getElementById("score").classList.add("hidden");
+      document.getElementById("input").classList.remove("hidden");
+      updateInput();
+    }
+  }
+  //add a listener to the nav_button
+  $("#nav_button").on("click", () => {
+    if (game.step == "3") {
+      finish_game();
+    } else if (game.display == "1") {
+      game.display = "2";
+      localStorage.setItem("game", JSON.stringify(game));
+      update();
+    } else {
+      Input_confirm();
+    }
+  });
+
+  function finish_game() {
+    console.log("finish_game");
+    //get recent_games from localstorage and if it doesnt exist create an empty array
+    let recent_games = JSON.parse(localStorage.getItem("recent_games"));
+    if (recent_games === null) {
+      recent_games = [];
+    }
+    //push the game to recent_games
+    let gamestored = JSON.parse(JSON.stringify(game));
+    //remove display, step and score_display
+    delete gamestored.display;
+    delete gamestored.step;
+    delete gamestored.score_display;
+    //put a time_ended timestamp
+    gamestored.time_ended = Date.now();
+    recent_games.push(gamestored);
+    //delete game from localstorage
+    localStorage.removeItem("game");
+    //set recent_games in localstorage
+    localStorage.setItem("recent_games", JSON.stringify(recent_games));
+    location.href = "/";
+  }
+  //Score
+  function score_switch_view(x) {
+    game.score_display = x;
+    localStorage.setItem("game", JSON.stringify(game));
+    if (x == "1") {
+      $("#graph").removeClass("hidden");
+      $("#table").addClass("hidden");
+      $("#top_players").addClass("hidden");
+      $("#celebration").addClass("hidden");
+
+      $("#icon_chart").addClass("icon_underline");
+      $("#icon_table").removeClass("icon_underline");
+      $("#icon_top").removeClass("icon_underline");
+      $("#icon_celeb").removeClass("icon_underline");
+    } else if (x == "2") {
+      $("#table").removeClass("hidden");
+      $("#graph").addClass("hidden");
+      $("#top_players").addClass("hidden");
+      $("#celebration").addClass("hidden");
+
+      $("#icon_chart").removeClass("icon_underline");
+      $("#icon_table").addClass("icon_underline");
+      $("#icon_top").removeClass("icon_underline");
+      $("#icon_celeb").removeClass("icon_underline");
+    } else if (x == "3") {
+      $("#table").addClass("hidden");
+      $("#graph").addClass("hidden");
+      $("#top_players").removeClass("hidden");
+      $("#celebration").addClass("hidden");
+
+      $("#icon_chart").removeClass("icon_underline");
+      $("#icon_table").removeClass("icon_underline");
+      $("#icon_top").addClass("icon_underline");
+      $("#icon_celeb").removeClass("icon_underline");
+    } else if (x == "4") {
+      $("#table").addClass("hidden");
+      $("#graph").addClass("hidden");
+      $("#top_players").addClass("hidden");
+      $("#celebration").removeClass("hidden");
+
+      $("#icon_chart").removeClass("icon_underline");
+      $("#icon_table").removeClass("icon_underline");
+      $("#icon_top").removeClass("icon_underline");
+      $("#icon_celeb").addClass("icon_underline");
+    }
+  }
+
+  var duration;
+  var end;
+
+  function confettilauncher() {
+    duration = 20 * 1000;
+    end = Date.now() + duration;
+    confetticannon();
+  }
+
+  function confetticannon() {
+    // launch a few confetti from the left edge
+    if (window.innerWidth < 768) {
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 60,
+        origin: { x: 0 },
+      });
+      // and launch a few from the right edge
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 60,
+        origin: { x: 1 },
+      });
+    } else {
+      // launch a few confetti from the left edge
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 60,
+        origin: { x: 0 },
+      });
+      // and launch a few from the right edge
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 60,
+        origin: { x: 1 },
+      });
+    }
+
+    // keep going until we are out of time
+    if (Date.now() < end) {
+      requestAnimationFrame(confetticannon);
+    }
+  }
+  //#region
+  function updatescore() {
+    if (game.step == "1") {
+      $("#navtext").text("Place Bets");
+    } else if (game.step == "2") {
+      $("#navtext").text("Enter Tricks");
+    } else if (game.step == "3") {
+      $("#navtext").text("Save and Quit");
+      celebration();
+      confettilauncher();
+      //bind onclick to launch confetti
+      $("#questionbutton").on("click", () => {
+        confettilauncher();
+      });
+      //remove onclick attribute
+      $("#questionbutton").removeAttr("onclick");
+      //change ? to an confetti emoji
+      $("#questionbutton").text("🎉");
+    } else {
+      $("#navtext").text("AHHHH");
+    }
+
+    if (game.step == "3") {
+      score_switch_view("4");
+      $("#icon_celeb").removeClass("hidden");
+    } else {
+      score_switch_view(game.score_display);
+      $("#icon_celeb").addClass("hidden");
+    }
+
+    //read game.round and place it in the text with id round
+    document.getElementById(
+      "s_round"
+    ).innerHTML = `${game.round}/${game.max_rounds}`;
+    //clear the table
+    $("#names").empty();
+    $("#rows").empty();
+
+    $("#names").append("<th>Round</th>");
+    //get the names from the game json and place them in the table use jQuery
+    players.forEach((name, index) => {
+      if (index === game.dealer)
+        $("#names").append(
+          `<th> <span class="badge badge-secondary" id="n_${index}">${name}</span></th><th>   </th>`
+        );
+      else $("#names").append(`<th id="n_${index}">${name}</th><th>   </th>`);
+    });
+
+    //get bets and tricks arrays using json parse from localstorage
+    const bets = JSON.parse(game.bets);
+    const score = JSON.parse(game.score);
+
+    //fill the table
+    for (let i = 0; i < game.round; i++) {
+      //create a new row
+      $("#rows").append(`<tr id="row${i}"></tr>`);
+      //add the round number to the row
+      $(`#row${i}`).append(`<td>${i + 1}</td>`);
+      //add the bets to the row
+      for (let j = 0; j < players.length; j++) {
+        try {
+          $(`#row${i}`).append(`<td>${score[i][j]}</td>`);
+        } catch {
+          $(`#row${i}`).append(`<td></td>`);
+        }
+        try {
+          $(`#row${i}`).append(`<td>${bets[i][j]}</td>`);
+        } catch {
+          $(`#row${i}`).append(`<td></td>`);
+        }
+      }
+    }
+
+    //add the class bg-base-200 to the last element in the table with the rows
+    $("#rows tr:last-child").addClass("bg-base-200");
+
+    $("#top_players").empty();
+
+    //give the one with the highest score a crown
+    if (game.round === 1) {
+      //list all players in top players
+      for (let i = 0; i < players.length; i++) {
+        $("#top_players").append(
+          `<div class="w-full md:w-2/3 bg-base-100 mt-5 mb-5 ml-10 md:ml-3">
+            <div class="">
+                <h2 class="card-title text-2xl" id="top_players_${i}"></h2>
+                
+                <div class="w-full text-xl">
+                  <p id="top_players_p${i}">0 Points </p>
+                </div>
+               
+            </div>
+        </div>
+    </div>`
+        );
+        document.getElementById("top_players_" + i).innerHTML = `${i + 1}. ${
+          players[i]
+        }`;
+        if (i == game.dealer) {
+          document
+            .getElementById("top_players_" + i)
+            .classList.add("text-info");
+        }
+      }
+    } else {
+      let highest = 0;
+      let highest_index = 0;
+      for (let i = 0; i < game.players.length; i++) {
+        let total = 0;
+        if (highest < score[score.length - 1][i]) {
+          highest = score[score.length - 1][i];
+          highest_index = i;
+        }
+      }
+      //change value of the th with id n_0 to crown
+      $(`#n_${highest_index}`).text($(`#n_${highest_index}`).text() + "  👑");
+
+      let score_sorted = [];
+      for (let i = 0; i < players.length; i++) {
+        score_sorted[i] = [players[i], score[score.length - 1][i]];
+      }
+      score_sorted.sort(function (a, b) {
+        return b[1] - a[1];
+      });
+      let max = score_sorted[0][1];
+
+      $("#top_players").append(
+        `<h2 class="card-title text-2xl">Top Players</h2>`
+      );
+
+      for (let i = 0; i < players.length; i++) {
+        $("#top_players").append(
+          `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-2xl" id="top_players_${i}"></h2>
+                
+                <div class="w-full flex justify-between text-xl range-lg insets">
+                  <p id="top_players_p${i}"> ${score_sorted[i][1]} Points </p>
+                </div>
+               
+            </div>
+        </div>
+    </div>`
+        );
+        if (score_sorted[i][1] == max) {
+          document.getElementById("top_players_" + i).innerHTML = `👑 ${
+            i + 1
+          }. ${score_sorted[i][0]}`;
+        } else {
+          document.getElementById("top_players_" + i).innerHTML = `${i + 1}. ${
+            score_sorted[i][0]
+          }`;
+        }
+        if (i == game.dealer) {
+          document
+            .getElementById("top_players_" + i)
+            .classList.add("text-blue-500");
+        }
+        document.getElementById(
+          "top_players_p" + i
+        ).innerHTML = `${score_sorted[i][1]} Points`;
+      }
+    }
+
+    //Graph
+
+    let score_chart;
+    if (game.round === 1) {
+      $("#icon_chart").addClass("hidden");
+    } else {
+      $("#icon_chart").removeClass("hidden");
+      $("#chart").remove();
+      $("#chart_container").append('<canvas id="chart"></canvas>');
+      let ctx = document.getElementById("chart").getContext("2d");
+      //destroy the chart
+      score_chart?.destroy();
+      const scores = JSON.parse(game.score);
+
+      //get players
+      //chartjs config that displays the rounds on the x axis and the scores on the y axis while having a own line for each playe
+      score_chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: scores.map((score, index) => index + 1),
+          datasets: players.map((pplayer, index) => ({
+            label: pplayer,
+            data: scores.map((score) => score[index]),
+            borderColor: `hsl(${(index * 360) / players.length}, 100%, 50%)`,
+            fill: false,
+          })),
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+        },
+      });
+    }
+  }
+
+  //Switch to graph
+  $("#icon_chart").on("click", () => {
+    score_switch_view("1");
+  });
+  $("#icon_table").on("click", () => {
+    score_switch_view("2");
+  });
+  $("#icon_top").on("click", () => {
+    score_switch_view("3");
+  });
+  $("#icon_celeb").on("click", () => {
+    score_switch_view("4");
+  });
+  //#endregion
+
+  //Input
+  //#region
+  let valid = true;
+
+  //an array to store the scores
+  let data = [];
+
+  //helper methods
+  function updatetotal() {
+    if (game.step == "1") {
+      $("#total").html(`Total: ${data.reduce((a, b) => +a + +b, 0)}`);
+      if (game.round !== 1 && game.rule_1 == "true") {
+        if (data.reduce((a, b) => +a + +b, 0) === game.round) {
+          valid = false;
+          $("#nav_button").removeClass("btn-secondary").addClass("btn-primary");
+        } else {
+          valid = true;
+          $("#nav_button").removeClass("btn-primary").addClass("btn-secondary");
+        }
+      } else {
+        valid = true;
+        $("#nav_button").removeClass("btn-primary").addClass("btn-secondary");
+      }
+    } else {
+      $("#total").html(
+        `Total: ${data.reduce((a, b) => +a + +b, 0)}/${game.round}`
+      );
+      if (data.reduce((a, b) => +a + +b, 0) === game.round) {
+        valid = true;
+        $("#nav_button").removeClass("btn-primary").addClass("btn-secondary");
+      } else {
+        valid = false;
+        $("#nav_button").removeClass("btn-secondary").addClass("btn-primary");
+      }
+    }
+  }
+
+  function scorecalc(bet, trick) {
+    if (bet == trick) {
+      return 20 + parseFloat(bet) * 10;
+    } else {
+      return Math.abs(bet - trick) * -10;
+    }
+  }
+
+  function updateInput() {
+    $("#players").empty();
+
+    $("#navtext").text("Confirm");
+
+    if (game.step === "1") {
+      document.getElementById(
+        "round"
+      ).innerHTML = `${game.round}/${game.max_rounds} - Place Bets`;
+    } else {
+      document.getElementById(
+        "round"
+      ).innerHTML = `${game.round}/${game.max_rounds} - Enter Tricks`;
+    }
+
+    const max = game.round;
+
+    //an array to store the scores
+    data = [];
+    //fill it with 0 for each player
+    for (let index = 0; index < players.length; index++) {
+      data[index] = 0;
+    }
+
+    //loop through players and create a div for each player
+    for (let index = 0; index < players.length; index++) {
+      const player = players[index];
+      //create a div
+      $("#players").append(
+        `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-2xl">${player}</h2>
+                <input type="range" min="0" max="${max}" value="0" class="range" step="1" />
+<div class="w-full flex justify-between text-xl range-lg insets">
+
+</div>
+               
+            </div>
+        </div>
+    </div>`
+      );
+      //add event listener to range to update the scores array
+      $(`.range:eq(${index})`).on("input", function () {
+        data[index] = $(this).val();
+        //update the total
+        updatetotal();
+        //underline the inset that matches the value
+        $(`.insets:eq(${index}) span`).removeClass("underline");
+        $(`.insets:eq(${index}) span:eq(${data[index]})`).addClass("underline");
+      });
+
+      //add insets as max
+      for (let i = 0; i <= max; i++) {
+        if (game.step == "2") {
+          //if i is equal to the bet hightlight it
+          if (i == JSON.parse(game.bets)[game.round - 1][index]) {
+            $(`.insets:eq(${index})`).append(
+              `<span class="badge badge-secondary">${i}</span>`
+            );
+          } else {
+            $(`.insets:eq(${index})`).append(`<span>${i}</span>`);
+          }
+        } else {
+          $(`.insets:eq(${index})`).append(`<span>${i}</span>`);
+        }
+      }
+
+      //add listener to the insets to update the range setting it to the value
+      $(`.insets:eq(${index}) span`).on("click", function () {
+        $(`.range:eq(${index})`).val($(this).html());
+        data[index] = $(this).html();
+        //update the total
+        updatetotal();
+        //underline the inset that matches the value
+        $(`.insets:eq(${index}) span`).removeClass("underline");
+        $(`.insets:eq(${index}) span:eq(${data[index]})`).addClass("underline");
+      });
+    }
+    updatetotal();
+  }
+
+  //add event listener to confirm button
+  function Input_confirm() {
+    if (valid) {
+      if (game.step == "1") {
+        let bets = JSON.parse(game.bets);
+        //if rounds is null then create an empty array
+        if (bets === null) {
+          bets = [];
+        }
+        //push the scores array to rounds
+        bets.push(data);
+
+        game.bets = JSON.stringify(bets);
+        game.step = "2";
+        localStorage.setItem("game", JSON.stringify(game));
+      } else {
+        let tricks = JSON.parse(game.tricks);
+        if (tricks === null) {
+          tricks = [];
+        }
+        //push the scores array to rounds
+        tricks.push(data);
+
+        game.tricks = JSON.stringify(tricks);
+        localStorage.setItem("game", JSON.stringify(game));
+
+        //get the scores from localstorage
+        let score = JSON.parse(game.score);
+        //calculate the scores
+        let score_change = JSON.parse(game.score_change);
+        let psc = [];
+        let ps = [];
+        const round = game.round;
+
+        if (game.round === 1) {
+          score_change = [];
+          score = [];
+        }
+        for (let index = 0; index < players.length; index++) {
+          psc[index] = scorecalc(
+            JSON.parse(game.bets)[round - 1][index],
+            JSON.parse(game.tricks)[round - 1][index]
+          );
+
+          if (round === 1) {
+            ps[index] = psc[index];
+          } else {
+            ps[index] = score[round - 2][index] + parseFloat(psc[index]);
+          }
+        }
+        score_change.push(psc);
+        score.push(ps);
+
+        game.score = JSON.stringify(score);
+        game.score_change = JSON.stringify(score_change);
+
+        localStorage.setItem("game", JSON.stringify(game));
+
+        if (game.round === game.max_rounds) {
+          game.step = "3";
+        } else {
+          //update rounds in localstorage
+          game.round++;
+          //shift dealer
+          game.dealer = (game.dealer + 1) % players.length;
+          localStorage.setItem("game", JSON.stringify(game));
+
+          game.step = "1";
+          localStorage.setItem("game", JSON.stringify(game));
+        }
+      }
+      game.display = "1";
+      localStorage.setItem("game", JSON.stringify(game));
+      update();
+    } else {
+      if (game.step == "1") {
+        document.getElementById("alert_1").showModal();
+      } else {
+        document.getElementById("alert_2").showModal();
+      }
+    }
+  }
+
+  //#endregion
+
+  ////////////////////////////////////////////
+  //open modal_settings on click on title
+  //#region
+  $("#title").on("click", () => {
+    document.getElementById("modal_settings").open = true;
+  });
+
+  //toggles checkbox with id rule_1 if user clicks anywhere in div with id box_1Rule
+  $("#box_1Rule").on("click", (event) => {
+    //check if the user clicked on the checkbox itself
+    if ($(event.target).is("#rule_1")) {
+      return;
+    }
+    $("#rule_1").trigger("click");
+  });
+
+  //if rule_1 in localstorage is true then check the checkbox
+  if (game.rule_1 == "true") {
+    $("#rule_1").prop("checked", true);
+  } else {
+    $("#rule_1").prop("checked", false);
+  }
+  //add a listener to the checkbox with id rule_1
+  $("#rule_1").on("click", () => {
+    //if the checkbox is checked
+    if ($("#rule_1").is(":checked")) {
+      game.rule_1 = "true";
+      localStorage.setItem("game", JSON.stringify(game));
+      //set the rule_1 in localstorage to true
+    } else {
+      game.rule_1 = "false";
+      localStorage.setItem("game", JSON.stringify(game));
+    }
+  });
+  //#endregion
+  ////////////////////////////////////////////
+
+  //celebration js
+  //#region
+  let celebtime = 250;
+  function celebration() {
+    $(".js-podium").each(function () {
+      var t = $(this);
+      setTimeout(function () {
+        t.addClass("is-visible");
+        var h = t.data("height");
+        t.find(".scoreboard__podium-base")
+          .css("height", h)
+          .addClass("is-expanding");
+      }, celebtime);
+      celebtime += 250;
+    });
+
+    addData();
+  }
+  function addData() {
+    //get all playernames and scores
+    const game = JSON.parse(localStorage.getItem("game"));
+    const score = JSON.parse(game.score);
+    const players = JSON.parse(game.players);
+    //sort players by score and add to scoreboard
+    let highest = 0;
+    let highest_index = 0;
+    for (let i = 0; i < players.length; i++) {
+      let total = 0;
+      if (highest < score[score.length - 1][i]) {
+        highest = score[score.length - 1][i];
+        highest_index = i;
+      }
+    }
+
+    let score_sorted = [];
+    for (let i = 0; i < players.length; i++) {
+      score_sorted[i] = [players[i], score[score.length - 1][i]];
+    }
+    score_sorted.sort(function (a, b) {
+      return b[1] - a[1];
+    });
+    let length = players.length;
+
+    //the winner
+    $("#num_1").text(score_sorted[0][0]);
+    $("#num_1_val").text(score_sorted[0][1]);
+    $("#num_2").text(score_sorted[1][0]);
+    $("#num_2_val").text(score_sorted[1][1]);
+    $("#num_3").text(score_sorted[2][0]);
+    $("#num_3_val").text(score_sorted[2][1]);
+
+    //fill the bottom list
+    for (let i = 1; i < 4; i++) {
+      if (i > length - 3) {
+        $(`#item_${i}`).addClass("hidden");
+        continue;
+      }
+
+      let width = (score_sorted[i + 2][1] / highest) * 100;
+      $("#item_" + i)
+        .find(".scoreboard__title")
+        .text(score_sorted[i + 2][0]);
+      $("#item_" + i)
+        .find(".js-number")
+        .text(score_sorted[i + 2][1]);
+      $("#item_" + i)
+        .find(".scoreboard__bar-bar")
+        .css("width", width + "%");
+      setTimeout(function () {
+        $("#item_" + i).addClass("is-visible");
+      }, celebtime);
+    }
+  }
+
+  $("#endgame").on("click", () => {
+    document.getElementById("modal_settings").close();
+    document.getElementById("modal_confirmend").open = true;
+  });
+
+  $("#rendgame").on("click", () => {
+    if (game.round == 1) {
+      location.href = "/";
+    } else {
+      game.step = "3";
+      game.display = "1";
+      localStorage.setItem("game", JSON.stringify(game));
+      update();
+    }
+  });
+  //#endregion
+  update();
+</script>

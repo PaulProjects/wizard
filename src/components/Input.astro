@@ -1,0 +1,57 @@
+<div>
+  <div class="wrapper flex justify-center items-center w-full h-full">
+    <div
+      class="flex justify-center flex-wrap flex-col p-5 w-full lg:w-2/3 lg:h-2/3"
+    >
+      <div class="lg:pr-10 lg:pl-10">
+        <div class="pb-5">
+          <h2 class="pt-10 text-3xl text-center" id="round"></h2>
+          <h2 class="text-xl text-center" id="total">Total: 0</h2>
+        </div>
+      </div>
+      <div
+        id="players"
+        class="flex flex-col flex-wrap items-center justify-center"
+      >
+      </div>
+    </div>
+  </div>
+  <div class="py-20"></div>
+  <dialog id="alert_1" class="modal">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <h3 class="font-bold text-lg">Warning!</h3>
+      <p class="py-4">
+        The +-1 Rule is enabled. Make sure that the total amount of bets differs
+        from the possible amount
+        <span class="text-secondary text-xs">(you can disable the rule by clicking the Wizzard text)</span>
+      </p>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <dialog id="alert_2" class="modal">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <h3 class="font-bold text-lg">Warning!</h3>
+      <p class="py-4">
+        The amount of possible tricks does not match the amount the entered
+        tricks.
+      </p>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+</div>
+
+<style>
+  * {
+    --padding-card: 1rem;
+  }
+</style>

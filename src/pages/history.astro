@@ -1,0 +1,557 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Icon } from "astro-icon";
+import Score from "../components/Score.astro";
+---
+
+<Layout title="Configure the game.">
+  <div class="flex justify-center">
+    <div
+      class="flex justify-center flex-wrap flex-col p-5 w-full lg:w-1/2 md:w-2/3 md:h-2/3"
+    >
+      <div class="flex flex-nowrap items-center">
+        <div class="" id="tl_container">
+          <button class="btn btn-square btn-outline" id="tlbtn">
+            <Icon name="mdi:chevron-left" class="w-6 h-6" />
+          </button>
+        </div>
+        <div class="prose prose-sm md:prose-base w-full flex-grow">
+          <h1 class="text-center text-6xl">Past Games</h1>
+        </div>
+      </div>
+
+      <!--  -->
+      <div
+        id="past_games"
+        class="flex flex-col flex-wrap items-center justify-center"
+      >
+      </div>
+    </div>
+  </div>
+  <div class="hidden" id="score"><Score /></div>
+
+  <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script
+    is:inline
+    src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"
+  ></script>
+
+  <script>
+    let view = 0; //0 = overview ; 1 = details
+    // check if past_games exists in local storage if not return
+    let past_games = JSON.parse(localStorage.getItem("recent_games"));
+    if (past_games === null) {
+      location.href = "/";
+    }
+
+    //reverse the array so the newest game is first
+    past_games.reverse();
+
+    // loop through past_games and create a div for each game
+    for (let i = 0; i < past_games.length; i++) {
+      let game = past_games[i];
+      let players = JSON.parse(game.players);
+
+      let time_started = game.time_started;
+      let time_ended = game.time_ended;
+      let time_diff = time_ended - time_started;
+      let time_diff_minutes = Math.floor(time_diff / 60000);
+
+      //Extract date from time_ended
+      let date = new Date(time_ended);
+      let day = date.getDate();
+      //write month as string
+      let month = date.toLocaleString("default", { month: "short" });
+      let year = date.getFullYear();
+      let date_string = `${day}.${month}.${year}`;
+
+      $("#past_games").append(`
+    <div class="card mt-10 bg-base-200 card--dark w-full" id="card${i}">
+          <div class="w-full h-full">
+            <span class="inline-block pl-3 pt-3">${date_string}</span>
+            <span class="float-right pr-3 pt-3"> ${time_diff_minutes} Minutes</span>
+            <div class="card-body">
+              <div class="overflow-x-auto">
+                <table class="table">
+                  <!-- head -->
+                  <thead>
+                    <tr>
+                      <th>Position</th>
+                      <th>Name</th>
+                      <th>Points</th>
+                    </tr>
+                  </thead>
+                  <tbody  id="table${i}">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="card--hover">
+            <a id="more${i}">Find out more</a>
+          </div>
+        </div>
+    `);
+
+      //add event listener to the more button
+      $(`#more${i}`).on("click", function () {
+        clicked_more(i);
+      });
+
+      $(`#card${i}`).on("click", function () {
+        console.log("clicked");
+        clicked_more(i);
+      });
+
+      let score = JSON.parse(game.score);
+      //extract last row of score
+      let last_row = score[score.length - 1];
+      //create a new array with the players and their points
+      let p_s = [];
+      for (let j = 0; j < players.length; j++) {
+        p_s.push({
+          name: players[j],
+          points: last_row[j],
+        });
+      }
+
+      //sort by points
+      p_s.sort((a, b) => {
+        return b.points - a.points;
+      });
+
+      // loop through players and add them to the table
+      for (let j = 0; j < p_s.length; j++) {
+        $(`#table${i}`).append(`
+        <tr>
+          <th>${j + 1}</th>
+          <td>${p_s[j].name}</td>
+          <td>${p_s[j].points}</td>
+        </tr>
+      `);
+      }
+
+      //add class="bg-base-200 to the first row"
+      $(`#table${i} tr:first-child`).addClass("bg-info");
+    }
+
+    let Lgame;
+    function clicked_more(i) {
+      score_switch_view("4");
+      view = 1;
+      //hide past_games and remove hidden from score
+      $("#past_games").addClass("hidden");
+      $("#score").removeClass("hidden");
+      //get the game and store it in Lgame
+      Lgame = past_games[i];
+      let players = JSON.parse(Lgame.players);
+
+      celebration();
+
+      //Confetti
+      confettilauncher();
+      //bind onclick to launch confetti
+      $("#questionbutton").on("click", () => {
+        confettilauncher();
+      });
+      //remove onclick attribute
+      $("#questionbutton").removeAttr("onclick");
+      //change ? to an confetti emoji
+      $("#questionbutton").text("🎉");
+
+      //read game.round and place it in the text with id round
+      document.getElementById(
+        "s_round"
+      ).innerHTML = `${Lgame.round}/${Lgame.max_rounds}`;
+
+      //clear the table
+      $("#names").empty();
+      $("#rows").empty();
+
+      $("#names").append("<th>Round</th>");
+      //get the names from the game json and place them in the table use jQuery
+      players.forEach((name, index) => {
+        if (index === Lgame.dealer)
+          $("#names").append(
+            `<th> <span class="badge badge-secondary" id="n_${index}">${name}</span></th><th>   </th>`
+          );
+        else $("#names").append(`<th id="n_${index}">${name}</th><th>   </th>`);
+      });
+
+      //get bets and tricks arrays using json parse from localstorage
+      const bets = JSON.parse(Lgame.bets);
+      const score = JSON.parse(Lgame.score);
+      console.log(score);
+
+      //fill the table
+      for (let i = 0; i < Lgame.round; i++) {
+        //create a new row
+        $("#rows").append(`<tr id="row${i}"></tr>`);
+        //add the round number to the row
+        $(`#row${i}`).append(`<td>${i + 1}</td>`);
+        //add the bets to the row
+        for (let j = 0; j < score[i].length; j++) {
+          $(`#row${i}`).append(`<td>${score[i][j]}</td>`);
+          $(`#row${i}`).append(`<td>${bets[i][j]}</td>`);
+        }
+      }
+
+      //add the class bg-base-200 to the last element in the table with the rows
+      $("#rows tr:last-child").addClass("bg-base-200");
+
+      $("#top_players").empty();
+
+      let highest = 0;
+      let highest_index = 0;
+      for (let i = 0; i < players.length; i++) {
+        let total = 0;
+        if (highest < score[score.length - 1][i]) {
+          highest = score[score.length - 1][i];
+          highest_index = i;
+        }
+      }
+      //change value of the th with id n_0 to crown
+      $(`#n_${highest_index}`).text($(`#n_${highest_index}`).text() + "  👑");
+
+      let score_sorted = [];
+      for (let i = 0; i < players.length; i++) {
+        score_sorted[i] = [players[i], score[score.length - 1][i]];
+      }
+      score_sorted.sort(function (a, b) {
+        return b[1] - a[1];
+      });
+      let max = score_sorted[0][1];
+
+      $("#top_players").append(
+        `<h2 class="card-title text-2xl">Top Players</h2>`
+      );
+
+      for (let i = 0; i < players.length; i++) {
+        $("#top_players").append(
+          `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-2xl" id="top_players_${i}"></h2>
+                
+                <div class="w-full flex justify-between text-xl range-lg insets">
+                  <p id="top_players_p${i}"> ${score_sorted[i][1]} Points </p>
+                </div>
+               
+            </div>
+        </div>
+    </div>`
+        );
+        if (score_sorted[i][1] == max) {
+          document.getElementById("top_players_" + i).innerHTML = `👑 ${
+            i + 1
+          }. ${score_sorted[i][0]}`;
+        } else {
+          document.getElementById("top_players_" + i).innerHTML = `${i + 1}. ${
+            score_sorted[i][0]
+          }`;
+        }
+        if (i == Lgame.dealer) {
+          document
+            .getElementById("top_players_" + i)
+            .classList.add("text-blue-500");
+        }
+        document.getElementById(
+          "top_players_p" + i
+        ).innerHTML = `${score_sorted[i][1]} Points`;
+      }
+
+      //Graph
+
+      let score_chart;
+      if (Lgame.round === 1) {
+        $("#icon_chart").addClass("hidden");
+      } else {
+        $("#icon_chart").removeClass("hidden");
+        $("#chart").remove();
+        $("#chart_container").append('<canvas id="chart"></canvas>');
+        let ctx = document.getElementById("chart").getContext("2d");
+        //destroy the chart
+        score_chart?.destroy();
+        const scores = JSON.parse(Lgame.score);
+
+        //get players
+        //chartjs config that displays the rounds on the x axis and the scores on the y axis while having a own line for each playe
+        score_chart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: scores.map((score, index) => index + 1),
+            datasets: players.map((pplayer, index) => ({
+              label: pplayer,
+              data: scores.map((score) => score[index]),
+              borderColor: `hsl(${(index * 360) / players.length}, 100%, 50%)`,
+              fill: false,
+            })),
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
+      }
+    }
+
+    //confetti js
+    //#region
+    var duration;
+    var end;
+    function confettilauncher() {
+      duration = 20 * 1000;
+      end = Date.now() + duration;
+      confetticannon();
+    }
+
+    function confetticannon() {
+      //if the screen is smaller then 768px launch less particles
+      if (window.innerWidth < 768) {
+        confetti({
+          particleCount: 2,
+          angle: 60,
+          spread: 60,
+          origin: { x: 0 },
+        });
+        // and launch a few from the right edge
+        confetti({
+          particleCount: 2,
+          angle: 120,
+          spread: 60,
+          origin: { x: 1 },
+        });
+      } else {
+        // launch a few confetti from the left edge
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 60,
+          origin: { x: 0 },
+        });
+        // and launch a few from the right edge
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 60,
+          origin: { x: 1 },
+        });
+      }
+
+      // keep going until we are out of time
+      if (Date.now() < end) {
+        requestAnimationFrame(confetticannon);
+      }
+    }
+    //#endregion
+
+    //celebration js
+    //#region
+    let celebtime = 250;
+    function celebration() {
+      $(".js-podium").each(function () {
+        var t = $(this);
+        setTimeout(function () {
+          t.addClass("is-visible");
+          var h = t.data("height");
+          t.find(".scoreboard__podium-base")
+            .css("height", h)
+            .addClass("is-expanding");
+        }, celebtime);
+        celebtime += 250;
+      });
+
+      addData();
+    }
+
+    function addData() {
+      //get all playernames and scores
+      const score = JSON.parse(Lgame.score);
+      const players = JSON.parse(Lgame.players);
+      //sort players by score and add to scoreboard
+      let highest = 0;
+      for (let i = 0; i < players.length; i++) {
+        let total = 0;
+        if (highest < score[score.length - 1][i]) {
+          highest = score[score.length - 1][i];
+        }
+      }
+
+      let score_sorted = [];
+      for (let i = 0; i < players.length; i++) {
+        score_sorted[i] = [players[i], score[score.length - 1][i]];
+      }
+      score_sorted.sort(function (a, b) {
+        return b[1] - a[1];
+      });
+      let length = players.length;
+
+      //the winner
+      $("#num_1").text(score_sorted[0][0]);
+      $("#num_1_val").text(score_sorted[0][1]);
+      $("#num_2").text(score_sorted[1][0]);
+      $("#num_2_val").text(score_sorted[1][1]);
+      $("#num_3").text(score_sorted[2][0]);
+      $("#num_3_val").text(score_sorted[2][1]);
+
+      //fill the bottom list
+      for (let i = 1; i < 4; i++) {
+        if (i > length - 3) {
+          $(`#item_${i}`).addClass("hidden");
+          continue;
+        }
+
+        let width = (score_sorted[i + 2][1] / highest) * 100;
+        $("#item_" + i)
+          .find(".scoreboard__title")
+          .text(score_sorted[i + 2][0]);
+        $("#item_" + i)
+          .find(".js-number")
+          .text(score_sorted[i + 2][1]);
+        $("#item_" + i)
+          .find(".scoreboard__bar-bar")
+          .css("width", width + "%");
+        setTimeout(function () {
+          $("#item_" + i).addClass("is-visible");
+        }, celebtime);
+      }
+    }
+
+    //Switch to graph
+    $("#icon_chart").on("click", () => {
+      score_switch_view("1");
+    });
+    $("#icon_table").on("click", () => {
+      score_switch_view("2");
+    });
+    $("#icon_top").on("click", () => {
+      score_switch_view("3");
+    });
+    $("#icon_celeb").on("click", () => {
+      score_switch_view("4");
+    });
+
+    function score_switch_view(x) {
+      if (x == "1") {
+        $("#graph").removeClass("hidden");
+        $("#table").addClass("hidden");
+        $("#top_players").addClass("hidden");
+        $("#celebration").addClass("hidden");
+
+        $("#icon_chart").addClass("icon_underline");
+        $("#icon_table").removeClass("icon_underline");
+        $("#icon_top").removeClass("icon_underline");
+        $("#icon_celeb").removeClass("icon_underline");
+      } else if (x == "2") {
+        $("#table").removeClass("hidden");
+        $("#graph").addClass("hidden");
+        $("#top_players").addClass("hidden");
+        $("#celebration").addClass("hidden");
+
+        $("#icon_chart").removeClass("icon_underline");
+        $("#icon_table").addClass("icon_underline");
+        $("#icon_top").removeClass("icon_underline");
+        $("#icon_celeb").removeClass("icon_underline");
+      } else if (x == "3") {
+        $("#table").addClass("hidden");
+        $("#graph").addClass("hidden");
+        $("#top_players").removeClass("hidden");
+        $("#celebration").addClass("hidden");
+
+        $("#icon_chart").removeClass("icon_underline");
+        $("#icon_table").removeClass("icon_underline");
+        $("#icon_top").addClass("icon_underline");
+        $("#icon_celeb").removeClass("icon_underline");
+      } else if (x == "4") {
+        $("#table").addClass("hidden");
+        $("#graph").addClass("hidden");
+        $("#top_players").addClass("hidden");
+        $("#celebration").removeClass("hidden");
+
+        $("#icon_chart").removeClass("icon_underline");
+        $("#icon_table").removeClass("icon_underline");
+        $("#icon_top").removeClass("icon_underline");
+        $("#icon_celeb").addClass("icon_underline");
+      }
+    }
+    //#endregion
+
+    $("#tlbtn").on("click", () => {
+      if (view == 1) {
+        $("#score").addClass("hidden");
+        $("#past_games").removeClass("hidden");
+        view = 0;
+        end = Date.now() - 10;
+        confetti.reset();
+      } else {
+        location.href = "/";
+      }
+    });
+  </script>
+
+  <style is:global>
+    .card:hover .card--hover a,
+    .card:hover {
+      box-shadow: 0 4px 18px 0 rgba(0, 0, 0, 0.25);
+    }
+
+    .card {
+      -webkit-box-flex: 300px;
+      -ms-flex: 300px;
+      flex: 300px;
+      border-radius: 10px;
+      border: 2px solid #c3c6ce;
+      cursor: pointer;
+      position: relative;
+      transition: 0.5s ease;
+    }
+    .card:hover {
+      border-color: #008bf8;
+    }
+    .card:hover .card--hover {
+      opacity: 1;
+    }
+    .card:hover .card--hover a {
+      -webkit-transform: translate(-50%, 50%);
+      -ms-transform: translate(-50%, 50%);
+      transform: translate(-50%, 50%);
+      opacity: 1;
+    }
+    .card--hover {
+      padding: 60px 0;
+      text-align: center;
+      opacity: 0.6;
+      transition: 0.25s ease;
+    }
+    .card--hover h3 {
+      font-size: 30px;
+      font-weight: bold;
+      margin: 0;
+    }
+    .card--hover p {
+      margin: 10px 0 0;
+    }
+    .card--hover a {
+      -webkit-transform: translate(-50%, 125%);
+      -ms-transform: translate(-50%, 125%);
+      transform: translate(-50%, 125%);
+      border-radius: 20px;
+      background-color: #008bf8;
+      color: #fff;
+      padding: 8px 16px;
+      display: inline-block;
+      text-decoration: none;
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      opacity: 0;
+      transition: 0.25s ease;
+    }
+    .card.card--dark .card--hover {
+      color: #fff;
+    }
+    .card.card--dark a {
+      background-color: #7fefbd;
+      color: #1a1a1a;
+    }
+  </style>
+</Layout>

@@ -1,0 +1,530 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Icon } from "astro-icon";
+---
+
+<Layout title="Configure the game.">
+  <div class="wrapper flex justify-center items-center w-full h-full">
+    <div class="flex justify-center flex-wrap flex-col p-5 lg:w:1/3 lg:h-2/3">
+      <div class="flex flex-nowrap items-center">
+        <div class="" id="tl_container">
+          <button class="btn btn-square btn-outline" id="tlbtn">
+            <Icon name="mdi:chevron-left" class="w-6 h-6" />
+          </button>
+        </div>
+        <div class="prose prose-sm md:prose-base w-full flex-grow">
+          <h1 class="text-center text-6xl">Setup</h1>
+        </div>
+      </div>
+      <!-- Player list -->
+      <div class="lg:pr-10 lg:pl-10">
+        <div class="pb-5">
+          <h2 class="pt-10 text-3xl">
+            Players (3-6)
+            <button class="btn float-right" onclick="modal_info.showModal(); "
+              >?</button
+            >
+          </h2>
+        </div>
+
+        <!-- new player button and modal -->
+        <button
+          class="input input-bordered input-primary w-full"
+          id="showmodal"
+          onclick="modal_addplayer.showModal();"><p>New Player</p></button
+        >
+        <!-- Add Player modal -->
+        <dialog id="modal_addplayer" class="modal modal-top sm:modal-middle">
+          <form method="dialog" class="modal-box">
+            <button
+              class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+              >✕</button
+            >
+            <div class="flex flex-col justify-center items-center">
+              <h2 class="font-bold text-3xl mt-5">Add a Player!</h2>
+              <input
+                type="text"
+                placeholder="Player Name"
+                id="input_playername"
+                class="input input-bordered input-primary w-2/3 mt-10 mb-3"
+              />
+              <button
+                class="input input-bordered input-primary w-2/3"
+                id="addPlayer"><p>Add Player</p></button
+              >
+            </div>
+          </form>
+          <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
+        <!-- End of modal -->
+        <div class="flex flex-col names pt-2">
+          <div id="playerlist"></div>
+        </div>
+      </div>
+      <!-- End Player list -->
+
+      <!-- Game options -->
+      <div class="lg:pl-10 lg:pr-10">
+        <h2 class="pt-10 text-3xl w-full">Rules</h2>
+        <div class="pt-2"></div>
+        <!-- +-1 Rule Start -->
+        <div class="optionbox" id="box_1Rule">
+          <div class="flex flex-row items-center h-full w-full">
+            <div class="form-control pl-3">
+              <label class="cursor-pointer label">
+                <input
+                  type="checkbox"
+                  checked="checked"
+                  class="checkbox checkbox-secondary"
+                  id="rule_1"
+                />
+              </label>
+            </div>
+            <div
+              class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+            >
+              <span class="label-text text-xl bold font-bold w-full"
+                >&#177;1 Rule</span
+              >
+              <span class="label-text text-sm bold w-full"
+                >Requires the amount of possible bids to differ from the total
+                amount of tricks</span
+              >
+            </div>
+          </div>
+        </div>
+        <!-- +-1 Rule End -->
+        <div class="pt-5"></div>
+        <!-- Random Dealer Rule Start -->
+        <div class="optionbox" id="box_2Rule">
+          <div class="flex flex-row items-center h-full w-full">
+            <div class="form-control pl-3">
+              <label class="cursor-pointer label">
+                <input
+                  type="checkbox"
+                  class="checkbox checkbox-secondary"
+                  id="rule_random_dealer"
+                />
+              </label>
+            </div>
+            <div
+              class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+            >
+              <span class="label-text text-xl bold font-bold w-full"
+                >Random dealer</span
+              >
+              <span class="label-text text-sm bold w-full"
+                >Chooses a random player to start as the dealer</span
+              >
+            </div>
+          </div>
+        </div>
+        <!-- Random Dealer Rule End -->
+
+        <!-- End Game Options -->
+        <div
+          class="rounded-md border-indigo-500 border-2 pt-5 pl-5 pr-5 pb-5 mt-10"
+        >
+          <nav class="boxbuttons self-center w-full">
+            <button
+              class="btn btn-primary btn-disabled btn-block"
+              id="start_button"><p>Start game</p></button
+            >
+          </nav>
+          <div class="px-10 mt-4" id="alert_players">
+            <div class="alert alert-warning">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                ><path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                ></path></svg
+              >
+              <span>Please add at least 3 players</span>
+            </div>
+          </div>
+          <div class="px-10 mt-4" id="alert_invalidplayers">
+            <div class="alert alert-warning">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                ><path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                ></path></svg
+              >
+              <span>Please enter valid player names</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a href="/game" rel="prefetch" class="hidden"></a>
+  <!-- Info modal -->
+  <dialog id="modal_info" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">Info</h2>
+        <div class="prose">
+          <p class="pb-2">Wizzard can be played in a group of 3-6 Players</p>
+          <p class="pb-2">
+            For each player click on New Player and then enter their name
+          </p>
+          <p class="pb-2">
+            The list of players can be rearranged by holding and dragging. The
+            checkbox besides the playernames determinds the dealer for the first
+            round.
+          </p>
+        </div>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <!-- End of modal -->
+</Layout>
+
+<style is:global>
+  .optionbox {
+    width: 100%;
+    height: 6rem;
+    border-left: solid rgb(99 102 241);
+    background-color: rgba(240, 251, 239, 0.1);
+  }
+</style>
+
+<style>
+  @keyframes append-animate {
+    from {
+      transform: scaleY(0);
+      opacity: 0;
+    }
+    to {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+
+  .appear {
+    transform-origin: 50% 0;
+    animation: append-animate 0.3s linear;
+  }
+
+  @media (hover: hover) {
+    .wlabel a:hover {
+      --tw-text-opacity: 1;
+      color: hsl(var(--bc) / var(--tw-text-opacity));
+    }
+  }
+  .wlabel {
+    display: flex;
+    user-select: none;
+    align-items: center;
+    padding-left: 0.25rem /* 4px */;
+    padding-right: 0.25rem /* 4px */;
+    padding-top: 0.5rem /* 8px */;
+    padding-bottom: 0.5rem /* 8px */;
+  }
+  .btm-nav > * .wlabel {
+    font-size: 1rem /* 16px */;
+    line-height: 1.5rem /* 24px */;
+  }
+
+  .bg_grey {
+    background-color: rgba(240, 251, 239, 0.1);
+  }
+</style>
+<script
+  is:inline
+  src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<script>
+  $("#alert_invalidplayers").hide();
+  //make the list sortable
+  var el = document.getElementById("playerlist");
+  var sortable = Sortable.create(el);
+  //boolean that checks if the settings are valid
+  var valid_1 = false;
+  var valid_2 = true;
+
+  if (localStorage.getItem("playerlist") == null) {
+    localStorage.setItem("playerlist", JSON.stringify([]));
+  }
+
+  //onclick on button with id showmodal
+  $("#showmodal").on("click", function () {
+    document.getElementById("input_playername").focus();
+  });
+  //function that checks if valid 1 and 2 are both true and if so enables the button with id start_button
+  function checkValid() {
+    if (valid_1 && valid_2) {
+      $("#start_button").removeClass("btn-disabled");
+      $("#start_button").addClass("btn-secondary");
+    } else {
+      $("#start_button").removeClass("btn-secondary");
+      $("#start_button").addClass("btn-disabled");
+    }
+  }
+  //function that checks if the playerlist has at least 3 players and if not hide the div with the id alter_players and its children
+  function checkPlayers() {
+    if ($("#playerlist").children().length < 3) {
+      $("#alert_players").show();
+      valid_1 = false;
+      checkValid();
+    } else {
+      $("#alert_players").hide();
+      valid_1 = true;
+      checkValid();
+    }
+  }
+
+  //function user presses enter
+  $(document).keyup(function (event) {
+    if (event.which === 13) {
+      addPlayer();
+    }
+  });
+
+  //method to add a new player
+  $("#addPlayer").on("click", function () {
+    addPlayer();
+  });
+
+  function addPlayer() {
+    //check if the input field with id input_playername is empty
+    if ($("#input_playername").val() == "") {
+      return;
+    }
+    //check if the div does not contain more then 6 elements with the id player
+    if ($("#playerlist").children().length > 5) {
+      return;
+    }
+    //if the amount of player hits 6, disable the button
+    if ($("#playerlist").children().length == 5) {
+      $("#showmodal").prop("disabled", true);
+      //change text to max players
+      $("#showmodal").text("Max amount of players reached");
+    }
+    //extract the name of the player from the input field with the id input_playername
+    var playername = $("#input_playername").val();
+    //add that name to the list of players
+    var playerlist = JSON.parse(localStorage.getItem("playerlist"));
+    playerlist.push(playername);
+    localStorage.setItem("playerlist", JSON.stringify(playerlist));
+    //insert
+    $("#playerlist").append(
+      `<div class='appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box'>
+        <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent' id='player'>
+        <input type='checkbox' class='checkbox h-2/4' id='dealer'>
+        <img src='/icon/trash.svg' class='inv h-2/4 pl-2' id='remove'/>
+        </div>`
+    );
+    //set the value of the input field to an empty string and place the text in the newly added input field
+    $("#input_playername").val("");
+    $("#playerlist")
+      .children()
+      .last()
+      .find("input[type='text']")
+      .val(playername);
+
+    //if that was the first player check its checkbox
+    if ($("#playerlist").children().length == 1) {
+      $("#playerlist")
+        .children()
+        .first()
+        .find("input[type='checkbox']")
+        .prop("checked", true);
+    }
+    checkPlayers();
+  }
+
+  //check if an input with the id player is empty or just contains spaces
+  function checkEmpty() {
+    var empty = false;
+    $("#playerlist")
+      .children()
+      .each(function () {
+        if ($(this).find("input[type='text']").val().trim() == "") {
+          empty = true;
+          //remove the class input-secondary and add input-error from the parent div
+          $(this).removeClass("input-secondary");
+          $(this).addClass("input-error");
+        } else {
+          $(this).removeClass("input-error");
+          $(this).addClass("input-secondary");
+        }
+      });
+    return empty;
+  }
+  //call checkempty on edit of the input field with the id input_playername
+  $(document.body).on("input", "#player", function () {
+    if (checkEmpty()) {
+      $("#alert_invalidplayers").show();
+      //exchange input-secondary with input-error
+      valid_2 = false;
+      checkValid();
+    } else {
+      $("#alert_invalidplayers").hide();
+      valid_2 = true;
+      checkValid();
+    }
+  });
+
+  //method when player clicks a any checkbox with the id dealer
+  $(document).on("click", "#dealer", function () {
+    //uncheck all other checkboxes
+    $('input[id="dealer"]').not(this).prop("checked", false);
+    //check if the checkbox itself got unchecked and if so prevent that
+    if ($(this).prop("checked") == false) {
+      $(this).prop("checked", true);
+    }
+  });
+
+  //when user clicks on the remove button
+  $(document).on("click", "#remove", function () {
+    //store if the checkbox is checked
+    var checked = $(this)
+      .parent()
+      .find("input[type='checkbox']")
+      .prop("checked");
+    //remove the parent div
+    $(this).parent().remove();
+    //if the checkbox was checked, check the first checkbox
+    if (checked) {
+      $("#playerlist")
+        .children()
+        .first()
+        .find("input[type='checkbox']")
+        .prop("checked", true);
+    }
+    //if the amount of players is less then 6, enable the button
+    if ($("#playerlist").children().length < 6) {
+      $("#showmodal").prop("disabled", false);
+      //change text to new player
+      $("#showmodal").text("New Player");
+    }
+    checkPlayers();
+  });
+  //if Checkbox with id Random_Dealer is active add disabled to all checkboxes with the id dealer
+  $("#rule_random_dealer").on("click", function () {
+    if ($(this).prop("checked") == true) {
+      $('input[id="dealer"]').prop("disabled", true);
+    } else {
+      $('input[id="dealer"]').prop("disabled", false);
+    }
+  });
+
+  //toggles checkbox with id rule_1 if user clicks anywhere in div with id box_1Rule
+  $("#box_1Rule").on("click", function () {
+    //check if the user clicked on the checkbox itself
+    if ($(event.target).is("#rule_1")) {
+      return;
+    }
+    $("#rule_1").trigger("click");
+  });
+
+  $("#box_2Rule").on("click", function () {
+    //check if the user clicked on the checkbox itself
+    if ($(event.target).is("#rule_random_dealer")) {
+      return;
+    }
+    $("#rule_random_dealer").trigger("click");
+  });
+
+  //write a function that takes in a number and return a number
+  function amountofrounds(players) {
+    switch (players) {
+      case 3:
+        return 20;
+      case 4:
+        return 15;
+      case 5:
+        return 12;
+      case 6:
+        return 10;
+      default:
+        return -1;
+    }
+  }
+
+  //start button with id start_button
+  $("#start_button").on("click", function () {
+    $("#start_button").addClass("loading");
+    $("#start_button").addClass("loading-spinner");
+
+    console.log("start button clicked");
+    //Create a new array which contains all the player names
+    var players = [];
+    $("#playerlist")
+      .children()
+      .each(function () {
+        players.push($(this).find("input[type='text']").val());
+      });
+
+    var dealer = 0;
+    //find out which player is the dealer
+    if ($("#rule_random_dealer").prop("checked")) {
+      dealer = Math.floor(Math.random() * players.length);
+    } else {
+      $("#playerlist")
+        .children()
+        .each(function () {
+          if ($(this).find("input[type='checkbox']").prop("checked")) {
+            return false;
+          }
+          dealer++;
+        });
+    }
+    //save to localstorage
+    let r1;
+    if ($("#rule_1").prop("checked")) {
+      r1 = "true";
+    } else {
+      r1 = "false";
+    }
+
+    //create a json array with the game settings
+    var game = {
+      dealer: dealer,
+      rule_1: r1,
+      rule_random_dealer: $("#rule_random_dealer").prop("checked"),
+      round: 1,
+      max_rounds: amountofrounds(players.length),
+      players: JSON.stringify(players),
+      bets: JSON.stringify([]),
+      tricks: JSON.stringify([]),
+      score: JSON.stringify([]),
+      score_change: JSON.stringify([]),
+      step: "1",
+      display: 1,
+      score_display: 2,
+      time_started: Date.now(),
+    };
+    //check if player is onmobile
+    if (window.innerWidth < 768) {
+      game.score_display = 3;
+    }
+    localStorage.setItem("game", JSON.stringify(game));
+    location.href = "/game";
+  });
+  
+  $("#tlbtn").on("click", function () {
+    location.href = "/";
+  });
+</script>
