@@ -15,7 +15,7 @@ import Score from "../components/Score.astro";
             <Icon name="mdi:chevron-left" class="w-6 h-6" />
           </button>
         </div>
-        <div class="prose prose-sm md:prose-base w-full flex-grow">
+        <div id="title" class="prose prose-sm md:prose-base w-full flex-grow">
           <h1 class="text-center text-6xl">Past Games</h1>
         </div>
       </div>
@@ -29,6 +29,91 @@ import Score from "../components/Score.astro";
     </div>
   </div>
   <div class="hidden" id="score"><Score /></div>
+  <!-- Settings modal -->
+  <dialog id="modal_settings" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">Advanced options</h2>
+        <div>
+          <button id="export_data" class="btn btn-info btn-block mt-2">
+            Export Data</button
+          >
+          <button
+            id="import_data"
+            class="btn btn-info btn-block mt-2"
+            onclick="mo
+            dal_import.showModal()"
+                      >
+            Import Data</button
+          >
+          <button class="btn btn-primary btn-block mt-5" onclick="modal_confirmend.showModal()">
+            Delete all local data
+          </button>
+        </div>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <!-- End of Settings modal -->
+  <!-- Really End game? modal -->
+  <dialog id="modal_confirmend" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">
+          Do you really want to delete all data?
+        </h2>
+        <p class="pl-10 pr-10">
+          This will remove all stored data about current and past games
+          permanently!
+        </p>
+        <div>
+          <!-- Cancel Game Button that navigates to / -->
+          <button class="btn btn-primary btn-block mt-5" id="rremovedata">
+            Remove Data
+          </button>
+          <button class="btn btn-info btn-block mt-2"> Cancel</button>
+        </div>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <!-- End of Settings modal -->
+  <!-- Really Import data? modal -->
+  <dialog id="modal_import" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">Import</h2>
+        <p>Importing data will overwrite all current data!</p>
+        <input
+          type="file"
+          id="import_file"
+          accept=".json"
+          class="file-input file-input-bordered w-full max-w-xs"
+        />
+        <button class="btn btn-primary btn-block mt-5" id="rimport">
+          Import
+        </button>
+        <button class="btn btn-info btn-block mt-2"> Cancel</button>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <!-- End of Import modal -->
 
   <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script
@@ -43,6 +128,50 @@ import Score from "../components/Score.astro";
     if (past_games === null) {
       location.href = "/wizard/";
     }
+
+    //advances modal
+    $("#title").on("click", () => {
+      document.getElementById("modal_settings").open = true;
+    });
+
+    $("#rremovedata").on("click", () => {
+      localStorage.clear();
+      location.href = "/wizard/";
+    });
+
+    $("#export_data").on("click", () => {
+      let data = JSON.stringify(localStorage);
+      let blob = new Blob([data], { type: "text/plain" });
+      let url = window.URL.createObjectURL(blob);
+      let a = document.createElement("a");
+      a.href = url;
+      a.download = "data.json";
+      a.click();
+    });
+
+    $("#import_data").on("click", () => {
+      document.getElementById("modal_settings").close();
+      document.getElementById("modal_import").open = true;
+    });
+
+    $("#rimport").on("click", () => {
+      let file = document.getElementById("import_file").files[0];
+      if (file) {
+        let reader = new FileReader();
+        reader.readAsText(file, "UTF-8");
+        reader.onload = function (evt) {
+          localStorage.clear();
+          var data = JSON.parse(evt.target.result);
+          Object.keys(data).forEach(function (k) {
+            localStorage.setItem(k, data[k]);
+          });
+          location.reload();
+        };
+        reader.onerror = function (evt) {
+          alert("Error reading file");
+        };
+      }
+    });
 
     //reverse the array so the newest game is first
     past_games.reverse();
