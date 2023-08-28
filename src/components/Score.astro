@@ -1,5 +1,4 @@
 ---
-import Layout from "../layouts/Layout.astro";
 import { Icon } from "astro-icon";
 import Celebration from "./Celebration.astro";
 ---
@@ -15,10 +14,13 @@ import Celebration from "./Celebration.astro";
               <Icon name="mdi:trophy-variant" />
             </div>
             <div class="w-8" id="icon_top">
-              <Icon name="mdi:podium" />
+              <Icon name="mdi:format-list-numbered" />
             </div>
             <div class="w-8 icon_underline" id="icon_table">
               <Icon name="mdi:table-account" />
+            </div>
+            <div class="w-8" id="icon_bar">
+              <Icon name="mdi:poll" />
             </div>
             <div class="w-8" id="icon_chart">
               <Icon name="mdi:chart-timeline-variant" />
@@ -29,15 +31,12 @@ import Celebration from "./Celebration.astro";
             id="questionbutton"
             onclick="
             modal_info.showModal();
-">?</button
+            ">?</button
           >
         </div>
       </div>
       <!-- Table -->
-      <div
-        class="overflow-x-auto lg:w-full p-5 lg:p-0 tcontainer"
-        id="table"
-      >
+      <div class="overflow-x-auto lg:w-full p-5 lg:p-0 tcontainer" id="table">
         <table class="table lg:table-fixed">
           <!-- head -->
           <thead>
@@ -54,10 +53,16 @@ import Celebration from "./Celebration.astro";
           <canvas id="chart"></canvas>
         </div>
       </div>
+      <!-- BarChart -->
+      <div class="hidden h-full w-full flex items-center" id="bar_graph">
+        <div class="chart_content" id="barchartcontainer">
+          <canvas id="barchart"></canvas>
+        </div>
+      </div>
       <!-- Top -->
       <div
         id="top_players"
-        class="flex flex-col flex-wrap items-start justify-center hidden w-full"
+        class="flex flex-row flex-wrap items-start justify-center hidden w-full"
       >
       </div>
       <div id="celebration" class="hidden w-full h-full">
@@ -85,16 +90,23 @@ import Celebration from "./Celebration.astro";
         <div class="mt-2">
           <div class="w-10"><Icon name="mdi:table-account" /></div><p>
             Table: Displays a table containing the score for every player and
-            their bet for that round <span class="text-secondary text-xs">(just like on the physical score sheet)</span>
+            their bet for that round <span class="text-secondary text-xs"
+              >(just like on the physical score sheet)</span
+            >
           </p>
         </div>
         <div class="mt-2">
           <div class="w-10"><Icon name="mdi:chart-timeline-variant" /></div><p>
-            Chart: Displays a line chart of the score <span class="text-secondary text-xs">(looks better in panorama
-            mode and is disabled for the two rounds)</span>
+            Chart: Displays a line chart of the score <span
+              class="text-secondary text-xs"
+              >(looks better in panorama mode and is disabled for the two
+              rounds)</span
+            >
           </p>
         </div>
-        <span class="badge badge-secondary mt-5">And this is how the dealer looks</span>
+        <span class="badge badge-secondary mt-5"
+          >And this is how the dealer looks</span
+        >
       </div>
     </div>
   </form>

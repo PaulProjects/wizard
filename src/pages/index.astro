@@ -8,10 +8,10 @@ import Lightning from "../components/Lightning.astro";
   <div class="wrapper flex justify-center items-center w-screen h-screen pb-10">
     <div class="box w-full p-5 lg:w-1/3 lg:h-1/3 lg:mt-10">
       <main>
-        <div class="flex items-center justify-center">
-          <img class="mt-0 lg:w-4/5" src="/wizard/witch.svg" alt="logo" />
+        <div class="h-80 flex items-center justify-center">
+          <img class="mt-0 w-full h-full lg:w-4/5" src="/witch.svg" alt="logo" />
         </div>
-        <h1 class="text-center text-9xl">Wizzard</h1>
+        <h1 class="text-center h-28 text-9xl">Wizzard</h1>
         <nav class="boxbuttons mt-10">
           <button class="btn btn-secondary mb-2 btn-block" id="new_game"
             ><span id="new_game_text">New game</span></button
@@ -47,8 +47,8 @@ import Lightning from "../components/Lightning.astro";
     </div>
   </div>
   <div class="legal float-right">
-    <a class="underline" href="/wizard/Impressum/">Impressum</a>
-    <a class="underline" href="/wizard/Datenschutz/">Datenschutz</a>
+    <a class="underline" href="/Impressum/">Impressum</a>
+    <a class="underline" href="/Datenschutz/">Datenschutz</a>
   </div>
   <!-- About Modal -->
   <dialog id="about" class="modal">
@@ -86,7 +86,7 @@ import Lightning from "../components/Lightning.astro";
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
         >✕</button
       >
-      <h3 class="font-bold text-lg">No active game found!</h3>
+      <h1 class="font-bold text-lg">No active game found!</h1>
       <p class="py-4">
         You have no active game at the moment. Please start a new game. Make
         sure you don't delete this website's data in your browser, or you will
@@ -113,7 +113,7 @@ import Lightning from "../components/Lightning.astro";
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
         >✕</button
       >
-      <h3 class="font-bold text-lg">No past games found!</h3>
+      <h1 class="font-bold text-lg">No past games found!</h1>
       <p class="py-4">
         There are no past games on record. Please finish a game. Make sure you
         don't delete this website's data in your browser, or you will lose your
@@ -147,7 +147,8 @@ import Lightning from "../components/Lightning.astro";
         <input
           type="file"
           id="import_file"
-          accept=".json"
+          accept="application/json"
+          aria-label="Upload JSON file"
           class="file-input file-input-bordered w-full max-w-xs"
         />
         <button class="btn btn-primary btn-block mt-5" id="rimport">
@@ -187,12 +188,12 @@ import Lightning from "../components/Lightning.astro";
   $("#new_game").on("click", function () {
     $("#new_game_text").addClass("loading");
     $("#new_game_text").addClass("loading-spinner");
-    location.href = "/wizard/setup/";
+    location.href = "/setup/";
   });
 
   $("#resume_game").on("click", function () {
     if (localStorage.getItem("game") !== null) {
-      location.href = "/wizard/game/";
+      location.href = "s/game/";
     } else {
       document.getElementById("alert_1").showModal();
     }
@@ -200,7 +201,7 @@ import Lightning from "../components/Lightning.astro";
 
   $("#recent_games").on("click", function () {
     if (localStorage.getItem("recent_games") !== null) {
-      location.href = "/wizard/history/";
+      location.href = "/history/";
     } else {
       document.getElementById("alert_2").showModal();
     }

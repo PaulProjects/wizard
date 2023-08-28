@@ -7,5 +7,5 @@ import prefetch from "@astrojs/prefetch";
 export default defineConfig({
   integrations: [tailwind(), prefetch()],
   site: 'https://wizard.github.io',
-  base: '/wizard',
+  base: '/',
 });

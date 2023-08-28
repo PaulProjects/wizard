@@ -57,12 +57,15 @@ import Score from "../components/Score.astro";
           </div>
           <!-- +-1 Rule End -->
           <!-- Cancel Game Button that navigates to / -->
-          <button class="btn btn-primary btn-block mt-5" id="endgame">
+          <button class="btn btn-primary btn-block mt-2" id="endgame">
             End Game
+          </button>
+          <button class="btn btn-secondary btn-block mt-5" id="editgame">
+            Edit Scores
           </button>
           <button
             class="btn btn-info btn-block mt-2"
-            onclick="location.href = '/wizard/';"
+            onclick="location.href = '/';"
                       >
             Save and Quit
           </button>
@@ -121,7 +124,7 @@ import Score from "../components/Score.astro";
 <script>
   //if localstorage game_active is not true then redirect home
   if (localStorage.getItem("game") == null) {
-    window.location.href = "/wizard/";
+    window.location.href = "/";
   }
 
   //get the game json from localstorage
@@ -150,6 +153,7 @@ import Score from "../components/Score.astro";
       game.display = "2";
       localStorage.setItem("game", JSON.stringify(game));
       update();
+      freezebutton();
     } else {
       Input_confirm();
     }
@@ -175,7 +179,7 @@ import Score from "../components/Score.astro";
     localStorage.removeItem("game");
     //set recent_games in localstorage
     localStorage.setItem("recent_games", JSON.stringify(recent_games));
-    location.href = "/wizard/";
+    location.href = "/";
   }
   //Score
   function score_switch_view(x) {
@@ -186,41 +190,61 @@ import Score from "../components/Score.astro";
       $("#table").addClass("hidden");
       $("#top_players").addClass("hidden");
       $("#celebration").addClass("hidden");
+      $("#bar_graph").addClass("hidden");
 
       $("#icon_chart").addClass("icon_underline");
       $("#icon_table").removeClass("icon_underline");
       $("#icon_top").removeClass("icon_underline");
       $("#icon_celeb").removeClass("icon_underline");
+      $("#icon_bar").removeClass("icon_underline");
     } else if (x == "2") {
       $("#table").removeClass("hidden");
       $("#graph").addClass("hidden");
       $("#top_players").addClass("hidden");
       $("#celebration").addClass("hidden");
+      $("#bar_graph").addClass("hidden");
 
       $("#icon_chart").removeClass("icon_underline");
       $("#icon_table").addClass("icon_underline");
       $("#icon_top").removeClass("icon_underline");
       $("#icon_celeb").removeClass("icon_underline");
+      $("#icon_bar").removeClass("icon_underline");
     } else if (x == "3") {
       $("#table").addClass("hidden");
       $("#graph").addClass("hidden");
       $("#top_players").removeClass("hidden");
       $("#celebration").addClass("hidden");
+      $("#bar_graph").addClass("hidden");
 
       $("#icon_chart").removeClass("icon_underline");
       $("#icon_table").removeClass("icon_underline");
       $("#icon_top").addClass("icon_underline");
       $("#icon_celeb").removeClass("icon_underline");
+      $("#icon_bar").removeClass("icon_underline");
     } else if (x == "4") {
       $("#table").addClass("hidden");
       $("#graph").addClass("hidden");
       $("#top_players").addClass("hidden");
       $("#celebration").removeClass("hidden");
+      $("#bar_graph").addClass("hidden");
 
       $("#icon_chart").removeClass("icon_underline");
       $("#icon_table").removeClass("icon_underline");
       $("#icon_top").removeClass("icon_underline");
       $("#icon_celeb").addClass("icon_underline");
+      $("#icon_bar").removeClass("icon_underline");
+    } else if (x == 5) {
+      $("#table").addClass("hidden");
+      $("#graph").addClass("hidden");
+      $("#top_players").addClass("hidden");
+      $("#celebration").addClass("hidden");
+      $("#bar_graph").removeClass("hidden");
+
+      $("#icon_chart").removeClass("icon_underline");
+      $("#icon_table").removeClass("icon_underline");
+      $("#icon_top").removeClass("icon_underline");
+      $("#icon_celeb").removeClass("icon_underline");
+      $("#icon_bar").addClass("icon_underline");
     }
   }
 
@@ -270,6 +294,13 @@ import Score from "../components/Score.astro";
     if (Date.now() < end) {
       requestAnimationFrame(confetticannon);
     }
+  }
+  function freezebutton() {
+    //disable nav_button for 1.5 seconds
+    $("#nav_button").addClass("btn-disabled");
+    setTimeout(function () {
+      $("#nav_button").removeClass("btn-disabled");
+    }, 1000);
   }
   //#region
   function updatescore() {
@@ -351,17 +382,15 @@ import Score from "../components/Score.astro";
 
     //give the one with the highest score a crown
     if (game.round === 1) {
+      const bets = JSON.parse(game.bets);
       //list all players in top players
       for (let i = 0; i < players.length; i++) {
         $("#top_players").append(
-          `<div class="w-full md:w-2/3 bg-base-100 mt-5 mb-5 ml-10 md:ml-3">
-            <div class="">
+          `<div class="w-full md:w-1/3 bg-base-100 shadow-xl">
+            <div class="card-body">
                 <h2 class="card-title text-2xl" id="top_players_${i}"></h2>
-                
-                <div class="w-full text-xl">
-                  <p id="top_players_p${i}">0 Points </p>
-                </div>
-               
+                <p id="top_players_p${i}">0 Points </p>
+                <p id="top_players_b${i}"></p>
             </div>
         </div>
     </div>`
@@ -373,6 +402,11 @@ import Score from "../components/Score.astro";
           document
             .getElementById("top_players_" + i)
             .classList.add("text-info");
+        }
+        if (game.step == "2") {
+          document.getElementById(
+            "top_players_b" + i
+          ).innerHTML = `Bet: ${bets[0][i]}`;
         }
       }
     } else {
@@ -388,33 +422,39 @@ import Score from "../components/Score.astro";
       //change value of the th with id n_0 to crown
       $(`#n_${highest_index}`).text($(`#n_${highest_index}`).text() + "  👑");
 
+      const bets = JSON.parse(game.bets);
       let score_sorted = [];
       for (let i = 0; i < players.length; i++) {
-        score_sorted[i] = [players[i], score[score.length - 1][i]];
+        score_sorted[i] = [
+          players[i],
+          score[score.length - 1][i],
+          bets[bets.length - 1][i],
+        ];
       }
       score_sorted.sort(function (a, b) {
         return b[1] - a[1];
       });
       let max = score_sorted[0][1];
 
-      $("#top_players").append(
-        `<h2 class="card-title text-2xl">Top Players</h2>`
-      );
-
       for (let i = 0; i < players.length; i++) {
         $("#top_players").append(
-          `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
+          `<div class="w-full md:w-1/3 bg-base-100 shadow-xl">
             <div class="card-body">
-                <h2 class="card-title text-2xl" id="top_players_${i}"></h2>
-                
-                <div class="w-full flex justify-between text-xl range-lg insets">
-                  <p id="top_players_p${i}"> ${score_sorted[i][1]} Points </p>
-                </div>
-               
+                <h2 class="card-title text-3xl lg:text-5xl" id="top_players_${i}"></h2>
+              
+                <p id="top_players_p${i}"> ${score_sorted[i][1]} Points</p>
+                <p id="top_players_b${i}"></p>
             </div>
         </div>
     </div>`
         );
+        //if step is 2 then add the bets
+        if (game.step == "2") {
+          document.getElementById(
+            "top_players_b" + i
+          ).innerHTML = `Bet: ${score_sorted[i][2]}`;
+        }
+
         if (score_sorted[i][1] == max) {
           document.getElementById("top_players_" + i).innerHTML = `👑 ${
             i + 1
@@ -429,9 +469,6 @@ import Score from "../components/Score.astro";
             .getElementById("top_players_" + i)
             .classList.add("text-blue-500");
         }
-        document.getElementById(
-          "top_players_p" + i
-        ).innerHTML = `${score_sorted[i][1]} Points`;
       }
     }
 
@@ -460,11 +497,82 @@ import Score from "../components/Score.astro";
             data: scores.map((score) => score[index]),
             borderColor: `hsl(${(index * 360) / players.length}, 100%, 50%)`,
             fill: false,
+            cubicInterpolationMode: "monotone",
           })),
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: "Round",
+              },
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: "Points",
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              labels: {
+                usePointStyle: true,
+              },
+            },
+          },
+        },
+      });
+    }
+
+    //Bar Graph
+    let score_bar;
+    if (game.round == 1 || game.round == 2) {
+      $("#icon_bar").addClass("hidden");
+    } else {
+      $("#icon_bar").removeClass("hidden");
+      $("#barchart").remove();
+      $("#barchartcontainer").append('<canvas id="barchart"></canvas>');
+      let ctx = document.getElementById("barchart").getContext("2d");
+      //destroy the chart
+      score_bar?.destroy();
+      const scores = JSON.parse(game.score);
+
+      //display the current round in the bar graph
+      let round = game.round - 1;
+
+      //get players
+      //chartjs config that displays the rounds on the x axis and the scores on the y axis while having a own line for each playe
+      score_bar = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: players,
+          datasets: [
+            {
+              label: "Score",
+              data: scores[round - 1],
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: "Points",
+              },
+              beginAtZero: true,
+            },
+          },
         },
       });
     }
@@ -482,6 +590,9 @@ import Score from "../components/Score.astro";
   });
   $("#icon_celeb").on("click", () => {
     score_switch_view("4");
+  });
+  $("#icon_bar").on("click", () => {
+    score_switch_view("5");
   });
   //#endregion
 
@@ -539,6 +650,7 @@ import Score from "../components/Score.astro";
       document.getElementById(
         "round"
       ).innerHTML = `${game.round}/${game.max_rounds} - Place Bets`;
+      freezebutton();
     } else {
       document.getElementById(
         "round"
@@ -814,7 +926,7 @@ import Score from "../components/Score.astro";
 
   $("#rendgame").on("click", () => {
     if (game.round == 1) {
-      location.href = "/wizard/";
+      location.href = "/";
     } else {
       game.step = "3";
       game.display = "1";
