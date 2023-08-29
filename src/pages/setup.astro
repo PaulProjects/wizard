@@ -8,11 +8,15 @@ import { Icon } from "astro-icon";
     <div class="flex justify-center flex-wrap flex-col p-5 lg:w:1/3 lg:h-2/3">
       <div class="flex flex-nowrap items-center">
         <div class="" id="tl_container">
-          <button class="btn btn-square btn-outline" id="tlbtn" aria-label="Back">
+          <button
+            class="btn btn-square btn-outline"
+            id="tlbtn"
+            aria-label="Back"
+          >
             <Icon name="mdi:chevron-left" class="w-6 h-6" />
           </button>
         </div>
-        <div class="prose prose-sm md:prose-base w-full flex-grow">
+        <div id="title" class="prose prose-sm md:prose-base w-full flex-grow">
           <h1 class="text-center text-6xl">Setup</h1>
         </div>
       </div>
@@ -21,8 +25,11 @@ import { Icon } from "astro-icon";
         <div class="pb-5">
           <h2 class="pt-10 text-3xl">
             Players (3-6)
-            <button class="btn float-right" onclick="modal_info.showModal();" id="help"aria-label="Help"
-              >?</button
+            <button
+              class="btn float-right"
+              onclick="modal_info.showModal(); "
+              id="help"
+              aria-label="Help">?</button
             >
           </h2>
         </div>
@@ -41,7 +48,7 @@ import { Icon } from "astro-icon";
               >✕</button
             >
             <div class="flex flex-col justify-center items-center">
-              <h2 class="font-bold text-3xl mt-5">Add a Player!</h2>
+              <h1 class="font-bold text-3xl mt-5">Add a Player!</h1>
               <input
                 type="text"
                 placeholder="Player Name"
@@ -53,6 +60,7 @@ import { Icon } from "astro-icon";
                 class="input input-bordered input-primary w-2/3"
                 id="addPlayer"><p>Add Player</p></button
               >
+              <div id="recent_players" class="mt-3"></div>
             </div>
           </form>
           <form method="dialog" class="modal-backdrop">
@@ -200,6 +208,27 @@ import { Icon } from "astro-icon";
     </form>
   </dialog>
   <!-- End of modal -->
+  <!-- Start of edit preset and recent players modal -->
+  <dialog id="modal_edit" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5 mb-3">Past games setups:</h2>
+
+        <div class="flex flex-row w-full" id="presets"></div>
+
+        <div class="mt-5"></div>
+        <button class="btn btn-primary btn-block mt-2" id="clearrecent"
+          ><p>Clear Recent Players</p></button
+        >
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
 </Layout>
 
 <style is:global>
@@ -254,6 +283,11 @@ import { Icon } from "astro-icon";
 </style>
 <script
   is:inline
+  src="https://code.jquery.com/jquery-3.7.0.min.js"
+  integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+  crossorigin="anonymous"></script>
+<script
+  is:inline
   src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
 <script>
@@ -272,6 +306,34 @@ import { Icon } from "astro-icon";
   //onclick on button with id showmodal
   $("#showmodal").on("click", function () {
     document.getElementById("input_playername").focus();
+
+    //fill recent_players with players that are in localstorage playerlist but not in the playerlist
+    var recent_players = JSON.parse(localStorage.getItem("playerlist"));
+    $("#recent_players").empty();
+    //loop over max 10 recent players
+    let max = recent_players.length;
+    if (max > 10) {
+      max = 10;
+    }
+    for (var i = 0; i < max; i++) {
+      if (
+        !$("#playerlist")
+          .children()
+          .toArray()
+          .some((e) => {
+            return $(e).find("input[type='text']").val() == recent_players[i];
+          })
+      ) {
+        //append small badges with the names
+        $("#recent_players").append(
+          `<button class='btn btn-sm btn-secondary m-1' id='recent_player${i}'>${recent_players[i]}</button>`
+        );
+
+        $("#recent_player" + i).on("click", function () {
+          addPlayer($(this).text());
+        });
+      }
+    }
   });
   //function that checks if valid 1 and 2 are both true and if so enables the button with id start_button
   function checkValid() {
@@ -299,18 +361,18 @@ import { Icon } from "astro-icon";
   //function user presses enter
   $(document).keyup(function (event) {
     if (event.which === 13) {
-      addPlayer();
+      addPlayer($("#input_playername").val());
     }
   });
 
   //method to add a new player
   $("#addPlayer").on("click", function () {
-    addPlayer();
+    addPlayer($("#input_playername").val());
   });
 
-  function addPlayer() {
+  function addPlayer(playername) {
     //check if the input field with id input_playername is empty
-    if ($("#input_playername").val() == "") {
+    if (playername == null || playername.trim() == "") {
       return;
     }
     //check if the div does not contain more then 6 elements with the id player
@@ -323,18 +385,12 @@ import { Icon } from "astro-icon";
       //change text to max players
       $("#showmodal").text("Max amount of players reached");
     }
-    //extract the name of the player from the input field with the id input_playername
-    var playername = $("#input_playername").val();
-    //add that name to the list of players
-    var playerlist = JSON.parse(localStorage.getItem("playerlist"));
-    playerlist.push(playername);
-    localStorage.setItem("playerlist", JSON.stringify(playerlist));
     //insert
     $("#playerlist").append(
       `<div class='appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box'>
         <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent' id='player' aria-label="playername">
         <input type='checkbox' class='checkbox h-2/4' id='dealer' aria-label="toggle dealer">
-        <img src='/wizard/icon/trash.svg' class='inv h-2/4 pl-2' id='remove'/>
+        <img src='/icon/trash.svg' class='inv h-2/4 pl-2' id='remove'/>
         </div>`
     );
     //set the value of the input field to an empty string and place the text in the newly added input field
@@ -479,6 +535,13 @@ import { Icon } from "astro-icon";
         players.push($(this).find("input[type='text']").val());
       });
 
+    //push the playerlist to localstorage
+    var playerlist = JSON.parse(localStorage.getItem("playerlist"));
+    playerlist.push(...players);
+    //remove any duplicates
+    playerlist = [...new Set(playerlist)];
+    localStorage.setItem("playerlist", JSON.stringify(playerlist));
+    
     var dealer = 0;
     //find out which player is the dealer
     if ($("#rule_random_dealer").prop("checked")) {
@@ -525,8 +588,76 @@ import { Icon } from "astro-icon";
     localStorage.setItem("game", JSON.stringify(game));
     location.href = "/game/";
   });
-  
+
   $("#tlbtn").on("click", function () {
     location.href = "/";
+  });
+
+  //get the presets from localstorage
+  let past_games = JSON.parse(localStorage.getItem("recent_games"));
+  //check if presets is null or the array is empty
+  if (past_games == null || past_games.length == 0) {
+    //add a disabled "no presets yet" button to the presets div
+    $("#presets").append(
+      `<button class='btn btn-block btn-disabled m-2' id='preset0'>no preset games found</button>`
+    );
+  } else {
+    for (let i = 0; i < past_games.length; i++) {
+      let game = past_games[i];
+      let players = JSON.parse(game.players);
+      let rule_1 = game.rule_1;
+      let rule_random_dealer = game.rule_random_dealer;
+
+      //add a div containing the date and underneath the list of players and the rules
+      $("#presets").append(
+        `<div id='preset${i}' class='flex flex-col p-5 border-2 rounded border-white w-full hover:bg-sky-700'>
+            <span>${new Date(game.time_started).toLocaleString()}</span>
+            <div class='flex flex-col w-full'>
+              <div class='flex flex-row w-full'>
+                <div class='flex flex-col w-1/2'>
+                  <div class='flex flex-row w-full'>${players
+                    .map((player) => {
+                      return `<span class="mr-1 ml-1">${player}</span>`;
+                    })
+                    .join("&")}</div>
+                </div>
+              </div>
+            </div>
+          </div>`
+      );
+
+      //add a click event to the button that loads the preset
+      $("#preset" + i).on("click", function () {
+        //clear playerlist and add the preset players
+        $("#playerlist").empty();
+
+        //loop over players and add them
+        for (let i = 0; i < players.length; i++) {
+          addPlayer(players[i]);
+        }
+        if (rule_1 == "true") {
+          $("#rule_1").prop("checked", true);
+        } else {
+          $("#rule_1").prop("checked", false);
+        }
+        if (rule_random_dealer == "true") {
+          $("#rule_random_dealer").prop("checked", true);
+        } else {
+          $("#rule_random_dealer").prop("checked", false);
+        }
+        //close modal
+        modal_edit.close();
+      });
+    }
+  }
+
+  $("#title").on("click", function () {
+    //show modal_edit modal
+    modal_edit.showModal();
+  });
+
+  $("#clearrecent").on("click", function () {
+    localStorage.setItem("playerlist", JSON.stringify([]));
+    location.reload();
   });
 </script>

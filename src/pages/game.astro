@@ -3,7 +3,6 @@ import Layout from "../layouts/Layout.astro";
 import Input from "../components/Input.astro";
 import Score from "../components/Score.astro";
 ---
-
 <Layout title="Wizzard!">
   <div class="prose prose-sm md:prose-base w-full flex-grow">
     <h1 class="text-center text-6xl" id="title">Wizzard</h1>
@@ -120,7 +119,11 @@ import Score from "../components/Score.astro";
   is:inline
   src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"
 ></script>
-
+<script
+    is:inline
+    src="https://code.jquery.com/jquery-3.7.0.min.js"
+    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+    crossorigin="anonymous"></script>
 <script>
   //if localstorage game_active is not true then redirect home
   if (localStorage.getItem("game") == null) {

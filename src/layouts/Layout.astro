@@ -1,4 +1,5 @@
 ---
+import { SEO } from "astro-seo";
 interface Props {
   title: string;
 }
@@ -13,83 +14,104 @@ const { title } = Astro.props;
     <meta name="description" content="Astro description" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="generator" content={Astro.generator} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script async src="//static.getclicky.com/101424379.js"></script>
+    <noscript
+      ><p>
+        <img
+          alt="Clicky"
+          width="1"
+          height="1"
+          src="//in.getclicky.com/101424379ns.gif"
+        />
+      </p></noscript
+    >
     <title>{title}</title>
+    <SEO
+      title="Wizard Card Game Score Counter Tracker and Visualizer"
+      description="Track and visualize your Wizard card game scores with ease using our online score counter and visualizer tool."
+      openGraph={{
+        basic: {
+          title: "Wizard Card Game Score Counter Tracker and Visualizer",
+          type: "website",
+          image: "",
+        },
+      }}
+    />
   </head>
   <body>
     <slot />
   </body>
-</html>
-<script is:inline src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
-<style is:global>
-  @font-face {
-    font-family: "Inter-Regular";
-    src: url("/font/Inter-Regular.woff2") format("woff2");
-    font-weight: normal;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: "Ostrich-Sans-Heavy";
-    font-style: normal;
-    font-weight: bold;
-    src: url("/font/OstrichSans-Heavy.woff2") format("woff2");
-    font-display: swap;
-  }
-  @media (min-width: 1024px) {
-    .box {
-      border: 1px solid #eee;
-      padding: 2rem 2rem 6rem;
-      box-sizing: border-box;
-      border-radius: 3rem;
-      min-height: 45.6rem;
-      width: 29rem;
-      height: auto;
+  <style is:global>
+    @font-face {
+      font-family: "Inter-Regular";
+      src: url("/font/Inter-Regular.woff2") format("woff2");
+      font-weight: normal;
+      font-display: swap;
     }
-  }
-  :root {
-    --accent: 136, 58, 234;
-    --accent-light: 224, 204, 250;
-    --accent-dark: 49, 10, 101;
-    --accent-gradient: linear-gradient(
-      45deg,
-      rgb(var(--accent)),
-      rgb(var(--accent-light)) 30%,
-      white 60%
-    );
-  }
-  h1 {
-    font-family: "Ostrich-Sans-Heavy", sans-serif;
-    font-size: large;
-    font-weight: 500;
-  }
-  h2 {
-    font-family: "Ostrich-Sans-Heavy", sans-serif;
-    font-size: large;
-    font-weight: 400;
-  }
-  p,
-  span {
-    font-family: "Inter-Regular", sans-serif;
-    font-size: 1.2rem;
-    font-weight: 400;
-  }
-  html {
-    font-family: system-ui, sans-serif;
-    background: #13151a;
-    background-size: 224px;
-  }
-  code {
-    font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-      DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-  }
-  * {
-    margin: 0;
-  }
-  .inv {
-    filter: invert(100%);
-  }
-  .hidden {
-    display: none;
-    visibility: hidden;
-  }
-</style>
+    @font-face {
+      font-family: "Ostrich-Sans-Heavy";
+      font-style: normal;
+      font-weight: bold;
+      src: url("/font/OstrichSans-Heavy.woff2") format("woff2");
+      font-display: swap;
+    }
+    @media (min-width: 1024px) {
+      .box {
+        border: 1px solid #eee;
+        padding: 2rem 2rem 6rem;
+        box-sizing: border-box;
+        border-radius: 3rem;
+        min-height: 45.6rem;
+        width: 29rem;
+        height: auto;
+      }
+    }
+    :root {
+      --accent: 136, 58, 234;
+      --accent-light: 224, 204, 250;
+      --accent-dark: 49, 10, 101;
+      --accent-gradient: linear-gradient(
+        45deg,
+        rgb(var(--accent)),
+        rgb(var(--accent-light)) 30%,
+        white 60%
+      );
+    }
+    h1 {
+      font-family: "Ostrich-Sans-Heavy", sans-serif;
+      font-size: large;
+      font-weight: 500;
+    }
+    h2 {
+      font-family: "Ostrich-Sans-Heavy", sans-serif;
+      font-size: large;
+      font-weight: 400;
+    }
+    p,
+    span {
+      font-family: "Inter-Regular", sans-serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+    }
+    html {
+      font-family: system-ui, sans-serif;
+      background: #13151a;
+      background-size: 224px;
+    }
+    code {
+      font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
+        DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+    }
+    * {
+      margin: 0;
+    }
+    .inv {
+      filter: invert(100%);
+    }
+    .hidden {
+      display: none;
+      visibility: hidden;
+    }
+  </style>
+</html>

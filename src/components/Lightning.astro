@@ -179,7 +179,7 @@
     /*=============================================================================*/
     /* Resize on Canvas on Window Resize
   /*=============================================================================*/
-    $(window).on("resize", function () {
+    window.addEventListener("resize", function (event) {
       _this.cw = _this.c.width = window.innerWidth;
       _this.ch = _this.c.height = window.innerHeight;
     });
@@ -243,7 +243,7 @@
   /*=============================================================================*/
   /* Define Canvas and Initialize
   /*=============================================================================*/
-  $(window).on('load', function(){
+  window.addEventListener('load', function(event) {
     if (isCanvasSupported) {
       var c = document.getElementById("canvas");
       var cw = (c.width = window.innerWidth);
