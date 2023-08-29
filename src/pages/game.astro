@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Input from "../components/Input.astro";
 import Score from "../components/Score.astro";
 ---
+
 <Layout title="Wizzard!">
   <div class="prose prose-sm md:prose-base w-full flex-grow">
     <h1 class="text-center text-6xl" id="title">Wizzard</h1>
@@ -60,7 +61,7 @@ import Score from "../components/Score.astro";
             End Game
           </button>
           <button class="btn btn-secondary btn-block mt-5" id="editgame">
-            Edit Scores
+            Edit Game
           </button>
           <button
             class="btn btn-info btn-block mt-2"
@@ -100,6 +101,51 @@ import Score from "../components/Score.astro";
     </form>
   </dialog>
   <!-- End of Settings modal -->
+  <!-- Edit Modal -->
+  <dialog id="modal_edit" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">Edit Game</h2>
+        <div>
+          <input
+            type="text"
+            class="input input-bordered w-full"
+            placeholder="Game Name"
+            id="edit_name"
+          />
+          <!-- Cancel Game Button that navigates to / -->
+          <button class="btn btn-info btn-block mt-2" id="edit_save">
+            Save</button
+          >
+          <button class="btn btn-info btn-block mt-2"> Cancel</button>
+        </div>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <!-- Warning Modal -->
+   <!-- Edit Modal -->
+   <dialog id="modal_attention" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">Info</h2>
+          <span id="info_text"></span>
+          <button class="btn btn-info btn-block mt-2">OK</button>
+        </div>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
 </Layout>
 
 <style>
@@ -120,11 +166,13 @@ import Score from "../components/Score.astro";
   src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"
 ></script>
 <script
-    is:inline
-    src="https://code.jquery.com/jquery-3.7.0.min.js"
-    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
-    crossorigin="anonymous"></script>
+  is:inline
+  src="https://code.jquery.com/jquery-3.7.0.min.js"
+  integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+  crossorigin="anonymous"></script>
 <script>
+  import { fade } from "astro:transitions";
+
   //if localstorage game_active is not true then redirect home
   if (localStorage.getItem("game") == null) {
     window.location.href = "/";
@@ -134,6 +182,8 @@ import Score from "../components/Score.astro";
   const game = JSON.parse(localStorage.getItem("game"));
   //get the players array from localstorage
   const players = JSON.parse(game.players);
+
+  let editmode = false;
 
   function update() {
     if (game.display == "1") {
@@ -150,8 +200,12 @@ import Score from "../components/Score.astro";
   }
   //add a listener to the nav_button
   $("#nav_button").on("click", () => {
-    if (game.step == "3") {
+    if (editmode == true) {
+      //reload page
+      location.reload();
+    } else if (game.step == "3") {
       finish_game();
+      return;
     } else if (game.display == "1") {
       game.display = "2";
       localStorage.setItem("game", JSON.stringify(game));
@@ -186,6 +240,10 @@ import Score from "../components/Score.astro";
   }
   //Score
   function score_switch_view(x) {
+    if (editmode == true) {
+      //reload page
+      location.reload();
+    }
     game.score_display = x;
     localStorage.setItem("game", JSON.stringify(game));
     if (x == "1") {
@@ -344,7 +402,7 @@ import Score from "../components/Score.astro";
     $("#rows").empty();
 
     $("#names").append("<th>Round</th>");
-    //get the names from the game json and place them in the table use jQuery
+    //get the names from the game json and place them in the table
     players.forEach((name, index) => {
       if (index === game.dealer)
         $("#names").append(
@@ -366,12 +424,12 @@ import Score from "../components/Score.astro";
       //add the bets to the row
       for (let j = 0; j < players.length; j++) {
         try {
-          $(`#row${i}`).append(`<td>${score[i][j]}</td>`);
+          $(`#row${i}`).append(`<td id="std${i}${j}">${score[i][j]}</td>`);
         } catch {
           $(`#row${i}`).append(`<td></td>`);
         }
         try {
-          $(`#row${i}`).append(`<td>${bets[i][j]}</td>`);
+          $(`#row${i}`).append(`<td id="btd${i}${j}">${bets[i][j]}</td>`);
         } catch {
           $(`#row${i}`).append(`<td></td>`);
         }
@@ -937,6 +995,90 @@ import Score from "../components/Score.astro";
       update();
     }
   });
+
+  $("#editgame").on("click", () => {
+    //change navtext to exit edit mode
+    $("#navtext").text("Exit Edit Mode");
+    score_switch_view(2);
+    editmode = true;
+
+    //players
+    for (let index = 0; index < players.length; index++) {
+      const player = players[index];
+      $(`#n_${index}`).on("click", () => {
+        document.getElementById("modal_edit").showModal();
+        //set edit_name to the name of the player
+        let old_name = $(`#n_${index}`).text();
+        //remove crown and trailing spaces
+        old_name = old_name.replace("👑", "").trim();
+        $("#edit_name").val(old_name);
+        $("#edit_save").on("click", () => {
+          $("#edit_save").off("click");
+          //get the new name
+          let new_name = $("#edit_name").val();
+          //replace the old name with the new name
+          players[index] = new_name;
+          //update the players in localstorage
+          game.players = JSON.stringify(players);
+          localStorage.setItem("game", JSON.stringify(game));
+          //update the name
+          $(`#n_${index}`).text(new_name);
+        });
+      });
+    }
+    
+    //score
+    //bind click event to each td with id std
+    $("td[id^='std']").on("click", function () {
+      //TODO: crown thing
+      
+      let id = $(this).attr("id");
+      let round = id.substring(3, 4);
+      let player = id.substring(4, 5);
+      let score = JSON.parse(game.score)[round][player];
+      document.getElementById("modal_edit").showModal();
+      $("#edit_name").val(score);
+      $("#edit_save").on("click", () => {
+        $("#edit_save").off("click");
+        let new_score = $("#edit_name").val();
+        let score_array = JSON.parse(game.score);
+        score_array[round][player] = new_score;
+        game.score = JSON.stringify(score_array);
+        localStorage.setItem("game", JSON.stringify(game));
+        $(`#std${round}${player}`).text(new_score);
+      });
+    });
+    
+    //bind click event to each td with id btd
+    $("td[id^='btd']").on("click", function () {
+      let id = $(this).attr("id");
+      let round = id.substring(3, 4);
+      let player = id.substring(4, 5);
+      let bet = JSON.parse(game.bets)[round][player];
+      document.getElementById("modal_edit").showModal();
+      $("#edit_name").val(bet);
+      $("#edit_save").on("click", () => {
+        $("#edit_save").off("click");
+        let new_bet = $("#edit_name").val();
+        //check if new_bet is a positive number else show info modal
+        if (new_bet < 0 || new_bet % 1 != 0) {
+          document.getElementById("modal_attention").showModal();
+          $("#info_text").text("Please enter a positive number");
+          return;
+        }
+        let bet_array = JSON.parse(game.bets);
+        bet_array[round][player] = new_bet;
+        game.bets = JSON.stringify(bet_array);
+        localStorage.setItem("game", JSON.stringify(game));
+        $(`#btd${round}${player}`).text(new_bet);
+      });
+    });
+    //show info modal
+    document.getElementById("modal_attention").showModal();
+    $("#info_text").text("Click on a name or score to edit it");
+  });
+
+  //
   //#endregion
   update();
 </script>

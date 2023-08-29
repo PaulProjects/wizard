@@ -9,7 +9,7 @@
   <p align="center">
     A score tracker and calculator for the popular german card game Wizard
     <br />
-    <a href="https://paulprojects.github.io/wizard/"><strong>Visit Website»</strong></a>
+    <a href="https://wizzard.site/"><strong>Visit Website»</strong></a>
     <br />
     <br />
   </p>
