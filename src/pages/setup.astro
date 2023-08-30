@@ -326,7 +326,7 @@ import { Icon } from "astro-icon";
       ) {
         //append small badges with the names
         $("#recent_players").append(
-          `<button class='btn btn-sm btn-secondary m-1' id='recent_player${i}'>${recent_players[i]}</button>`
+          `<button class='btn btn-sm btn-secondary m-1' id='recent_player${i}'>${recent_players[i]}</button>`,
         );
 
         $("#recent_player" + i).on("click", function () {
@@ -391,7 +391,7 @@ import { Icon } from "astro-icon";
         <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent' id='player' aria-label="playername">
         <input type='checkbox' class='checkbox h-2/4' id='dealer' aria-label="toggle dealer">
         <img src='/icon/trash.svg' class='inv h-2/4 pl-2' id='remove'/>
-        </div>`
+        </div>`,
     );
     //set the value of the input field to an empty string and place the text in the newly added input field
     $("#input_playername").val("");
@@ -541,7 +541,7 @@ import { Icon } from "astro-icon";
     //remove any duplicates
     playerlist = [...new Set(playerlist)];
     localStorage.setItem("playerlist", JSON.stringify(playerlist));
-    
+
     var dealer = 0;
     //find out which player is the dealer
     if ($("#rule_random_dealer").prop("checked")) {
@@ -585,6 +585,7 @@ import { Icon } from "astro-icon";
     if (window.innerWidth < 768) {
       game.score_display = 3;
     }
+
     localStorage.setItem("game", JSON.stringify(game));
     location.href = "/game/";
   });
@@ -599,7 +600,7 @@ import { Icon } from "astro-icon";
   if (past_games == null || past_games.length == 0) {
     //add a disabled "no presets yet" button to the presets div
     $("#presets").append(
-      `<button class='btn btn-block btn-disabled m-2' id='preset0'>no preset games found</button>`
+      `<button class='btn btn-block btn-disabled m-2' id='preset0'>no preset games found</button>`,
     );
   } else {
     for (let i = 0; i < past_games.length; i++) {
@@ -623,7 +624,7 @@ import { Icon } from "astro-icon";
                 </div>
               </div>
             </div>
-          </div>`
+          </div>`,
       );
 
       //add a click event to the button that loads the preset
