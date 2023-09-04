@@ -1,0 +1,22 @@
+<div class="optionbox">
+    <div class="flex flex-row items-center h-full w-full">
+        <div class="form-control pl-3">
+            <label class="cursor-pointer label">
+                <input
+                    type="checkbox"
+                    aria-label={"Button to toggle " + Astro.props.title}
+                    class="checkbox checkbox-secondary"
+                    id={Astro.props.js_id}
+                />
+            </label>
+        </div>
+        <div class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2">
+            <span class="label-text text-xl bold font-bold w-full"
+                >{Astro.props.title}</span
+            >
+            <span class="label-text text-sm bold w-full"
+                >{Astro.props.description}</span
+            >
+        </div>
+    </div>
+</div>

@@ -41,18 +41,13 @@ import Score from "../components/Score.astro";
           <button id="export_data" class="btn btn-info btn-block mt-2">
             Export Data</button
           >
-          <button
-            id="import_data"
-            class="btn btn-info btn-block mt-2"
-            onclick="mo
-              odal()"
-                      >
-            Import Data</button
-          >
-          <button
-            class="btn btn-primary btn-block mt-5"
-            onclick="modal_confirmend.showModal()"
-                      >
+          <button id="import_data" class="btn btn-info btn-block mt-2">
+            Import Data
+          </button>
+          <button id="del_game" class="btn btn-primary btn-block mt-2 hidden">
+            Delete this game
+          </button>
+          <button id="del_all" class="btn btn-primary btn-block mt-2">
             Delete all local data
           </button>
         </div>
@@ -64,16 +59,16 @@ import Score from "../components/Score.astro";
   </dialog>
   <!-- End of Settings modal -->
   <!-- Really End game? modal -->
-  <dialog id="modal_confirmend" class="modal modal-top sm:modal-middle">
+  <dialog id="modal_delete" class="modal modal-top sm:modal-middle">
     <form method="dialog" class="modal-box">
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
         >✕</button
       >
       <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">
+        <h2 class="font-bold text-3xl mt-5" id="modal_del_text">
           Do you really want to delete all data?
         </h2>
-        <p class="pl-10 pr-10">
+        <p class="pl-10 pr-10" id="modal_del_infotext">
           This will remove all stored data about current and past games
           permanently!
         </p>
@@ -119,20 +114,21 @@ import Score from "../components/Score.astro";
   <!-- End of Import modal -->
 
   <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script is:inline src="../scripts/score.js"></script>
   <script
     is:inline
     src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"
   ></script>
   <script
-  is:inline
-  src="https://code.jquery.com/jquery-3.7.0.min.js"
-  integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
-  crossorigin="anonymous"></script>
+    is:inline
+    src="https://code.jquery.com/jquery-3.7.0.min.js"
+    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+    crossorigin="anonymous"></script>
   <script>
     let view = 0; //0 = overview ; 1 = details
     // check if past_games exists in local storage if not return
     let past_games = JSON.parse(localStorage.getItem("recent_games"));
-    if (past_games === null) {
+    if (past_games === null || past_games.length === 0) {
       location.href = "/";
     }
 
@@ -141,9 +137,44 @@ import Score from "../components/Score.astro";
       document.getElementById("modal_settings").open = true;
     });
 
-    $("#rremovedata").on("click", () => {
-      localStorage.clear();
-      location.href = "/";
+    $("#del_game").on("click", () => {
+      //remove all onclick attributes
+      $("#rremovedata").removeAttr("onclick");
+      //show modal_delete
+      document.getElementById("modal_delete").open = true;
+      //change text
+      document.getElementById("modal_del_text").innerHTML =
+        "Do you really want to delete this game?";
+      document.getElementById("modal_del_infotext").innerHTML =
+        "This will remove all stored data about this game permanently!";
+      //add onclick to the button
+      $("#rremovedata").on("click", () => {
+        //get the index of the game
+        let index = past_games.indexOf(Lgame);
+        //remove the game from the array
+        past_games.splice(index, 1);
+        //save the array in localstorage
+        localStorage.setItem("recent_games", JSON.stringify(past_games));
+        //reload the page
+        location.reload();
+      });
+    });
+
+    $("#del_all").on("click", () => {
+      //remove all onclick attributes
+      $("#rremovedata").removeAttr("onclick");
+      //show modal_delete
+      document.getElementById("modal_delete").open = true;
+      //change text
+      document.getElementById("modal_del_text").innerHTML =
+        "Do you really want to delete all data?";
+      document.getElementById("modal_del_infotext").innerHTML =
+        "This will remove all stored data about current and past games permanently!";
+      //add onclick to the button
+      $("#rremovedata").on("click", () => {
+        localStorage.clear();
+        location.reload();
+      });
     });
 
     $("#export_data").on("click", () => {
@@ -185,7 +216,8 @@ import Score from "../components/Score.astro";
 
     // loop through past_games and create a div for each game
     for (let i = 0; i < past_games.length; i++) {
-      let game = past_games[i];
+      window.game = past_games[i];
+      let game = window.game;
       let players = JSON.parse(game.players);
 
       let time_started = game.time_started;
@@ -277,345 +309,13 @@ import Score from "../components/Score.astro";
       //hide past_games and remove hidden from score
       $("#past_games").addClass("hidden");
       $("#score").removeClass("hidden");
+      //remove hidden from del_game
+      $("#del_game").removeClass("hidden");
       //get the game and store it in Lgame
       Lgame = past_games[i];
+      Lgame.step = "3";
       let players = JSON.parse(Lgame.players);
-
-      celebration();
-      
-      $("#downloadbutton").removeClass("hidden");
-      
-      //Confetti
-      confettilauncher();
-      //bind onclick to launch confetti
-      $("#questionbutton").on("click", () => {
-        confettilauncher();
-      });
-      //remove onclick attribute
-      $("#questionbutton").removeAttr("onclick");
-      //change ? to an confetti emoji
-      $("#questionbutton").text("🎉");
-
-      //read game.round and place it in the text with id round
-      document.getElementById(
-        "s_round"
-      ).innerHTML = `${Lgame.round}/${Lgame.max_rounds}`;
-
-      //clear the table
-      $("#names").empty();
-      $("#rows").empty();
-
-      $("#names").append("<th>Round</th>");
-      //get the names from the game json and place them in the table use jQuery
-      players.forEach((name, index) => {
-        if (index === Lgame.dealer)
-          $("#names").append(
-            `<th> <span class="badge badge-secondary" id="n_${index}">${name}</span></th><th>   </th>`
-          );
-        else $("#names").append(`<th id="n_${index}">${name}</th><th>   </th>`);
-      });
-
-      //get bets and tricks arrays using json parse from localstorage
-      const bets = JSON.parse(Lgame.bets);
-      const score = JSON.parse(Lgame.score);
-
-      //fill the table
-      for (let i = 0; i < Lgame.round; i++) {
-        //create a new row
-        $("#rows").append(`<tr id="row${i}"></tr>`);
-        //add the round number to the row
-        $(`#row${i}`).append(`<td>${i + 1}</td>`);
-        //add the bets to the row
-        for (let j = 0; j < score[i].length; j++) {
-          $(`#row${i}`).append(`<td>${score[i][j]}</td>`);
-          $(`#row${i}`).append(`<td>${bets[i][j]}</td>`);
-        }
-      }
-
-      //add the class bg-base-200 to the last element in the table with the rows
-      $("#rows tr:last-child").addClass("bg-base-200");
-
-      $("#top_players").empty();
-
-      let highest = 0;
-      let highest_index = 0;
-      for (let i = 0; i < players.length; i++) {
-        let total = 0;
-        if (highest < score[score.length - 1][i]) {
-          highest = score[score.length - 1][i];
-          highest_index = i;
-        }
-      }
-      //change value of the th with id n_0 to crown
-      $(`#n_${highest_index}`).text($(`#n_${highest_index}`).text() + "  👑");
-
-      let score_sorted = [];
-      for (let i = 0; i < players.length; i++) {
-        score_sorted[i] = [
-          players[i],
-          score[score.length - 1][i],
-          bets[bets.length - 1][i],
-        ];
-      }
-      score_sorted.sort(function (a, b) {
-        return b[1] - a[1];
-      });
-      let max = score_sorted[0][1];
-
-      for (let i = 0; i < players.length; i++) {
-        $("#top_players").append(
-          `<div class="w-full md:w-1/3 bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h2 class="card-title text-3xl lg:text-5xl" id="top_players_${i}"></h2>
-              
-                <p id="top_players_p${i}"> ${score_sorted[i][1]} Points</p>
-                <p id="top_players_b${i}"></p>
-            </div>
-        </div>
-    </div>`
-        );
-        if (score_sorted[i][1] == max) {
-          document.getElementById("top_players_" + i).innerHTML = `👑 ${
-            i + 1
-          }. ${score_sorted[i][0]}`;
-        } else {
-          document.getElementById("top_players_" + i).innerHTML = `${i + 1}. ${
-            score_sorted[i][0]
-          }`;
-        }
-        if (i == Lgame.dealer) {
-          document
-            .getElementById("top_players_" + i)
-            .classList.add("text-blue-500");
-        }
-      }
-
-      //Graph
-
-      let score_chart;
-      if (Lgame.round === 1) {
-        $("#icon_chart").addClass("hidden");
-      } else {
-        $("#icon_chart").removeClass("hidden");
-        $("#chart").remove();
-        $("#chart_container").append('<canvas id="chart"></canvas>');
-        let ctx = document.getElementById("chart").getContext("2d");
-        //destroy the chart
-        score_chart?.destroy();
-        const scores = JSON.parse(Lgame.score);
-
-        //get players
-        //chartjs config that displays the rounds on the x axis and the scores on the y axis while having a own line for each playe
-        score_chart = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: scores.map((score, index) => index + 1),
-            datasets: players.map((pplayer, index) => ({
-              label: pplayer,
-              data: scores.map((score) => score[index]),
-              borderColor: `hsl(${(index * 360) / players.length}, 100%, 50%)`,
-              fill: false,
-              cubicInterpolationMode: "monotone",
-            })),
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: {
-                display: true,
-                title: {
-                  display: true,
-                  text: "Round",
-                },
-              },
-              y: {
-                display: true,
-                title: {
-                  display: true,
-                  text: "Points",
-                },
-              },
-            },
-            plugins: {
-              legend: {
-                labels: {
-                  usePointStyle: true,
-                },
-              },
-            },
-          },
-        });
-      }
-
-      //Bar Graph
-      let score_bar;
-      if (Lgame.round == 1 || Lgame.round == 2) {
-        $("#icon_bar").addClass("hidden");
-      } else {
-        $("#icon_bar").removeClass("hidden");
-        $("#barchart").remove();
-        $("#barchartcontainer").append('<canvas id="barchart"></canvas>');
-        let ctx = document.getElementById("barchart").getContext("2d");
-        //destroy the chart
-        score_bar?.destroy();
-        const scores = JSON.parse(Lgame.score);
-
-        //display the current round in the bar graph
-        let round = Lgame.round - 1;
-
-        //get players
-        //chartjs config that displays the rounds on the x axis and the scores on the y axis while having a own line for each playe
-        score_bar = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: players,
-            datasets: [
-              {
-                label: "Score",
-                data: scores[round - 1],
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                display: true,
-                title: {
-                  display: true,
-                  text: "Points",
-                },
-                beginAtZero: true,
-              },
-            },
-          },
-        });
-      }
-    }
-
-    //confetti js
-    //#region
-    var duration;
-    var end;
-    function confettilauncher() {
-      duration = 20 * 1000;
-      end = Date.now() + duration;
-      confetticannon();
-    }
-
-    function confetticannon() {
-      //if the screen is smaller then 768px launch less particles
-      if (window.innerWidth < 768) {
-        confetti({
-          particleCount: 2,
-          angle: 60,
-          spread: 60,
-          origin: { x: 0 },
-        });
-        // and launch a few from the right edge
-        confetti({
-          particleCount: 2,
-          angle: 120,
-          spread: 60,
-          origin: { x: 1 },
-        });
-      } else {
-        // launch a few confetti from the left edge
-        confetti({
-          particleCount: 5,
-          angle: 60,
-          spread: 60,
-          origin: { x: 0 },
-        });
-        // and launch a few from the right edge
-        confetti({
-          particleCount: 5,
-          angle: 120,
-          spread: 60,
-          origin: { x: 1 },
-        });
-      }
-
-      // keep going until we are out of time
-      if (Date.now() < end) {
-        requestAnimationFrame(confetticannon);
-      }
-    }
-    //#endregion
-
-    //celebration js
-    //#region
-    let celebtime = 250;
-    function celebration() {
-      $(".js-podium").each(function () {
-        var t = $(this);
-        setTimeout(function () {
-          t.addClass("is-visible");
-          var h = t.data("height");
-          t.find(".scoreboard__podium-base")
-            .css("height", h)
-            .addClass("is-expanding");
-        }, celebtime);
-        celebtime += 250;
-      });
-
-      addData();
-    }
-
-    function addData() {
-      //get all playernames and scores
-      const score = JSON.parse(Lgame.score);
-      const players = JSON.parse(Lgame.players);
-      //sort players by score and add to scoreboard
-      let highest = 0;
-      for (let i = 0; i < players.length; i++) {
-        let total = 0;
-        if (highest < score[score.length - 1][i]) {
-          highest = score[score.length - 1][i];
-        }
-      }
-
-      let score_sorted = [];
-      for (let i = 0; i < players.length; i++) {
-        score_sorted[i] = [players[i], score[score.length - 1][i]];
-      }
-      score_sorted.sort(function (a, b) {
-        return b[1] - a[1];
-      });
-      let length = players.length;
-
-      //the winner
-      $("#num_1").text(score_sorted[0][0]);
-      $("#num_1_val").text(score_sorted[0][1]);
-      $("#num_2").text(score_sorted[1][0]);
-      $("#num_2_val").text(score_sorted[1][1]);
-      $("#num_3").text(score_sorted[2][0]);
-      $("#num_3_val").text(score_sorted[2][1]);
-
-      //fill the bottom list
-      for (let i = 1; i < 4; i++) {
-        if (i > length - 3) {
-          $(`#item_${i}`).addClass("hidden");
-          continue;
-        }
-
-        let width = (score_sorted[i + 2][1] / highest) * 100;
-        $("#item_" + i)
-          .find(".scoreboard__title")
-          .text(score_sorted[i + 2][0]);
-        $("#item_" + i)
-          .find(".js-number")
-          .text(score_sorted[i + 2][1]);
-        $("#item_" + i)
-          .find(".scoreboard__bar-bar")
-          .css("width", width + "%");
-        setTimeout(function () {
-          $("#item_" + i).addClass("is-visible");
-        }, celebtime);
-      }
+      updatescore(players, Lgame);
     }
 
     //Switch to graph
@@ -635,75 +335,13 @@ import Score from "../components/Score.astro";
       score_switch_view("5");
     });
 
-    function score_switch_view(x) {
-      if (x == "1") {
-        $("#graph").removeClass("hidden");
-        $("#table").addClass("hidden");
-        $("#top_players").addClass("hidden");
-        $("#celebration").addClass("hidden");
-        $("#bar_graph").addClass("hidden");
-
-        $("#icon_chart").addClass("icon_underline");
-        $("#icon_table").removeClass("icon_underline");
-        $("#icon_top").removeClass("icon_underline");
-        $("#icon_celeb").removeClass("icon_underline");
-        $("#icon_bar").removeClass("icon_underline");
-      } else if (x == "2") {
-        $("#table").removeClass("hidden");
-        $("#graph").addClass("hidden");
-        $("#top_players").addClass("hidden");
-        $("#celebration").addClass("hidden");
-        $("#bar_graph").addClass("hidden");
-
-        $("#icon_chart").removeClass("icon_underline");
-        $("#icon_table").addClass("icon_underline");
-        $("#icon_top").removeClass("icon_underline");
-        $("#icon_celeb").removeClass("icon_underline");
-        $("#icon_bar").removeClass("icon_underline");
-      } else if (x == "3") {
-        $("#table").addClass("hidden");
-        $("#graph").addClass("hidden");
-        $("#top_players").removeClass("hidden");
-        $("#celebration").addClass("hidden");
-        $("#bar_graph").addClass("hidden");
-
-        $("#icon_chart").removeClass("icon_underline");
-        $("#icon_table").removeClass("icon_underline");
-        $("#icon_top").addClass("icon_underline");
-        $("#icon_celeb").removeClass("icon_underline");
-        $("#icon_bar").removeClass("icon_underline");
-      } else if (x == "4") {
-        $("#table").addClass("hidden");
-        $("#graph").addClass("hidden");
-        $("#top_players").addClass("hidden");
-        $("#celebration").removeClass("hidden");
-        $("#bar_graph").addClass("hidden");
-
-        $("#icon_chart").removeClass("icon_underline");
-        $("#icon_table").removeClass("icon_underline");
-        $("#icon_top").removeClass("icon_underline");
-        $("#icon_celeb").addClass("icon_underline");
-        $("#icon_bar").removeClass("icon_underline");
-      } else if (x == 5) {
-        $("#table").addClass("hidden");
-        $("#graph").addClass("hidden");
-        $("#top_players").addClass("hidden");
-        $("#celebration").addClass("hidden");
-        $("#bar_graph").removeClass("hidden");
-
-        $("#icon_chart").removeClass("icon_underline");
-        $("#icon_table").removeClass("icon_underline");
-        $("#icon_top").removeClass("icon_underline");
-        $("#icon_celeb").removeClass("icon_underline");
-        $("#icon_bar").addClass("icon_underline");
-      }
-    }
     //#endregion
 
     $("#tlbtn").on("click", () => {
       if (view == 1) {
         $("#score").addClass("hidden");
         $("#past_games").removeClass("hidden");
+        $("#del_game").addClass("hidden");
         view = 0;
         end = Date.now() - 10;
         confetti.reset();

@@ -1,65 +1,11 @@
 <div class="scoreboard">
-  <div class="scoreboard__podiums">
-    <div class="scoreboard__podium js-podium" data-height="200">
-      <div class="scoreboard__podium-base scoreboard__podium-base--second">
-        <div class="scoreboard__podium-rank">2</div>
-      </div>
-      <div class="scoreboard__podium-number">
-        <p class="scoreboard__text" id="num_2"></p>
-        <small><span class="js-podium-data" id="num_2_val"></span></small>
-      </div>
-    </div>
-    <div class="scoreboard__podium js-podium" data-height="250">
-      <div class="scoreboard__podium-base scoreboard__podium-base--first">
-        <div class="scoreboard__podium-rank">1</div>
-      </div>
-      <div class="scoreboard__podium-number">
-        <p class="scoreboard__text" id="num_1"></p>
-        <small><span class="js-podium-data" id="num_1_val"></span></small>
-      </div>
-    </div>
-    <div class="scoreboard__podium js-podium" data-height="150">
-      <div class="scoreboard__podium-base scoreboard__podium-base--third">
-        <div class="scoreboard__podium-rank">3</div>
-      </div>
-      <div class="scoreboard__podium-number">
-        <p class="scoreboard__text" id="num_3"></p>
-        <small><span class="js-podium-data" id="num_3_val"></span></small>
-      </div>
-    </div>
+  <div class="scoreboard__podiums" id="scoreboard_podium">
   </div>
-  <ul class="scoreboard__items" id="scoreboard__items">
-    <li class="scoreboard__item" id="item_1">
-      <div class="scoreboard__title">Helena Cosmetics</div>
-      <div class="scoreboard__numbers">
-        <span class="js-number">100</span>
-      </div>
-      <div class="scoreboard__bar js-bar">
-        <div class="scoreboard__bar-bar"></div>
-      </div>
-    </li>
-    <li class="scoreboard__item" id="item_2">
-      <div class="scoreboard__title">Helena Cosmetics</div>
-      <div class="scoreboard__numbers">
-        <span class="js-number">100</span>
-      </div>
-      <div class="scoreboard__bar js-bar">
-        <div class="scoreboard__bar-bar"></div>
-      </div>
-    </li>
-    <li class="scoreboard__item" id="item_3">
-      <div class="scoreboard__title">Helena Cosmetics</div>
-      <div class="scoreboard__numbers">
-        <span class="js-number">100</span>
-      </div>
-      <div class="scoreboard__bar js-bar">
-        <div class="scoreboard__bar-bar"></div>
-      </div>
-    </li>
+  <ul class="scoreboard__items" id="scoreboard_items">
   </ul>
 </div>
 
-<style>
+<style is:global>
   .number-holder {
     transition: all 500ms ease-in-out;
   }
@@ -90,7 +36,7 @@
   }
   .scoreboard__title {
     width: 100%;
-    max-width: ;
+    max-width:;
     font-weight: 600;
   }
   .scoreboard__title small {
@@ -141,7 +87,7 @@
     justify-content: space-around;
     margin: 20px auto 100px auto;
     min-height: 350px;
-    max-width: 30%;
+    max-width: 40%;
   }
   .scoreboard__podiums .scoreboard__podium {
     margin: 0 20px;
@@ -231,6 +177,4 @@
   }
 </style>
 
-<script>
-  
-</script>
+<script></script>
