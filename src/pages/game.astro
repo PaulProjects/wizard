@@ -29,17 +29,22 @@ import Alert from "../components/Alert.astro";
       <div class="flex flex-col justify-center items-center">
         <h2 class="font-bold text-3xl mt-5">Settings</h2>
         <div>
-          <Rule
-            title="±1 Rule"
-            description="Requires the amount of possible bids to differ from the total amount of tricks"
-            js_id="rule_1"
-          />
+          <div id="rules">
+            <Rule
+              title="±1 Rule"
+              description="Requires the amount of possible bids to differ from the total amount of tricks"
+              js_id="rule_1"
+            />
+          </div>
 
           <!-- Cancel Game Button that navigates to / -->
           <button class="btn btn-primary btn-block mt-2" id="endgame">
             End Game
           </button>
-          <button class="btn btn-secondary btn-block mt-5 hidden" id="continuegame">
+          <button
+            class="btn btn-secondary btn-block mt-5 hidden"
+            id="continuegame"
+          >
             Continue Game
           </button>
           <button class="btn btn-secondary btn-block mt-5" id="editgame">
@@ -470,7 +475,7 @@ import Alert from "../components/Alert.astro";
         game.score_change = JSON.stringify(score_change);
 
         localStorage.setItem("game", JSON.stringify(game));
-        
+
         console.log(game);
         if (game.max_rounds != "∞" && game.round >= game.max_rounds) {
           game.step = "3";
@@ -508,15 +513,22 @@ import Alert from "../components/Alert.astro";
       $("#endgame").addClass("hidden");
       $("#savequit").addClass("hidden");
       $("#continuegame").removeClass("hidden");
+      $("#rules").addClass("hidden");
     }
     document.getElementById("modal_settings").open = true;
   });
-  
+
   $("#continuegame").on("click", () => {
     $("#questionbutton").click();
-    if(game.round >= game.max_rounds){
+    if (game.round >= game.max_rounds) {
       game.max_rounds = "∞";
     }
+    
+    $("#endgame").removeClass("hidden");
+    $("#savequit").removeClass("hidden");
+    $("#continuegame").addClass("hidden");
+    $("#rules").removeClass("hidden");
+    
     game.step = "1";
     game.display = "1";
     score_switch_view("2", game);

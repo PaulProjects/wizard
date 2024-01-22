@@ -122,6 +122,12 @@ window.updatescore = function updatescore(players, game) {
         if (sorted_playerlist[i][1] == max) {
             sorted_playerlist[i][0] = sorted_playerlist[i][0] + " 👑";
         }
+        //check if the player is the dealer and if so add a 1 in the array else a 0
+        if (i == game.dealer) {
+            sorted_playerlist[i][4] = 1;
+        } else {
+            sorted_playerlist[i][4] = 0;
+        }
         //add the place to the player and give players with the same score the same place
         if (sorted_playerlist[i][1] != lastScore) {
             currentPlace = i + 1;
@@ -150,7 +156,9 @@ window.updatescore = function updatescore(players, game) {
         $("#top_players").append(
             `<div class="w-full bg-base-100 shadow-xl">
                     <div class="card-body">
-                        <h2 class="card-title text-3xl lg:text-5xl" id="top_players_${i}">${sorted_playerlist[i][0]}</h2>
+                        <h2 class="card-title text-3xl lg:text-5xl ${sorted_playerlist[i][4] == 1 ? 'text-secondary' : ''}" id="top_players_${i}">
+                            ${sorted_playerlist[i][0]}
+                        </h2>
               
                         <p id="top_players_p${i}"> ${sorted_playerlist[i][1]} Points</p>
                         <p id="top_players_b${i}"></p>
@@ -199,7 +207,7 @@ window.updatescore = function updatescore(players, game) {
     $("#rows tr:last-child").addClass("bg-base-200");
 
 
-    if (game.round == 1) {
+    if (game.round == 1 || game.round == "2") {
         $("#icon_chart").addClass("hidden");
         $("#icon_bar").addClass("hidden");
     } else {
