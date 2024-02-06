@@ -197,7 +197,7 @@ import Lightning from "../components/Lightning.astro";
   });
 
   document.getElementById("resume_game").addEventListener("click", function () {
-    if (localStorage.getItem("game") !== null) {
+    if(localStorage.getItem("game") !== null){
       location.href = "/game/";
     } else {
       document.getElementById("alert_1").showModal();

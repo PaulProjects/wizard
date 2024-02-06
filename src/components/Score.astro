@@ -25,6 +25,9 @@ import Celebration from "./Celebration.astro";
             <div class="w-8" id="icon_chart">
               <Icon name="mdi:chart-timeline-variant" />
             </div>
+            <div class="w-8" id="icon_analytics">
+              <Icon name="mdi:magnify-scan" />
+            </div>
           </div>
           <button
             class="btn ml-auto"
@@ -68,6 +71,29 @@ import Celebration from "./Celebration.astro";
       <div id="celebration" class="hidden w-full h-full">
         <Celebration />
       </div>
+      <div id="analytics" class="hidden w-full h-full">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="stats bg-secondary text-primary-content">
+            <div class="stat">
+              <div class="stat-title text-primary-content">Best Round</div>
+              <div class="stat-value" id="best_bet_name">Jakob</div>
+              <div class="stat-desc text-primary-content" id="best_bet_desc">
+                Runde 10
+              </div>
+            </div>
+          </div>
+          <div class="stats bg-secondary text-primary-content">
+            <div class="stat">
+              <div class="stat-title text-primary-content">Worst Round</div>
+              <div class="stat-value" id="worst_bet_name">Jakob</div>
+              <div class="stat-desc text-primary-content" id="worst_bet_desc">
+                Runde 10
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="player_stats"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -94,7 +120,7 @@ import Celebration from "./Celebration.astro";
         <div class="mt-2">
           <div class="w-10"><Icon name="mdi:table-account" /></div><p>
             Displays a table containing the score for every player and their bet
-            for that round <br><span class="text-secondary text-xs"
+            for that round <br /><span class="text-secondary text-xs"
               >(just like on the physical score sheet)</span
             >
           </p>
@@ -106,10 +132,10 @@ import Celebration from "./Celebration.astro";
         </div>
         <div class="mt-2">
           <div class="w-10"><Icon name="mdi:chart-timeline-variant" /></div><p>
-            Displays a line chart of the score <br><span
+            Displays a line chart of the score <br /><span
               class="text-secondary text-xs"
-              >(both charts looks better in panorama mode and are disabled for the two
-              rounds)</span
+              >(both charts looks better in panorama mode and are disabled for
+              the two rounds)</span
             >
           </p>
         </div>

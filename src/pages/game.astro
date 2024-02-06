@@ -1,4 +1,5 @@
 ---
+import { Icon } from "astro-icon";
 import Layout from "../layouts/Layout.astro";
 import Input from "../components/Input.astro";
 import Score from "../components/Score.astro";
@@ -13,12 +14,15 @@ import Alert from "../components/Alert.astro";
 
   <div class="hidden" id="input"><Input /></div>
   <div class="" id="score"><Score /></div>
-  <nav
-    class="boxbuttons self-center w-4/5 lg:w-2/3 fixed bottom-8 inset-x-0 mx-auto"
+  <nav id="nav_container"
+    class="boxbuttons self-center w-4/5 lg:w-2/3 fixed bottom-5 inset-x-0 mx-auto join flex justify-center items-center"
   >
-    <button class="btn btn-secondary btn-block" id="nav_button"
-      ><p id="navtext">...</p></button
+    <button class="btn btn-secondary join-item nav_graph" id="chart_nav"
+      ><div id="chart_nav_icon" class="w-6"><Icon name="mdi:chart-box"/></div></button>
+    <button class="btn btn-secondary w-4/5 join-item" id="nav_button"
+      ><p id="navtext">Loading...</p></button
     >
+    <button class="btn btn-secondary join-item nav_graph" id="chart_nav_right"><div class="w-6"></div></button>
   </nav>
   <!-- Settings modal -->
   <dialog id="modal_settings" class="modal modal-top sm:modal-middle">
@@ -180,6 +184,18 @@ import Alert from "../components/Alert.astro";
 
   window.editmode = false;
 
+  function navblue() {
+    $("#chart_nav").removeClass("btn-primary").addClass("btn-secondary");
+    $("#nav_button").removeClass("btn-primary").addClass("btn-secondary");
+    $("#chart_nav_right").removeClass("btn-primary").addClass("btn-secondary");
+  }
+
+  function navred() {
+    $("#chart_nav").removeClass("btn-secondary").addClass("btn-primary");
+    $("#nav_button").removeClass("btn-secondary").addClass("btn-primary");
+    $("#chart_nav_right").removeClass("btn-secondary").addClass("btn-primary");
+  }
+
   //listen for click on all divs with the class optionbox
   $(".optionbox").on("click", function () {
     //check if the user clicked on the checkbox itself
@@ -192,11 +208,24 @@ import Alert from "../components/Alert.astro";
     checkbox.trigger("click");
   });
 
+  function showgraphicon() {
+    $("#chart_nav_icon").removeClass("hidden");
+    $("#nav_button").addClass("join-item");
+    $(".nav_graph").removeClass("hidden");
+  }
+  
+  function hidegraphicon() {
+    $("#chart_nav_icon").addClass("hidden");
+    $("#nav_button").removeClass("join-item");
+    $(".nav_graph").addClass("hidden");
+  }
+  
   function update() {
     if (game.display == "1") {
       //add class="hidden" to input and remove it from score
       document.getElementById("input").classList.add("hidden");
       document.getElementById("score").classList.remove("hidden");
+      hidegraphicon();
 
       //read game.round and place it in the text with id round
       document.getElementById("s_round").innerHTML =
@@ -211,6 +240,7 @@ import Alert from "../components/Alert.astro";
       }
 
       if (game.step == "3") {
+        navblue();
         score_switch_view("4", game);
         $("#icon_celeb").removeClass("hidden");
       } else {
@@ -223,6 +253,7 @@ import Alert from "../components/Alert.astro";
       //add class="hidden" to score and remove it from input
       document.getElementById("score").classList.add("hidden");
       document.getElementById("input").classList.remove("hidden");
+      showgraphicon();
       updateInput();
     }
   }
@@ -241,6 +272,15 @@ import Alert from "../components/Alert.astro";
       update();
     } else {
       Input_confirm();
+    }
+  });
+  
+  $("#chart_nav").on("click", () => {
+    freezebutton();
+    if (game.display == "2") {
+      game.display = "1";
+      localStorage.setItem("game", JSON.stringify(game));
+      update();
     }
   });
 
@@ -269,8 +309,10 @@ import Alert from "../components/Alert.astro";
   function freezebutton() {
     //disable nav_button for 1.5 seconds
     $("#nav_button").addClass("btn-disabled");
+    $(".nav_graph").addClass("btn-disabled");
     setTimeout(function () {
       $("#nav_button").removeClass("btn-disabled");
+      $(".nav_graph").removeClass("btn-disabled");
     }, 500);
   }
 
@@ -290,6 +332,9 @@ import Alert from "../components/Alert.astro";
   $("#icon_bar").on("click", () => {
     score_switch_view("5", game);
   });
+  $("#icon_analytics").on("click", () => {
+    score_switch_view("6", game);
+  });
   //#endregion
 
   //Input
@@ -303,17 +348,17 @@ import Alert from "../components/Alert.astro";
   function updatetotal() {
     if (game.step == "1") {
       $("#total").html(`Total: ${data.reduce((a, b) => +a + +b, 0)}`);
-      if (game.round !== 1 && game.rule_1 == "true") {
+      if (game.round !== 1 && game.rule_1 == true) {
         if (data.reduce((a, b) => +a + +b, 0) === game.round) {
           valid = false;
-          $("#nav_button").removeClass("btn-secondary").addClass("btn-primary");
+          navred();
         } else {
           valid = true;
-          $("#nav_button").removeClass("btn-primary").addClass("btn-secondary");
+          navblue();
         }
       } else {
         valid = true;
-        $("#nav_button").removeClass("btn-primary").addClass("btn-secondary");
+        navblue();
       }
     } else {
       $("#total").html(
@@ -321,11 +366,11 @@ import Alert from "../components/Alert.astro";
       );
       if (data.reduce((a, b) => +a + +b, 0) === game.round) {
         valid = true;
-        $("#nav_button").removeClass("btn-primary").addClass("btn-secondary");
+        navblue();
       } else {
         if (game.rule_expansion == false) {
           valid = false;
-          $("#nav_button").removeClass("btn-secondary").addClass("btn-primary");
+          navred();
         }
       }
     }
@@ -476,7 +521,6 @@ import Alert from "../components/Alert.astro";
 
         localStorage.setItem("game", JSON.stringify(game));
 
-        console.log(game);
         if (game.max_rounds != "∞" && game.round >= game.max_rounds) {
           game.step = "3";
         } else {
@@ -523,12 +567,12 @@ import Alert from "../components/Alert.astro";
     if (game.round >= game.max_rounds) {
       game.max_rounds = "∞";
     }
-    
+
     $("#endgame").removeClass("hidden");
     $("#savequit").removeClass("hidden");
     $("#continuegame").addClass("hidden");
     $("#rules").removeClass("hidden");
-    
+
     game.step = "1";
     game.display = "1";
     score_switch_view("2", game);
@@ -546,7 +590,7 @@ import Alert from "../components/Alert.astro";
   });
 
   //if rule_1 in localstorage is true then check the checkbox
-  if (game.rule_1 == "true") {
+  if (game.rule_1 == true) {
     $("#rule_1").prop("checked", true);
   } else {
     $("#rule_1").prop("checked", false);
@@ -555,11 +599,11 @@ import Alert from "../components/Alert.astro";
   $("#rule_1").on("click", () => {
     //if the checkbox is checked
     if ($("#rule_1").is(":checked")) {
-      game.rule_1 = "true";
+      game.rule_1 = true;
       localStorage.setItem("game", JSON.stringify(game));
       //update the confirm button
     } else {
-      game.rule_1 = "false";
+      game.rule_1 = false;
       localStorage.setItem("game", JSON.stringify(game));
     }
     updatetotal();
@@ -582,6 +626,7 @@ import Alert from "../components/Alert.astro";
     } else {
       game.step = "3";
       game.display = "1";
+      navblue();
       localStorage.setItem("game", JSON.stringify(game));
       update();
     }
