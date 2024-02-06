@@ -768,7 +768,7 @@ import Alert from "../components/Alert.astro";
     $("#range_container").addClass("opacity-0");
 
     let val = amountofrounds($("#playerlist").children().length);
-    $("#range_val").text(val);
+    $("#range_val").val(val);
     $("#rounds_custom_range").val(val);
     $("#rounds_auto").prop("checked", true);
   });

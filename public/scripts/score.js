@@ -266,7 +266,7 @@ window.updatescore = function updatescore(players, game) {
         datasets: [
           {
             label: "Score",
-            data: scores[round - 1],
+            data: scores[round ],
             borderWidth: 1,
           },
         ],
@@ -390,8 +390,8 @@ window.updatescore = function updatescore(players, game) {
       <div class="pb-5">
         <h2 class="pt-10 text-3xl">${playerlist[i][0]}</h2>
       </div>
-      <div class="stats stats-vertical lg:stats-horizontal shadow w-full">
-        <div class="stat">
+      <div class="stats stats-vertical sm:stats-horizontal shadow w-full">
+        <div class="stat mx-auto w-60">
           <div class="stat-figure text-primary">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -407,10 +407,11 @@ window.updatescore = function updatescore(players, game) {
           <div class="stat-title">Bet accuarcy</div>
         </div>
         
-        <div class="stat">
+        <div class="stat mx-auto w-60">
           <div class="stat-figure text-primary">
             <svg
               xmlns="http://www.w3.org/2000/svg"
+              fill="#d97fbe"
               viewBox="0 0 24 24"
               class="inline-block w-8 h-8 fill-current"
               ><path
@@ -418,15 +419,16 @@ window.updatescore = function updatescore(players, game) {
               ></path></svg
             >
           </div>
-          <div class="stat-value text-primary">${average_difference_value}</div>
+          <div class="stat-value text-primary" style="color:#d97fbe;">${average_difference_value}</div>
           <div class="stat-desc">${average_difference_desc}</div>
         </div>
         
-        <div class="stat">
+        <div class="stat mx-auto w-60">
           <div class="stat-figure text-secondary">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
+              fill="#76c4ee"
               class="inline-block w-8 h-8 fill-current"
               ><path
                 d="M18.5,3.5L3.5,18.5L5.5,20.5L20.5,5.5M7,4A3,3 0 0,0 4,7A3,3 0 0,0 7,10A3,3 0 0,0 10,7A3,3 0 0,0 7,4M17,14A3,3 0 0,0 14,17A3,3 0 0,0 17,20A3,3 0 0,0 20,17A3,3 0 0,0 17,14Z"

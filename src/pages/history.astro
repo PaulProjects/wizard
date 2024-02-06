@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import { Icon } from "astro-icon";
 import Score from "../components/Score.astro";
+import ImportGame from "../components/ImportGame.astro";
 ---
 
 <Layout title="Configure the game.">
@@ -86,33 +87,7 @@ import Score from "../components/Score.astro";
     </form>
   </dialog>
   <!-- End of Settings modal -->
-  <!-- Really Import data? modal -->
-  <dialog id="modal_import" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Import</h2>
-        <p>Importing data will overwrite all current data!</p>
-        <input
-          type="file"
-          id="import_file"
-          accept=".json"
-          class="file-input file-input-bordered w-full max-w-xs"
-        />
-        <button class="btn btn-primary btn-block mt-5" id="rimport">
-          Import
-        </button>
-        <button class="btn btn-info btn-block mt-2"> Cancel</button>
-      </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- End of Import modal -->
-
+  <ImportGame />
   <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script is:inline src="../scripts/score.js"></script>
   <script
@@ -175,40 +150,6 @@ import Score from "../components/Score.astro";
         localStorage.clear();
         location.reload();
       });
-    });
-
-    $("#export_data").on("click", () => {
-      let data = JSON.stringify(localStorage);
-      let blob = new Blob([data], { type: "text/plain" });
-      let url = window.URL.createObjectURL(blob);
-      let a = document.createElement("a");
-      a.href = url;
-      a.download = "wizzard(dot)site.json";
-      a.click();
-    });
-
-    $("#import_data").on("click", () => {
-      document.getElementById("modal_settings").close();
-      document.getElementById("modal_import").open = true;
-    });
-
-    $("#rimport").on("click", () => {
-      let file = document.getElementById("import_file").files[0];
-      if (file) {
-        let reader = new FileReader();
-        reader.readAsText(file, "UTF-8");
-        reader.onload = function (evt) {
-          localStorage.clear();
-          var data = JSON.parse(evt.target.result);
-          Object.keys(data).forEach(function (k) {
-            localStorage.setItem(k, data[k]);
-          });
-          location.reload();
-        };
-        reader.onerror = function (evt) {
-          alert("Error reading file");
-        };
-      }
     });
 
     //reverse the array so the newest game is first
@@ -286,12 +227,26 @@ import Score from "../components/Score.astro";
       p_s.sort((a, b) => {
         return b.points - a.points;
       });
+      
+      //give them a position number, two players with the same points will have the same position
+      for (let j = 0; j < p_s.length; j++) {
+        if (j > 0) {
+          if (p_s[j].points === p_s[j - 1].points) {
+            p_s[j].position = p_s[j - 1].position;
+          } else {
+            p_s[j].position = j + 1;
+          }
+        } else {
+          p_s[j].position = j + 1;
+        }
+      }
+      
 
       // loop through players and add them to the table
       for (let j = 0; j < p_s.length; j++) {
         $(`#table${i}`).append(`
         <tr>
-          <th>${j + 1}</th>
+          <th>${p_s[j].position}</th>
           <td>${p_s[j].name}</td>
           <td>${p_s[j].points}</td>
         </tr>

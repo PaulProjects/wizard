@@ -1,29 +1,36 @@
-<div>
-  <div class="wrapper flex justify-center items-center w-full h-full">
-    <div class="flex justify-center flex-wrap flex-col p-5 lg:w:1/3 lg:h-2/3">
-      <div id="title" class="prose prose-sm md:prose-base w-full flex-grow">
-        <h1 class="text-center text-6xl" id="title">WIZZARD</h1>
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Impressum">
+  <div>
+    <div class="wrapper flex justify-center items-center w-full h-full">
+      <div class="flex justify-center flex-wrap flex-col p-5 lg:w:1/3 lg:h-2/3">
+        <div id="title" class="prose prose-sm md:prose-base w-full flex-grow">
+          <h1 class="text-center text-6xl" id="title">WIZZARD</h1>
+        </div>
       </div>
     </div>
+    <div class="text">
+      <br />
+      <p><b>Postanschrift</b></p>
+      <p>Auf der Schanz 47</p>
+      <p>85049 Ingolstadt</p>
+      <br />
+      <p><b>Kontakt:</b></p>
+      <p>E-Mail:info(at)paulbertram.de</p>
+    </div>
   </div>
-  <div class="text">
-    <br />
-    <p><b>Postanschrift</b></p>
-    <p>Auf der Schanz 47</p>
-    <p>85049 Ingolstadt</p>
-    <br />
-    <p><b>Kontakt:</b></p>
-    <p>E-Mail:info(at)paulbertram.de</p>
-  </div>
-</div>
-
+</Layout>
 <style>
   .impressum-title {
     text-align: center;
   }
 
   .text {
-    font: 1em "Roboto", sans-serif;
+    font:
+      1em "Roboto",
+      sans-serif;
     text-align: center;
     margin: 0 auto;
     width: 50%;

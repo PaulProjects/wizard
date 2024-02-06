@@ -14,15 +14,21 @@ import Alert from "../components/Alert.astro";
 
   <div class="hidden" id="input"><Input /></div>
   <div class="" id="score"><Score /></div>
-  <nav id="nav_container"
+  <nav
+    id="nav_container"
     class="boxbuttons self-center w-4/5 lg:w-2/3 fixed bottom-5 inset-x-0 mx-auto join flex justify-center items-center"
   >
     <button class="btn btn-secondary join-item nav_graph" id="chart_nav"
-      ><div id="chart_nav_icon" class="w-6"><Icon name="mdi:chart-box"/></div></button>
+      ><div id="chart_nav_icon" class="w-6">
+        <Icon name="mdi:chart-box" />
+      </div></button
+    >
     <button class="btn btn-secondary w-4/5 join-item" id="nav_button"
       ><p id="navtext">Loading...</p></button
     >
-    <button class="btn btn-secondary join-item nav_graph" id="chart_nav_right"><div class="w-6"></div></button>
+    <button class="btn btn-secondary join-item nav_graph" id="chart_nav_right"
+      ><div class="w-6"></div></button
+    >
   </nav>
   <!-- Settings modal -->
   <dialog id="modal_settings" class="modal modal-top sm:modal-middle">
@@ -155,6 +161,30 @@ import Alert from "../components/Alert.astro";
   }
 </style>
 
+<style is:global>
+  .range_number {
+    display: inline-block;
+    width: 10px; /* adjust this value as needed */
+    text-align: center;
+  }
+  
+  .range_number_small_font {
+    font-size: 0.7em;
+  }
+  
+  .range_number_highlighted {
+    display: inline-block;
+    width: 20px; /* adjust this value as needed */
+    text-align: center;
+    background-color: #76c4ee;
+    border-radius: 10px;
+    color: black;
+    /* move the border up one pixel*/
+    margin: 0px;
+    margin-bottom: 2px;
+  }
+</style>
+
 <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script
   is:inline
@@ -183,6 +213,8 @@ import Alert from "../components/Alert.astro";
   const players = JSON.parse(game.players);
 
   window.editmode = false;
+  
+  let input_block_reload = false;
 
   function navblue() {
     $("#chart_nav").removeClass("btn-primary").addClass("btn-secondary");
@@ -213,13 +245,13 @@ import Alert from "../components/Alert.astro";
     $("#nav_button").addClass("join-item");
     $(".nav_graph").removeClass("hidden");
   }
-  
+
   function hidegraphicon() {
     $("#chart_nav_icon").addClass("hidden");
     $("#nav_button").removeClass("join-item");
     $(".nav_graph").addClass("hidden");
   }
-  
+
   function update() {
     if (game.display == "1") {
       //add class="hidden" to input and remove it from score
@@ -274,15 +306,17 @@ import Alert from "../components/Alert.astro";
       Input_confirm();
     }
   });
-  
+
   $("#chart_nav").on("click", () => {
+    navblue();
+    input_block_reload = true;
     freezebutton();
     if (game.display == "2") {
       game.display = "1";
       localStorage.setItem("game", JSON.stringify(game));
       update();
     }
-  });
+  });  
 
   function finish_game() {
     //get recent_games from localstorage and if it doesnt exist create an empty array
@@ -385,6 +419,11 @@ import Alert from "../components/Alert.astro";
   }
 
   function updateInput() {
+    if(input_block_reload){
+      input_block_reload = false;
+      updatetotal();
+      return;
+    }
     $("#players").empty();
 
     $("#navtext").text("Confirm");
@@ -415,7 +454,7 @@ import Alert from "../components/Alert.astro";
             <div class="card-body">
                 <h2 class="card-title text-2xl">${player}</h2>
                 <input type="range" min="0" max="${max}" value="0" class="range" step="1" aria-label="Input" />
-<div class="w-full flex justify-between text-xl range-lg insets">
+<div class="w-full flex justify-between text-xl range-lg insets pl-1 pr-1">
 
 </div>
                
@@ -439,14 +478,20 @@ import Alert from "../components/Alert.astro";
           //if i is equal to the bet hightlight it
           if (i == JSON.parse(game.bets)[game.round - 1][index]) {
             $(`.insets:eq(${index})`).append(
-              `<span class="badge badge-secondary">${i}</span>`,
+              `<span class="range_number_highlighted">${i}</span>`,
             );
           } else {
-            $(`.insets:eq(${index})`).append(`<span>${i}</span>`);
+            $(`.insets:eq(${index})`).append(`<span class="range_number">${i}</span>`);
           }
         } else {
-          $(`.insets:eq(${index})`).append(`<span>${i}</span>`);
+          $(`.insets:eq(${index})`).append(`<span class="range_number">${i}</span>`);
         }
+      }
+      
+      //if the round is over 10 then make the font smaller
+      if (max > 10) {
+        $(".range_number").addClass("range_number_small_font");
+        $(".range_number_highlighted").addClass("range_number_small_font");
       }
 
       //add listener to the insets to update the range setting it to the value

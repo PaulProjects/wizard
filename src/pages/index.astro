@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import { Icon } from "astro-icon";
 import Lightning from "../components/Lightning.astro";
+import ImportGame from "../components/ImportGame.astro";
 ---
 
 <Layout title="Wizzard!">
@@ -62,9 +63,9 @@ import Lightning from "../components/Lightning.astro";
       >
       <h1 class="font-bold text-xl">About</h1>
       <p class="py-4">
-        This site is a score counter for the popular card game Wizard. It is still
-        work in progress and I will add more features from time to time. If you have
-        any suggestions or feedback, please let me know. Contact:
+        This site is a score counter for the popular card game Wizard. It is
+        still work in progress and I will add more features from time to time.
+        If you have any suggestions or feedback, please let me know. Contact:
         hi@paulbertram.de Have fun!
       </p>
       <p class="py-4">
@@ -99,12 +100,9 @@ import Lightning from "../components/Lightning.astro";
       <p class="import_data">
         If you already exported data at some point you can import it right back!
       </p>
-      <button
-        class="btn btn-info btn-block mt-2 import_data"
-        onclick="modal_import.showModal()"
-              >
-        Import Data</button
-      >
+      <button id="import_data" class="btn btn-info btn-block mt-2">
+        Import Data
+      </button>
       <button class="btn btn-info btn-block mt-2"> Cancel</button>
     </form>
     <form method="dialog" class="modal-backdrop">
@@ -124,48 +122,19 @@ import Lightning from "../components/Lightning.astro";
         gamehistory.
       </p>
       <p class="import_data">
-        If you already exported data at some point you can import it right back!
+        If you exported an active game at some point you can import it right back!
       </p>
-
-      <button
-        class="btn btn-info btn-block mt-2 import_data"
-        onclick="modal_import.showModal()"
-              >
-        Import Data</button
-      >
+      <div class="pb-5"> </div>
+      <button id="import_data" class="btn btn-info btn-block mt-2">
+        Import Data
+      </button>
       <button class="btn btn-info btn-block mt-2"> Cancel</button>
     </form>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>
     </form>
   </dialog>
-  <!-- Really Import data? modal -->
-  <dialog id="modal_import" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Import</h2>
-        <p>Importing data will overwrite all current data!</p>
-        <input
-          type="file"
-          id="import_file"
-          accept="application/json"
-          aria-label="Upload JSON file"
-          class="file-input file-input-bordered w-full max-w-xs"
-        />
-        <button class="btn btn-primary btn-block mt-5" id="rimport">
-          Import
-        </button>
-        <button class="btn btn-info btn-block mt-2"> Cancel</button>
-      </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- End of Import modal -->
+  <ImportGame />
   <Lightning />
 </Layout>
 
@@ -197,7 +166,7 @@ import Lightning from "../components/Lightning.astro";
   });
 
   document.getElementById("resume_game").addEventListener("click", function () {
-    if(localStorage.getItem("game") !== null){
+    if (localStorage.getItem("game") !== null) {
       location.href = "/game/";
     } else {
       document.getElementById("alert_1").showModal();
@@ -213,15 +182,6 @@ import Lightning from "../components/Lightning.astro";
         document.getElementById("alert_2").showModal();
       }
     });
-
-  //hide import_data button if localstorage already contains recent_games
-  if (localStorage.getItem("recent_games") !== null) {
-    //hide all elements with the import_data class
-    var elements = document.getElementsByClassName("import_data");
-    for (var i = 0; i < elements.length; i++) {
-      elements[i].style.display = "none";
-    }
-  }
 
   document.getElementById("rimport").addEventListener("click", function () {
     let file = document.getElementById("import_file").files[0];
