@@ -1,12 +1,3 @@
-<!-- Really Import data? modal
-    
-    <button id="export_data" class="btn btn-info btn-block mt-2">
-        Export Data</button
-    >
-    <button id="import_data" class="btn btn-info btn-block mt-2">
-        Import Data
-    </button>
- -->
 <dialog id="modal_import" class="modal modal-top sm:modal-middle">
     <form method="dialog" class="modal-box">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -36,7 +27,6 @@
             <input
                 type="file"
                 id="import_file"
-                accept=".json"
                 class="file-input file-input-bordered w-full max-w-xs"
             />
             <button class="btn btn-info btn-block mt-5" id="rimport">
@@ -52,12 +42,11 @@
 <!-- End of Import modal -->
 
 <script>
-    document
-        .getElementById("import_data")
-        .addEventListener("click", function () {
-            document.getElementById("modal_settings").close();
+    document.querySelectorAll(".import_data").forEach((element) => {
+        element.addEventListener("click", function () {
             document.getElementById("modal_import").open = true;
         });
+    });
 
     document.getElementById("rimport").addEventListener("click", () => {
         let file = document.getElementById("import_file").files[0];
@@ -65,47 +54,54 @@
             let reader = new FileReader();
             reader.readAsText(file, "UTF-8");
             reader.onload = function (evt) {
-                var data = JSON.parse(evt.target.result);
-                let past_games = JSON.parse(
-                    localStorage.getItem("recent_games"),
-                );
-                Object.keys(data).forEach(function (k) {
-                    if (k == "recent_games") {
-                        //loop over the array and add the games to past_games if they are not already in there compare by time_started and time_ended
-                        let new_games = JSON.parse(data[k]);
-                        if (!past_games) past_games = [];
-                        for (let i = 0; i < new_games.length; i++) {
-                            let pgame = new_games[i];
-                            let exists = false;
-                            for (let j = 0; j < past_games.length; j++) {
-                                if (
-                                    pgame.time_started ==
-                                        past_games[j].time_started &&
-                                    pgame.time_ended == past_games[j].time_ended
-                                ) {
-                                    exists = true;
+                try {
+                    let didsomething = false;
+                    let data = JSON.parse(evt.target.result);
+                    let past_games = JSON.parse(
+                        localStorage.getItem("recent_games"),
+                    );
+                    Object.keys(data).forEach(function (k) {
+                        if (k == "recent_games") {
+                            //loop over the array and add the games to past_games if they are not already in there compare by time_started and time_ended
+                            let new_games = JSON.parse(data[k]);
+                            if (!past_games) past_games = [];
+                            for (let i = 0; i < new_games.length; i++) {
+                                let pgame = new_games[i];
+                                let exists = false;
+                                for (let j = 0; j < past_games.length; j++) {
+                                    if (
+                                        pgame.time_started ==
+                                            past_games[j].time_started &&
+                                        pgame.time_ended ==
+                                            past_games[j].time_ended
+                                    ) {
+                                        exists = true;
+                                    }
+                                }
+                                if (!exists) {
+                                    past_games.push(pgame);
+                                    didsomething = true;
                                 }
                             }
-                            if (!exists) {
-                                console.log("pushed");
-                                past_games.push(pgame);
-                            } else {
-                                console.log("exists");
+                        } else if (k == "game") {
+                            if (
+                                document.getElementById(
+                                    "overwrite_current_game",
+                                ).checked
+                            ) {
+                                localStorage.setItem(k, data[k]);
+                                didsomething = true;
                             }
                         }
-                    } else if (k == "game") {
-                        if (
-                            document.getElementById("overwrite_current_game")
-                                .checked
-                        ) {
-                            console.log("overwriting");
-                            localStorage.setItem(k, data[k]);
-                        } else {
-                            console.log("not overwriting");
-                        }
+                    });
+                    if (didsomething) {
+                        location.reload();
+                    } else {
+                        alert("No new games found in the file!");
                     }
-                });
-                location.reload();
+                } catch (e) {
+                    alert("Error reading file!");
+                }
             };
             reader.onerror = function (evt) {
                 alert("Error reading file");

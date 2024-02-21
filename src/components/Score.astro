@@ -6,7 +6,7 @@ import Celebration from "./Celebration.astro";
 <div class="wrapper flex justify-center items-center w-screen h-full">
   <div class="flex items-center justify-center flex-col p-5 w-full lg:h-2/3">
     <div class="w-full lg:w-2/3">
-      <div class="pb-5">
+      <div class="sticky top-0 bg-base-100">
         <div class="flex flex-row items-center pl-5 lg:pl-0 gap-4">
           <h2 class="text-3xl h-full" id="s_round"></h2>
           <div class="flex flex-row flex-nowrap gap-3 pb-1 items-center">
@@ -29,13 +29,12 @@ import Celebration from "./Celebration.astro";
               <Icon name="mdi:magnify-scan" />
             </div>
           </div>
-          <button
-            class="btn ml-auto"
-            id="questionbutton"
-            onclick="
-            modal_info.showModal();
-            ">?</button
-          >
+          <button class="btn ml-auto"
+              onclick="modal_settings.showModal();">
+            <div class="w-4">
+              <Icon name="mdi:cog" />
+            </div>
+          </button>
         </div>
       </div>
       <!-- Table -->
