@@ -41,12 +41,6 @@ import Alert from "../components/Alert.astro";
         <h2 class="font-bold text-3xl mt-5">Settings</h2>
         <div>
           <button
-            class="btn btn-secondary btn-block mt-5 hidden"
-            id="continuegame"
-          >
-            Continue Game
-          </button>
-          <button
             class="btn btn-secondary btn-block mt-2"
             id="questionbutton"
             onclick="
@@ -74,6 +68,12 @@ import Alert from "../components/Alert.astro";
           </button>
           <button class="btn btn-primary btn-block mt-2" id="endgame">
             Finish Game
+          </button>
+          <button
+            class="btn btn-secondary btn-block mt-5 hidden"
+            id="continuegame"
+          >
+            Continue Game
           </button>
         </div>
       </div>
@@ -188,7 +188,9 @@ import Alert from "../components/Alert.astro";
           </div>
           <select class="select select-bordered" id="select_dealer"> </select>
         </label>
-        <button class="btn btn-info btn-block mt-2" id="select_dealer_save">Save</button>
+        <button class="btn btn-info btn-block mt-2" id="select_dealer_save"
+          >Save</button
+        >
       </div>
     </form>
     <form method="dialog" class="modal-backdrop">
@@ -215,8 +217,19 @@ import Alert from "../components/Alert.astro";
 <style is:global>
   .range_number {
     display: inline-block;
+    margin: 0 auto;
     width: 10px; /* adjust this value as needed */
     text-align: center;
+  }
+  
+  /* select first range_number */
+  .range_number:first-child {
+    margin-left: 0;
+  }
+  
+  /* select last range_number */
+  .range_number:last-child {
+    margin-right: 0;
   }
 
   .range_number_small_font {
@@ -225,14 +238,22 @@ import Alert from "../components/Alert.astro";
 
   .range_number_highlighted {
     display: inline-block;
+    margin: 0 auto;
     width: 20px; /* adjust this value as needed */
     text-align: center;
     background-color: #76c4ee;
     border-radius: 10px;
     color: black;
     /* move the border up one pixel*/
-    margin: 0px;
     margin-bottom: 2px;
+  }
+  
+  .range_number_highlighted:first-child {
+    margin-left: 0;
+  }
+  
+  .range_number_highlighted:last-child {
+    margin-right: 0;
   }
 </style>
 
@@ -326,6 +347,10 @@ import Alert from "../components/Alert.astro";
         navblue();
         score_switch_view("4", game);
         $("#icon_celeb").removeClass("hidden");
+        $("#endgame").addClass("hidden");
+        $("#savequit").addClass("hidden");
+        $("#continuegame").removeClass("hidden");
+        $("#rules").addClass("hidden");
       } else {
         score_switch_view(game.score_display, game);
         $("#icon_celeb").addClass("hidden");
@@ -420,10 +445,8 @@ import Alert from "../components/Alert.astro";
   $("#icon_analytics").on("click", () => {
     score_switch_view("6", game);
   });
-  //#endregion
 
   //Input
-  //#region
   let valid = true;
 
   //an array to store the scores
@@ -469,6 +492,68 @@ import Alert from "../components/Alert.astro";
     }
   }
 
+  function addplayertoInput(index, max) {
+    let player = players[index];
+    console.log(player);
+    $("#players").append(
+      `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-2xl">${player}</h2>
+                <input type="range" min="0" max="${max}" value="0" class="range" step="1" aria-label="Input" id="input_range_${index}"/>
+                <div class="w-full flex justify-between text-xl range-lg insets pl-1 pr-1" id="input_insets_${index}">
+                </div>
+            </div>
+        </div>
+    </div>`,
+    );
+
+    $(`#input_range_${index}`).on("input", function () {
+      data[index] = $(this).val();
+      //update the total
+      updatetotal();
+      //underline the inset that matches the value
+      $(`#input_insets_${index} span`).removeClass("underline");
+      $(`#input_insets_${index} span:eq(${data[index]})`).addClass("underline");
+    });
+
+    //add insets as max
+    for (let i = 0; i <= max; i++) {
+      if (game.step == "2") {
+        //if i is equal to the bet hightlight it
+        if (i == JSON.parse(game.bets)[game.round - 1][index]) {
+          $(`#input_insets_${index}`).append(
+            `<span class="range_number_highlighted">${i}</span>`,
+          );
+        } else {
+          $(`#input_insets_${index}`).append(
+            `<span class="range_number">${i}</span>`,
+          );
+        }
+      } else {
+        $(`#input_insets_${index}`).append(
+          `<span class="range_number">${i}</span>`,
+        );
+      }
+    }
+
+    //if the round is over 10 then make the font smaller
+    if (max > 10) {
+      $(".range_number").addClass("range_number_small_font");
+      $(".range_number_highlighted").addClass("range_number_small_font");
+    }
+
+    //add listener to the insets to update the range setting it to the value
+    $(`#input_insets_${index} span`).on("click", function () {
+      $(`#input_range_${index}`).val($(this).html());
+      data[index] = $(this).html();
+      //update the total
+      updatetotal();
+      //underline the inset that matches the value
+      $(`#input_insets_${index} span`).removeClass("underline");
+      $(`#input_insets_${index} span:eq(${data[index]})`).addClass("underline");
+    });
+  }
+
   function updateInput() {
     if (input_block_reload) {
       input_block_reload = false;
@@ -489,77 +574,25 @@ import Alert from "../components/Alert.astro";
 
     const max = game.round;
 
-    //an array to store the scores
+    console.log(game.dealer);
+    console.log(players);
+    //clear data
     data = [];
     //fill it with 0 for each player
     for (let index = 0; index < players.length; index++) {
       data[index] = 0;
     }
 
-    //loop through players and create a div for each player
-    for (let index = 0; index < players.length; index++) {
-      const player = players[index];
-      //create a div
-      $("#players").append(
-        `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h2 class="card-title text-2xl">${player}</h2>
-                <input type="range" min="0" max="${max}" value="0" class="range" step="1" aria-label="Input" />
-<div class="w-full flex justify-between text-xl range-lg insets pl-1 pr-1">
-
-</div>
-               
-            </div>
-        </div>
-    </div>`,
-      );
-      //add event listener to range to update the scores array
-      $(`.range:eq(${index})`).on("input", function () {
-        data[index] = $(this).val();
-        //update the total
-        updatetotal();
-        //underline the inset that matches the value
-        $(`.insets:eq(${index}) span`).removeClass("underline");
-        $(`.insets:eq(${index}) span:eq(${data[index]})`).addClass("underline");
-      });
-
-      //add insets as max
-      for (let i = 0; i <= max; i++) {
-        if (game.step == "2") {
-          //if i is equal to the bet hightlight it
-          if (i == JSON.parse(game.bets)[game.round - 1][index]) {
-            $(`.insets:eq(${index})`).append(
-              `<span class="range_number_highlighted">${i}</span>`,
-            );
-          } else {
-            $(`.insets:eq(${index})`).append(
-              `<span class="range_number">${i}</span>`,
-            );
-          }
-        } else {
-          $(`.insets:eq(${index})`).append(
-            `<span class="range_number">${i}</span>`,
-          );
-        }
-      }
-
-      //if the round is over 10 then make the font smaller
-      if (max > 10) {
-        $(".range_number").addClass("range_number_small_font");
-        $(".range_number_highlighted").addClass("range_number_small_font");
-      }
-
-      //add listener to the insets to update the range setting it to the value
-      $(`.insets:eq(${index}) span`).on("click", function () {
-        $(`.range:eq(${index})`).val($(this).html());
-        data[index] = $(this).html();
-        //update the total
-        updatetotal();
-        //underline the inset that matches the value
-        $(`.insets:eq(${index}) span`).removeClass("underline");
-        $(`.insets:eq(${index}) span:eq(${data[index]})`).addClass("underline");
-      });
+    //loop through players from the dealer to the end
+    for (let i = game.dealer + 1; i < players.length; i++) {
+      addplayertoInput(i, max);
     }
+
+    // loop through players from the start to the dealer
+    for (let i = 0; i <= game.dealer; i++) {
+      addplayertoInput(i, max);
+    }
+
     updatetotal();
   }
 
@@ -646,24 +679,7 @@ import Alert from "../components/Alert.astro";
     }
   }
 
-  //#endregion
-
-  ////////////////////////////////////////////
-  //open modal_settings on click on title
-  //#region
-  $("#title").on("click", () => {
-    if (game.step == "3") {
-      //hide endgame and save and quit button
-      $("#endgame").addClass("hidden");
-      $("#savequit").addClass("hidden");
-      $("#continuegame").removeClass("hidden");
-      $("#rules").addClass("hidden");
-    }
-    document.getElementById("modal_settings").open = true;
-  });
-
   $("#continuegame").on("click", () => {
-    $("#questionbutton").click();
     if (game.round >= game.max_rounds) {
       game.max_rounds = "∞";
     }
@@ -708,11 +724,6 @@ import Alert from "../components/Alert.astro";
     }
     updatetotal();
   });
-  //#endregion
-  ////////////////////////////////////////////
-
-  //celebration js
-  //#region
 
   $("#endgame").on("click", () => {
     document.getElementById("modal_settings").close();
@@ -740,18 +751,25 @@ import Alert from "../components/Alert.astro";
 
     //players
     for (let index = 0; index < players.length; index++) {
-      const player = players[index];
+      let player = players[index];
       $(`#n_${index}`).on("click", () => {
         document.getElementById("modal_edit").showModal();
         //set edit_name to the name of the player
         let old_name = $(`#n_${index}`).text();
-        //remove crown and trailing spaces
-        old_name = old_name.replace("👑", "").trim();
+        let had_crown = false;
+        if (old_name.includes("👑")) {
+          had_crown = true;
+          old_name = old_name.replace("👑", "");
+        }
+        old_name = old_name.trim();
         $("#edit_name").val(old_name);
         $("#edit_save").on("click", () => {
           $("#edit_save").off("click");
           //get the new name
           let new_name = $("#edit_name").val();
+          if (had_crown) {
+            new_name = new_name + " 👑";
+          }
           //replace the old name with the new name
           players[index] = new_name;
           //update the players in localstorage
@@ -836,7 +854,5 @@ import Alert from "../components/Alert.astro";
     location.reload();
   });
 
-  //
-  //#endregion
   update();
 </script>
