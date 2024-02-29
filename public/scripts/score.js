@@ -32,8 +32,8 @@ window.updatescore = function updatescore(players, game) {
     */
 
   //bets and tricks arrays using json parse from localstorage
-  const bets = JSON.parse(game.bets);
-  const score = JSON.parse(game.score);
+  const bets = game.bets;
+  const score = game.score;
 
   //playerlist sorted by score and a unsorted playerlist
   let playerlist = [];
@@ -195,22 +195,22 @@ window.updatescore = function updatescore(players, game) {
     let ctx = document.getElementById("chart").getContext("2d");
     //destroy the chart
     score_chart?.destroy();
-    const scores = JSON.parse(game.score);
+    let graph_score = [...game.score];
     //add a round 0 with points 0 to the beginning of the score array
     let zero_line = [];
     for (let i = 0; i < players.length; i++) {
       zero_line.push(0);
     }
-    scores.unshift(zero_line);
+    graph_score.unshift(zero_line);
 
     //chartjs config that displays the rounds on the x axis and the scores on the y axis while having a own line for each playe
     score_chart = new Chart(ctx, {
       type: "line",
       data: {
-        labels: scores.map((score, index) => index + 1),
+        labels: graph_score.map((graph_score, index) => index + 1),
         datasets: players.map((pplayer, index) => ({
           label: pplayer,
-          data: scores.map((score) => score[index]),
+          data: graph_score.map((graph_score) => graph_score[index]),
           borderColor: `hsl(${(index * 360) / players.length}, 100%, 50%)`,
           fill: false,
           cubicInterpolationMode: "monotone",
@@ -266,7 +266,7 @@ window.updatescore = function updatescore(players, game) {
         datasets: [
           {
             label: "Score",
-            data: scores[round ],
+            data: graph_score[round],
             borderWidth: 1,
           },
         ],
@@ -290,7 +290,7 @@ window.updatescore = function updatescore(players, game) {
     //Analytics
     $("#icon_analytics").removeClass("hidden");
     //analyze the score_change and save the highest and lowest score
-    let score_change = JSON.parse(game.score_change);
+    let score_change = game.score_change;
     let score_change_max_points = 0;
     let score_change_max_round = 0;
     let score_change_max_index = 0;
@@ -317,8 +317,8 @@ window.updatescore = function updatescore(players, game) {
       }
     }
     //get the bets and tricks
-    let tricks = JSON.parse(game.tricks);
-    let bets = JSON.parse(game.bets);
+    let tricks = game.tricks;
+    let bets = game.bets;
     //get the highest and lowest bet and tricks
     score_change_max_bet = bets[score_change_max_round][score_change_max_index];
     score_change_max_tricks = tricks[score_change_max_round][score_change_max_index];

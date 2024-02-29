@@ -31,6 +31,9 @@ import Alert from "../components/Alert.astro";
           aria-label="Help">?</button
         >
       </div>
+      <h2 class="text-center text-2xl" id="loading">
+        Loading...
+       </h2>
       <!-- Player list -->
       <div class="lg:pr-10 lg:pl-10">
         <div class="pb-5">
@@ -631,12 +634,12 @@ import Alert from "../components/Alert.astro";
       rule_crowdchaos: $("#rule_crowdchaos").prop("checked"),
       round: 1,
       max_rounds: round_amount,
-      players: JSON.stringify(players),
-      bets: JSON.stringify([]),
-      tricks: JSON.stringify([]),
-      score: JSON.stringify([]),
-      score_change: JSON.stringify([]),
-      step: "1",
+      players: players,
+      bets: [],
+      tricks: [],
+      score: [],
+      score_change: [],
+      step: 1,
       display: 1,
       score_display: 3,
       time_started: Date.now(),
@@ -667,7 +670,7 @@ import Alert from "../components/Alert.astro";
     past_games.reverse();
     for (let i = 0; i < past_games.length; i++) {
       let game = past_games[i];
-      let players = JSON.parse(game.players);
+      let players = game.players;
       let rule_1 = game.rule_1;
       let rule_random_dealer = game.rule_random_dealer;
       let rule_expansion = game.rule_expansion;
@@ -783,4 +786,10 @@ import Alert from "../components/Alert.astro";
   $("#rounds_custom_range").on("input", function () {
     $("#range_val").val($(this).val());
   });
+  
+  document.onreadystatechange = function () {
+    if (document.readyState === "complete") {
+      document.getElementById("loading").classList.add("hidden");
+    }
+  };
 </script>

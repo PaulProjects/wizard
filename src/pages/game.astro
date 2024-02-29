@@ -275,14 +275,15 @@ import Alert from "../components/Alert.astro";
   }
 
   //get the game json from localstorage
-  let game = "";
+  let game;
   try {
     game = JSON.parse(localStorage.getItem("game"));
+    console.log(game);
   } catch (error) {
     window.location.href = "/";
   }
   //get the players array from localstorage
-  const players = JSON.parse(game.players);
+  const players = game.players;
 
   window.editmode = false;
 
@@ -325,7 +326,7 @@ import Alert from "../components/Alert.astro";
   }
 
   function update() {
-    if (game.display == "1") {
+    if (game.display == 1) {
       //add class="hidden" to input and remove it from score
       document.getElementById("input").classList.add("hidden");
       document.getElementById("score").classList.remove("hidden");
@@ -337,13 +338,13 @@ import Alert from "../components/Alert.astro";
 
       $("#names").append("<th>Round</th>");
 
-      if (game.step == "1") {
+      if (game.step == 1) {
         $("#navtext").text("Place Bets");
-      } else if (game.step == "2") {
+      } else if (game.step == 2) {
         $("#navtext").text("Enter Tricks");
       }
 
-      if (game.step == "3") {
+      if (game.step == 3) {
         navblue();
         score_switch_view("4", game);
         $("#icon_celeb").removeClass("hidden");
@@ -357,7 +358,7 @@ import Alert from "../components/Alert.astro";
       }
 
       updatescore(players, game);
-    } else if (game.display == "2") {
+    } else if (game.display == 2) {
       //add class="hidden" to score and remove it from input
       document.getElementById("score").classList.add("hidden");
       document.getElementById("input").classList.remove("hidden");
@@ -371,11 +372,11 @@ import Alert from "../components/Alert.astro";
     if (editmode == true) {
       //reload page
       location.reload();
-    } else if (game.step == "3") {
+    } else if (game.step == 3) {
       finish_game();
       return;
-    } else if (game.display == "1") {
-      game.display = "2";
+    } else if (game.display == 1) {
+      game.display = 2;
       localStorage.setItem("game", JSON.stringify(game));
       update();
     } else {
@@ -387,8 +388,8 @@ import Alert from "../components/Alert.astro";
     navblue();
     input_block_reload = true;
     freezebutton();
-    if (game.display == "2") {
-      game.display = "1";
+    if (game.display == 2) {
+      game.display = 1;
       localStorage.setItem("game", JSON.stringify(game));
       update();
     }
@@ -454,7 +455,7 @@ import Alert from "../components/Alert.astro";
 
   //helper methods
   function updatetotal() {
-    if (game.step == "1") {
+    if (game.step == 1) {
       $("#total").html(`Total: ${data.reduce((a, b) => +a + +b, 0)}`);
       if (game.round !== 1 && game.rule_1 == true) {
         if (data.reduce((a, b) => +a + +b, 0) === game.round) {
@@ -494,7 +495,6 @@ import Alert from "../components/Alert.astro";
 
   function addplayertoInput(index, max) {
     let player = players[index];
-    console.log(player);
     $("#players").append(
       `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
             <div class="card-body">
@@ -508,7 +508,7 @@ import Alert from "../components/Alert.astro";
     );
 
     $(`#input_range_${index}`).on("input", function () {
-      data[index] = $(this).val();
+      data[index] = parseInt($(this).val());
       //update the total
       updatetotal();
       //underline the inset that matches the value
@@ -518,9 +518,9 @@ import Alert from "../components/Alert.astro";
 
     //add insets as max
     for (let i = 0; i <= max; i++) {
-      if (game.step == "2") {
+      if (game.step == 2) {
         //if i is equal to the bet hightlight it
-        if (i == JSON.parse(game.bets)[game.round - 1][index]) {
+        if (i == game.bets[game.round - 1][index]) {
           $(`#input_insets_${index}`).append(
             `<span class="range_number_highlighted">${i}</span>`,
           );
@@ -564,7 +564,7 @@ import Alert from "../components/Alert.astro";
 
     $("#navtext").text("Confirm");
 
-    if (game.step === "1") {
+    if (game.step == 1) {
       document.getElementById("round").innerHTML =
         `${game.round}/${game.max_rounds} - Place Bets`;
     } else {
@@ -599,8 +599,8 @@ import Alert from "../components/Alert.astro";
   //add event listener to confirm button
   function Input_confirm() {
     if (valid) {
-      if (game.step == "1") {
-        let bets = JSON.parse(game.bets);
+      if (game.step == 1) {
+        let bets = game.bets;
         //if rounds is null then create an empty array
         if (bets === null) {
           bets = [];
@@ -608,24 +608,24 @@ import Alert from "../components/Alert.astro";
         //push the scores array to rounds
         bets.push(data);
 
-        game.bets = JSON.stringify(bets);
-        game.step = "2";
+        game.bets = bets;
+        game.step = 2;
         localStorage.setItem("game", JSON.stringify(game));
       } else {
-        let tricks = JSON.parse(game.tricks);
+        let tricks = game.tricks;
         if (tricks === null) {
           tricks = [];
         }
         //push the scores array to rounds
         tricks.push(data);
 
-        game.tricks = JSON.stringify(tricks);
+        game.tricks = tricks;
         localStorage.setItem("game", JSON.stringify(game));
 
         //get the scores from localstorage
-        let score = JSON.parse(game.score);
+        let score = game.score;
         //calculate the scores
-        let score_change = JSON.parse(game.score_change);
+        let score_change = game.score_change;
         let psc = [];
         let ps = [];
         const round = game.round;
@@ -636,8 +636,8 @@ import Alert from "../components/Alert.astro";
         }
         for (let index = 0; index < players.length; index++) {
           psc[index] = scorecalc(
-            JSON.parse(game.bets)[round - 1][index],
-            JSON.parse(game.tricks)[round - 1][index],
+            game.bets[round - 1][index],
+            game.tricks[round - 1][index],
           );
 
           if (round === 1) {
@@ -649,29 +649,27 @@ import Alert from "../components/Alert.astro";
         score_change.push(psc);
         score.push(ps);
 
-        game.score = JSON.stringify(score);
-        game.score_change = JSON.stringify(score_change);
+        game.score = score;
+        game.score_change = score_change;
 
         localStorage.setItem("game", JSON.stringify(game));
 
         if (game.max_rounds != "∞" && game.round >= game.max_rounds) {
-          game.step = "3";
+          game.step = 3;
         } else {
           //update rounds in localstorage
           game.round++;
           //shift dealer
           game.dealer = (game.dealer + 1) % players.length;
-          localStorage.setItem("game", JSON.stringify(game));
-
-          game.step = "1";
+          game.step = 1;
           localStorage.setItem("game", JSON.stringify(game));
         }
       }
-      game.display = "1";
+      game.display = 1;
       localStorage.setItem("game", JSON.stringify(game));
       update();
     } else {
-      if (game.step == "1") {
+      if (game.step == 1) {
         document.getElementById("alert_1").showModal();
       } else {
         document.getElementById("alert_2").showModal();
@@ -689,8 +687,8 @@ import Alert from "../components/Alert.astro";
     $("#continuegame").addClass("hidden");
     $("#rules").removeClass("hidden");
 
-    game.step = "1";
-    game.display = "1";
+    game.step = 1;
+    game.display = 1;
     score_switch_view("2", game);
     localStorage.setItem("game", JSON.stringify(game));
     update();
@@ -735,8 +733,8 @@ import Alert from "../components/Alert.astro";
       localStorage.removeItem("game");
       location.href = "/";
     } else {
-      game.step = "3";
-      game.display = "1";
+      game.step = 3;
+      game.display = 1;
       navblue();
       localStorage.setItem("game", JSON.stringify(game));
       update();
@@ -773,7 +771,7 @@ import Alert from "../components/Alert.astro";
           //replace the old name with the new name
           players[index] = new_name;
           //update the players in localstorage
-          game.players = JSON.stringify(players);
+          game.players = players;
           localStorage.setItem("game", JSON.stringify(game));
           //update the name
           $(`#n_${index}`).text(new_name);
@@ -789,15 +787,15 @@ import Alert from "../components/Alert.astro";
       let id = $(this).attr("id");
       let round = id.substring(3, 4);
       let player = id.substring(4, 5);
-      let score = JSON.parse(game.score)[round][player];
+      let score = game.score[round][player];
       document.getElementById("modal_edit").showModal();
       $("#edit_name").val(score);
       $("#edit_save").on("click", () => {
         $("#edit_save").off("click");
         let new_score = $("#edit_name").val();
-        let score_array = JSON.parse(game.score);
+        let score_array = game.score;
         score_array[round][player] = new_score;
-        game.score = JSON.stringify(score_array);
+        game.score = score_array;
         localStorage.setItem("game", JSON.stringify(game));
         $(`#std${round}${player}`).text(new_score);
       });
@@ -808,7 +806,7 @@ import Alert from "../components/Alert.astro";
       let id = $(this).attr("id");
       let round = id.substring(3, 4);
       let player = id.substring(4, 5);
-      let bet = JSON.parse(game.bets)[round][player];
+      let bet = game.bets[round][player];
       document.getElementById("modal_edit").showModal();
       $("#edit_name").val(bet);
       $("#edit_save").on("click", () => {
@@ -820,9 +818,9 @@ import Alert from "../components/Alert.astro";
           $("#info_text").text("Please enter a positive number");
           return;
         }
-        let bet_array = JSON.parse(game.bets);
+        let bet_array = game.bets;
         bet_array[round][player] = new_bet;
-        game.bets = JSON.stringify(bet_array);
+        game.bets = bet_array;
         localStorage.setItem("game", JSON.stringify(game));
         $(`#btd${round}${player}`).text(new_bet);
       });

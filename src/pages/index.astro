@@ -17,6 +17,9 @@ import ImportGame from "../components/ImportGame.astro";
           />
         </div>
         <h1 class="text-center h-28 text-9xl">Wizzard</h1>
+        <h2 class="text-center text-2xl" id="loading">
+         Loading...
+        </h2>
         <nav class="boxbuttons mt-10">
           <button class="btn btn-secondary mb-2 btn-block" id="new_game"
             ><span id="new_game_text">New game</span></button
@@ -160,8 +163,7 @@ import ImportGame from "../components/ImportGame.astro";
   //onclick on the new game button, add a loading spinner
   document.getElementById("new_game").addEventListener("click", function () {
     const newGameText = document.getElementById("new_game_text");
-    newGameText.classList.add("loading");
-    newGameText.classList.add("loading-spinner");
+    newGameText.innerHTML = `Loading...`;
     location.href = "/setup/";
   });
 
@@ -201,4 +203,10 @@ import ImportGame from "../components/ImportGame.astro";
       };
     }
   });
+  
+  document.onreadystatechange = function () {
+    if (document.readyState === "complete") {
+      document.getElementById("loading").classList.add("hidden");
+    }
+  };
 </script>

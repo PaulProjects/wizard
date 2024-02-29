@@ -101,8 +101,8 @@ import ImportGame from "../components/ImportGame.astro";
   is:inline
   src="https://code.jquery.com/jquery-3.7.0.min.js"
   integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script>
   let view = 0; //0 = overview ; 1 = details
   // check if past_games exists in local storage if not return
@@ -163,7 +163,7 @@ import ImportGame from "../components/ImportGame.astro";
   for (let i = 0; i < past_games.length; i++) {
     window.game = past_games[i];
     let game = window.game;
-    let players = JSON.parse(game.players);
+    let players = game.players;
 
     let time_started = game.time_started;
     let time_ended = game.time_ended;
@@ -215,7 +215,7 @@ import ImportGame from "../components/ImportGame.astro";
       clicked_more(i);
     });
 
-    let score = JSON.parse(game.score);
+    let score = game.score;
     //extract last row of score
     let last_row = score[score.length - 1];
     //create a new array with the players and their points
@@ -259,7 +259,7 @@ import ImportGame from "../components/ImportGame.astro";
     //add class="bg-base-200 to the first row"
     $(`#table${i} tr:first-child`).addClass("bg-info");
   }
-
+  
   let Lgame;
   function clicked_more(i) {
     score_switch_view("4");
@@ -270,28 +270,28 @@ import ImportGame from "../components/ImportGame.astro";
     //remove hidden from del_game
     $("#del_game").removeClass("hidden");
     $("#share_game").removeClass("hidden");
+    $("#s_round").addClass("hidden");
     //get the game and store it in Lgame
     Lgame = past_games[i];
     Lgame.step = "3";
-    let players = JSON.parse(Lgame.players);
+    let players = Lgame.players;
     $("#share_game").on("click", () => {
       console.log(Lgame);
       let jsongame = Lgame;
-      jsongame.players = JSON.parse(jsongame.players);
-      jsongame.bets = JSON.parse(jsongame.bets);
-      jsongame.score = JSON.parse(jsongame.score);
-      jsongame.score_change = JSON.parse(jsongame.score_change);
-      jsongame.tricks = JSON.parse(jsongame.tricks);
-      
+      jsongame.players = [...jsongame.players];
+      jsongame.bets = [...jsongame.bets];
+      jsongame.score = [...jsongame.score];
+      jsongame.score_change = [...jsongame.score_change];
+      jsongame.tricks = [...jsongame.tricks];
+
       //do a post request to paulbertram.de/wizzard/wizzardshare.php with the game json as key game
       $.post(
         "https://paulbertram.de/wizzard/wizzardshare.php",
-        { game: JSON.stringify(Lgame)},
+        { game: JSON.stringify(Lgame) },
         function (data) {
           let url = `/share?id=${data}`;
           //open url
           window.open(url, "_blank");
-          
         },
       );
     });

@@ -62,26 +62,34 @@
                     );
                     Object.keys(data).forEach(function (k) {
                         if (k == "recent_games") {
-                            //loop over the array and add the games to past_games if they are not already in there compare by time_started and time_ended
-                            let new_games = JSON.parse(data[k]);
-                            if (!past_games) past_games = [];
-                            for (let i = 0; i < new_games.length; i++) {
-                                let pgame = new_games[i];
-                                let exists = false;
-                                for (let j = 0; j < past_games.length; j++) {
-                                    if (
-                                        pgame.time_started ==
-                                            past_games[j].time_started &&
-                                        pgame.time_ended ==
-                                            past_games[j].time_ended
+                            try {
+                                //loop over the array and add the games to past_games if they are not already in there compare by time_started and time_ended
+                                let new_games = JSON.parse(data[k]);
+                                if (!past_games) past_games = [];
+                                for (let i = 0; i < new_games.length; i++) {
+                                    let pgame = new_games[i];
+                                    let exists = false;
+                                    for (
+                                        let j = 0;
+                                        j < past_games.length;
+                                        j++
                                     ) {
-                                        exists = true;
+                                        if (
+                                            pgame.time_started ==
+                                                past_games[j].time_started &&
+                                            pgame.time_ended ==
+                                                past_games[j].time_ended
+                                        ) {
+                                            exists = true;
+                                        }
+                                    }
+                                    if (!exists) {
+                                        past_games.push(pgame);
+                                        didsomething = true;
                                     }
                                 }
-                                if (!exists) {
-                                    past_games.push(pgame);
-                                    didsomething = true;
-                                }
+                            } catch (e) {
+                                console.log(e);
                             }
                         } else if (k == "game") {
                             if (
