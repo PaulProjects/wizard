@@ -248,6 +248,18 @@ import Alert from "../components/Alert.astro";
     margin-bottom: 2px;
   }
 
+  .range_number_impossible {
+    display: inline-block;
+    margin: 0 auto;
+    width: 20px; /* adjust this value as needed */
+    text-align: center;
+    background-color: #ef8585;
+    border-radius: 10px;
+    color: black;
+    /* move the border up one pixel*/
+    margin-bottom: 2px;
+  }
+
   .range_number_highlighted:first-child {
     margin-left: 0;
   }
@@ -478,15 +490,31 @@ import Alert from "../components/Alert.astro";
   //helper methods
   function updatetotal() {
     if (game.step == 1) {
-      $("#total").html(`Total: ${data.reduce((a, b) => +a + +b, 0)}`);
+      let total = data.reduce((a, b) => +a + +b, 0);
+      $("#total").html(`Total: ${total}`);
       if (game.round !== 1 && game.rule_1 == true) {
-        if (data.reduce((a, b) => +a + +b, 0) === game.round) {
+        if (total === game.round) {
           valid = false;
           navred();
         } else {
           valid = true;
           navblue();
         }
+        let insets = document.querySelectorAll(
+          "#input_insets_" + last_player_index + " span",
+        );
+        
+        let last_player_range = $("#input_range_"+ last_player_index).val();
+        let adjusted_total = total - parseInt(last_player_range);
+        insets.forEach((inset) => {
+          let number = parseInt(inset.textContent);
+          if (number + total == game.round) {
+            inset.classList.add("range_number_impossible");
+          }
+          else {
+            inset.classList.remove("range_number_impossible");
+          }
+        });
       } else {
         valid = true;
         navblue();
@@ -515,7 +543,11 @@ import Alert from "../components/Alert.astro";
     }
   }
 
+  let last_player_index = 0;
+
   function addplayertoInput(index, max) {
+    last_player_index = index;
+
     let player = players[index];
     $("#players").append(
       `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
@@ -612,7 +644,6 @@ import Alert from "../components/Alert.astro";
     for (let i = 0; i <= game.dealer; i++) {
       addplayertoInput(i, max);
     }
-
     updatetotal();
   }
 
