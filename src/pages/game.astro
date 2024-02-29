@@ -221,12 +221,12 @@ import Alert from "../components/Alert.astro";
     width: 10px; /* adjust this value as needed */
     text-align: center;
   }
-  
+
   /* select first range_number */
   .range_number:first-child {
     margin-left: 0;
   }
-  
+
   /* select last range_number */
   .range_number:last-child {
     margin-right: 0;
@@ -247,11 +247,11 @@ import Alert from "../components/Alert.astro";
     /* move the border up one pixel*/
     margin-bottom: 2px;
   }
-  
+
   .range_number_highlighted:first-child {
     margin-left: 0;
   }
-  
+
   .range_number_highlighted:last-child {
     margin-right: 0;
   }
@@ -278,7 +278,6 @@ import Alert from "../components/Alert.astro";
   let game;
   try {
     game = JSON.parse(localStorage.getItem("game"));
-    console.log(game);
   } catch (error) {
     window.location.href = "/";
   }
@@ -396,11 +395,8 @@ import Alert from "../components/Alert.astro";
   });
 
   function finish_game() {
-    //get recent_games from localstorage and if it doesnt exist create an empty array
-    let recent_games = JSON.parse(localStorage.getItem("recent_games"));
-    if (recent_games === null) {
-      recent_games = [];
-    }
+    //saving thing:
+    $("#navtext").text("Saving...");
     //push the game to recent_games
     let gamestored = JSON.parse(JSON.stringify(game));
     //remove display, step and score_display
@@ -409,6 +405,32 @@ import Alert from "../components/Alert.astro";
     delete gamestored.score_display;
     //put a time_ended timestamp
     gamestored.time_ended = Date.now();
+
+    $.post(
+      "https://paulbertram.de/wizzard/wizzardshare.php",
+      { game: JSON.stringify(gamestored) },
+      function (data) {
+        //add id info to the game
+        gamestored.id = data;
+        console.log("Success: " + data);
+      },
+    )
+      .fail(function (jqXHR, textStatus, errorThrown) {
+        // Fehlerbehandlung hier
+        console.error("Error: " + textStatus, errorThrown);
+      })
+      .always(function () {
+        // Wird immer ausgeführt
+        save_game(gamestored);
+      });
+  }
+
+  function save_game(gamestored) {
+    //get recent_games from localstorage and if it doesnt exist create an empty array
+    let recent_games = JSON.parse(localStorage.getItem("recent_games"));
+    if (recent_games === null) {
+      recent_games = [];
+    }
     recent_games.push(gamestored);
     //delete game from localstorage
     localStorage.removeItem("game");
@@ -574,8 +596,6 @@ import Alert from "../components/Alert.astro";
 
     const max = game.round;
 
-    console.log(game.dealer);
-    console.log(players);
     //clear data
     data = [];
     //fill it with 0 for each player
@@ -831,7 +851,6 @@ import Alert from "../components/Alert.astro";
   });
 
   $("#editdealer").on("click", () => {
-    console.log("editdealer");
     //set edit_name to the name of the player
     let old_name = players[game.dealer];
     let select_dealer = document.getElementById("select_dealer");
@@ -851,6 +870,5 @@ import Alert from "../components/Alert.astro";
     localStorage.setItem("game", JSON.stringify(game));
     location.reload();
   });
-
   update();
 </script>
