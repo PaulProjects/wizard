@@ -835,14 +835,14 @@ import Alert from "../components/Alert.astro";
       //TODO: crown thing
 
       let id = $(this).attr("id");
-      let round = id.substring(3, 4);
-      let player = id.substring(4, 5);
+      let round = $(this).attr("round");
+      let player = $(this).attr("player");
       let score = game.score[round][player];
       document.getElementById("modal_edit").showModal();
       $("#edit_name").val(score);
       $("#edit_save").on("click", () => {
         $("#edit_save").off("click");
-        let new_score = $("#edit_name").val();
+        let new_score = parseInt($("#edit_name").val());
         let score_array = game.score;
         score_array[round][player] = new_score;
         game.score = score_array;
@@ -854,14 +854,14 @@ import Alert from "../components/Alert.astro";
     //bind click event to each td with id btd
     $("td[id^='btd']").on("click", function () {
       let id = $(this).attr("id");
-      let round = id.substring(3, 4);
-      let player = id.substring(4, 5);
+      let round = $(this).attr("round");
+      let player = $(this).attr("player");
       let bet = game.bets[round][player];
       document.getElementById("modal_edit").showModal();
       $("#edit_name").val(bet);
       $("#edit_save").on("click", () => {
         $("#edit_save").off("click");
-        let new_bet = $("#edit_name").val();
+        let new_bet = parseInt($("#edit_name").val());
         //check if new_bet is a positive number else show info modal
         if (new_bet < 0 || new_bet % 1 != 0) {
           document.getElementById("modal_attention").showModal();

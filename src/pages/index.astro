@@ -17,9 +17,7 @@ import ImportGame from "../components/ImportGame.astro";
           />
         </div>
         <h1 class="text-center h-28 text-9xl">Wizzard</h1>
-        <h2 class="text-center text-2xl" id="loading">
-         Loading...
-        </h2>
+        <h2 class="text-center text-2xl" id="loading">Loading...</h2>
         <nav class="boxbuttons mt-10">
           <button class="btn btn-secondary mb-2 btn-block" id="new_game"
             ><span id="new_game_text">New game</span></button
@@ -83,30 +81,17 @@ import ImportGame from "../components/ImportGame.astro";
         game Wizard is a registered trademark of Amigo Spiele. This site is for
         private use only.
       </p>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- No Resume Game Modal -->
-  <dialog id="alert_1" class="modal">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <h1 class="font-bold text-lg">No active game found!</h1>
-      <p class="py-4">
-        You have no active game at the moment. Please start a new game. Make
-        sure you don't delete this website's data in your browser, or you will
-        lose your gamehistory.
-      </p>
+      
       <p>
-        If you already exported data at some point you can import it right back!
+        If you exported an data from this site you can import it right back.
       </p>
-      <button class="btn btn-info btn-block mt-2 import_data">
+
+      <button class="btn btn-info btn-block mt-4 import_data">
         Import Data
       </button>
-      <button class="btn btn-info btn-block mt-2"> Cancel</button>
+      <button id="export_data" class="btn btn-info btn-block mt-2">
+        Export Data</button
+      >
     </form>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>
@@ -125,13 +110,17 @@ import ImportGame from "../components/ImportGame.astro";
         gamehistory.
       </p>
       <p>
-        If you exported an active game at some point you can import it right back!
+        If you exported an active game at some point you can import it right
+        back.
       </p>
-      <div class="pb-5"> </div>
+      <div class="pb-5"></div>
       <button class="btn btn-info btn-block mt-2 import_data">
         Import Data
       </button>
-      <button class="btn btn-info btn-block mt-2"> Cancel</button>
+      <button id="export_data" class="btn btn-info btn-block mt-2">
+        Export Data</button
+      >
+      <button class="btn btn-info btn-block mt-4"> Cancel</button>
     </form>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>
@@ -203,10 +192,19 @@ import ImportGame from "../components/ImportGame.astro";
       };
     }
   });
-  
+
   document.onreadystatechange = function () {
     if (document.readyState === "complete") {
       document.getElementById("loading").classList.add("hidden");
+    }
+
+    if (localStorage.getItem("game") == null) {
+      document.getElementById("resume_game").classList.add("hidden");
+      document.getElementById("export_data").classList.add("hidden");
+    }
+
+    if (localStorage.getItem("recent_games") == null) {
+      document.getElementById("recent_games").classList.add("hidden");
     }
   };
 </script>

@@ -311,12 +311,12 @@ import Celebration from "./Celebration.astro";
       $(`#row${i}`).append(`<td>${i + 1}</td>`);
       for (let j = 0; j < playerlist.length; j++) {
         try {
-          $(`#row${i}`).append(`<td id="std${i}${j}">${score[i][j]}</td>`);
+          $(`#row${i}`).append(`<td id="std${i}${j}" round="${i}" player="${j}">${score[i][j]}</td>`);
         } catch {
           $(`#row${i}`).append(`<td></td>`);
         }
         try {
-          $(`#row${i}`).append(`<td id="btd${i}${j}">${bets[i][j]}</td>`);
+          $(`#row${i}`).append(`<td id="btd${i}${j}" round="${i}" player="${j}">${bets[i][j]}</td>`);
         } catch {
           $(`#row${i}`).append(`<td></td>`);
         }
