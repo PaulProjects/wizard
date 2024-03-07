@@ -5,15 +5,18 @@
         >
         <div class="flex flex-col justify-center items-center">
             <h2 class="font-bold text-3xl mt-5">Import</h2>
-            <p>
+            <label for="import_file">
                 Importing data will add the saved past games from the file to
                 your current past games and optinally overwrite the current game
                 with the one in the file. The file should look like this:
                 wizzardsite.json
-            </p>
+            </label>
             <div class="pb-5"></div>
             <div class="form-control pl-3">
-                <label class="cursor-pointer label">
+                <label
+                    class="cursor-pointer label"
+                    for="overwrite_current_game"
+                >
                     <input
                         type="checkbox"
                         aria-label="Button to overwrite the current game"
@@ -65,7 +68,7 @@
                             try {
                                 //loop over the array and add the games to past_games if they are not already in there compare by time_started and time_ended
                                 let new_games = JSON.parse(data[k]);
-                                if (!past_games) past_games = [];
+                                if(!past_games) past_games = [];
                                 for (let i = 0; i < new_games.length; i++) {
                                     let pgame = new_games[i];
                                     let exists = false;
@@ -88,6 +91,10 @@
                                         didsomething = true;
                                     }
                                 }
+                                localStorage.setItem(
+                                    "recent_games",
+                                    JSON.stringify(past_games),
+                                );
                             } catch (e) {
                                 console.log(e);
                             }
@@ -97,7 +104,7 @@
                                     "overwrite_current_game",
                                 ).checked
                             ) {
-                                localStorage.setItem(k, data[k]);
+                                localStorage.setItem("game", data[k]);
                                 didsomething = true;
                             }
                         }

@@ -81,7 +81,6 @@ import ImportGame from "../components/ImportGame.astro";
         game Wizard is a registered trademark of Amigo Spiele. This site is for
         private use only.
       </p>
-      
       <p>
         If you exported an data from this site you can import it right back.
       </p>
@@ -89,7 +88,7 @@ import ImportGame from "../components/ImportGame.astro";
       <button class="btn btn-info btn-block mt-4 import_data">
         Import Data
       </button>
-      <button id="export_data" class="btn btn-info btn-block mt-2">
+      <button id="export_data" class="btn btn-info btn-block mt-2 hidden">
         Export Data</button
       >
     </form>
@@ -174,25 +173,6 @@ import ImportGame from "../components/ImportGame.astro";
       }
     });
 
-  document.getElementById("rimport").addEventListener("click", function () {
-    let file = document.getElementById("import_file").files[0];
-    if (file) {
-      let reader = new FileReader();
-      reader.readAsText(file, "UTF-8");
-      reader.onload = function (evt) {
-        localStorage.clear();
-        var data = JSON.parse(evt.target.result);
-        Object.keys(data).forEach(function (k) {
-          localStorage.setItem(k, data[k]);
-        });
-        location.reload();
-      };
-      reader.onerror = function (evt) {
-        alert("Error reading file");
-      };
-    }
-  });
-
   document.onreadystatechange = function () {
     if (document.readyState === "complete") {
       document.getElementById("loading").classList.add("hidden");
@@ -200,11 +180,14 @@ import ImportGame from "../components/ImportGame.astro";
 
     if (localStorage.getItem("game") == null) {
       document.getElementById("resume_game").classList.add("hidden");
-      document.getElementById("export_data").classList.add("hidden");
     }
 
     if (localStorage.getItem("recent_games") == null) {
       document.getElementById("recent_games").classList.add("hidden");
+    }
+    
+    if(localStorage.getItem("game") !== null || localStorage.getItem("recent_games") !== null){
+      document.getElementById("export_data").classList.remove("hidden");
     }
   };
 </script>

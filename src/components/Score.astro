@@ -308,7 +308,8 @@ import Celebration from "./Celebration.astro";
     }
     for (let i = 0; i < game.round; i++) {
       $("#rows").append(`<tr id="row${i}"></tr>`);
-      $(`#row${i}`).append(`<td>${i + 1}</td>`);
+      $(`#row${i}`).append(`<td id="row${i}num">${i + 1}</td>`);
+      if(game.color[i+1] != null) $("#row" + i + "num").addClass(game.color[i+1] + "_tag");
       for (let j = 0; j < playerlist.length; j++) {
         try {
           $(`#row${i}`).append(`<td id="std${i}${j}" round="${i}" player="${j}">${score[i][j]}</td>`);
