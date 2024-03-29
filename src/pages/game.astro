@@ -526,7 +526,7 @@ import Alert from "../components/Alert.astro";
       gamestored.time_ended = Date.now();
 
       $.post(
-        "https://paulbertram.de/wizzard/wizzardshare.php",
+        "https://s.paulbertram.de/wizzardshare.php",
         { game: JSON.stringify(gamestored) },
         function (data) {
           //add id info to the game

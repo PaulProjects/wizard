@@ -126,14 +126,24 @@ import ImportGame from "../components/ImportGame.astro";
       "This will remove all stored data about this game permanently!";
     //add onclick to the button
     $("#rremovedata").on("click", () => {
-      //get the index of the game
+      //delete the game locally
       let index = past_games.indexOf(Lgame);
-      //remove the game from the array
       past_games.splice(index, 1);
-      //save the array in localstorage
       localStorage.setItem("recent_games", JSON.stringify(past_games));
-      //reload the page
-      location.reload();
+      
+      //delete the game on the server
+      $.ajax({
+        url: `https://s.paulbertram.de/wizzardshare.php?id=${Lgame.id}`,
+        type: "DELETE",
+        success: function (result) {
+          console.log("Success deleting");
+        },
+      }).fail(function (jqXHR, textStatus, errorThrown) {
+        // Fehlerbehandlung hier
+        console.error("Error: " + textStatus, errorThrown);
+      }).always(function () {
+        location.reload();
+      });
     });
   });
 
@@ -154,8 +164,10 @@ import ImportGame from "../components/ImportGame.astro";
     });
   });
 
-  //reverse the array so the newest game is first
-  past_games.reverse();
+  //newest game first
+  past_games.sort((a, b) => {
+    return b.time_ended - a.time_ended;
+  });
 
   // loop through past_games and create a div for each game
   for (let i = 0; i < past_games.length; i++) {
@@ -165,7 +177,7 @@ import ImportGame from "../components/ImportGame.astro";
     //check if it has a id else try to upload it
     if (!game.hasOwnProperty("id")) {
       $.post(
-        "https://paulbertram.de/wizzard/wizzardshare.php",
+        "https://s.paulbertram.de/wizzardshare.php",
         { game: JSON.stringify(game) },
         function (data) {
           //add id info to the game
@@ -338,6 +350,18 @@ import ImportGame from "../components/ImportGame.astro";
     //open the url in a new tab
     window.open(url, "_blank");
   });
+  
+  //get url params
+  const urlParams = new URLSearchParams(window.location.search);
+  const myParam = urlParams.get("id");
+  //open the game with the id
+  if (myParam) {
+    for (let i = 0; i < past_games.length; i++) {
+      if (past_games[i].id === myParam) {
+        clicked_more(i);
+      }
+    }
+  }
 </script>
 
 <style is:global>

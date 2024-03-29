@@ -4,7 +4,7 @@ import { Icon } from "astro-icon";
 ---
 
 <Layout title="Wizzard!">
-    <div id="start" class="hidden"> 
+    <div id="start" class="hidden">
         <div class="flex items-center justify-center h-screen">
             <div class="text-center w-full px-10">
                 <h1 class="text-2xl font-bold">Import game</h1>
@@ -37,9 +37,7 @@ import { Icon } from "astro-icon";
                     >Import the game</button
                 >
                 <div class="pt-4"></div>
-                <button class="btn btn-block btn-secondary">
-                    <a href="/">Back to home</a>
-                </button>
+                <a href="/" class="btn btn-block btn-secondary">Back to home</a>
             </div>
         </div>
     </div>
@@ -60,9 +58,7 @@ import { Icon } from "astro-icon";
                 <h1 class="text-2xl font-bold">Error</h1>
                 <p id="errorcode"></p>
                 <br />
-                <button class="btn btn-block btn-secondary"
-                    ><a href="/">Back to home</a></button
-                >
+                <a href="/" class="btn btn-block btn-secondary">Back to home</a>
             </div>
         </div>
     </div>
@@ -74,11 +70,17 @@ import { Icon } from "astro-icon";
                     class="text-green-500 w-16 h-16"
                 />
                 <h1 class="text-2xl font-bold">Success</h1>
-                <p>The game has been imported successfully.</p>
+                <p id="success_message">
+                    The game has been imported successfully.
+                </p>
                 <br />
-                <button class="btn btn-block btn-secondary"
-                    ><a href="/">Back to home</a></button
+                <a
+                    href="/history"
+                    id="view_game"
+                    class="btn btn-block btn-secondary">View Game</a
                 >
+                <div class="pt-4"></div>
+                <a href="/" class="btn btn-block btn-secondary">Back to home</a>
             </div>
         </div>
     </div>
@@ -95,36 +97,86 @@ import { Icon } from "astro-icon";
         document.getElementById("error").classList.remove("hidden");
         document.getElementById("errorcode").innerHTML = error;
     }
-    function success() {
+    function success(msg) {
         document.getElementById("loading").classList.add("hidden");
         document.getElementById("start").classList.add("hidden");
+        document.getElementById("success_message").innerHTML =
+            msg || "The game has been imported successfully.";
         document.getElementById("success").classList.remove("hidden");
     }
     //read the game id from the url
     const urlParams = new URLSearchParams(window.location.search);
     const gameId = urlParams.get("id");
 
+    let recent_games = JSON.parse(localStorage.getItem("recent_games"));
+    if (recent_games === null) {
+        recent_games = [];
+    }
+
+    function savegame(pgame) {
+        let gameid = pgame.id;
+        let found = false;
+        for (let j = 0; j < recent_games.length; j++) {
+            if (recent_games[j].id === gameid) {
+                found = true;
+                break;
+            }
+        }
+        if(found) {
+            return;
+        }
+        recent_games.push(pgame);
+        localStorage.setItem("recent_games", JSON.stringify(recent_games));
+    }
     let game;
-    
+
     if (gameId === null) {
         error("Not a valid link");
     } else {
         $("#import_id").text("Game id: " + gameId);
 
-        //import the game from this url: https://paulbertram.de/wizzard/wizzardshare.php?id=[gameid]
-        const url = `https://paulbertram.de/wizzard/wizzardshare.php?id=${gameId}`;
+        //import the game from this url: https://s.paulbertram.de/wizzardshare.php?id=[gameid]
+        const url = `https://s.paulbertram.de/wizzardshare.php?id=${gameId}`;
         //use xml http request to import the game
         const xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
+                if (xhr.status === 210) {
+                    //loop over the response array and request the games and then add them to the recent games if they are not already in there
+                    let games = JSON.parse(xhr.responseText);
+                    console.log("Importing all: " + games);
+                    for (let i = 0; i < games.length; i++) {
+                        let gameid = games[i];
+                        const url = `https://s.paulbertram.de/wizzardshare.php?id=${gameid}`;
+                        const xhr = new XMLHttpRequest();
+                        xhr.open("GET", url, true);
+                        xhr.onreadystatechange = function () {
+                            if (xhr.readyState === 4) {
+                                if (xhr.status === 200) {
+                                    try {
+                                        game = JSON.parse(xhr.responseText);
+                                        game.id = gameid;
+                                        console.log(game);
+                                        savegame(game);
+                                    } catch (e) {
+                                        error("Invalid game data" + e);
+                                    }
+                                } else {
+                                    error(xhr.status);
+                                }
+                            }
+                        };
+                        xhr.send();
+                    }
+                    success("All games have been imported successfully");
+                } else if (xhr.status === 200) {
                     $("#loading").addClass("hidden");
                     $("#start").removeClass("hidden");
                     try {
                         game = JSON.parse(xhr.responseText);
                         console.log(game);
-                        
+
                         game.id = gameId;
 
                         let players = game.players;
@@ -204,13 +256,21 @@ import { Icon } from "astro-icon";
             let recent_games = JSON.parse(localStorage.getItem("recent_games"));
             if (recent_games === null) {
                 recent_games = [];
+            } else {
+                //check if the game is already in the recent games
+                for (let i = 0; i < recent_games.length; i++) {
+                    if (recent_games[i].id === gameId) {
+                        $("#view_game").attr("href", "/history?id=" + gameId);
+                        success(
+                            "You already have this game in your recent games",
+                        );
+                        return;
+                    }
+                }
             }
-            else{
-                //check recent_games if the game already exists by comparing time_started and time_ended
-            }
-            recent_games.push(game);
-            //set recent_games in localstorage
-            localStorage.setItem("recent_games", JSON.stringify(recent_games));
+            savegame(game);
+
+            $("#view_game").attr("href", "/history?id=" + gameId);
             success();
         });
     }
