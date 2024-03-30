@@ -92,7 +92,8 @@ import ImportGame from "../components/ImportGame.astro";
         Export Data</button
       >
       <button id="delete_data" class="btn btn-warning btn-block mt-2">
-        Delete all Data</button>
+        Delete all Data</button
+      >
     </form>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>
@@ -138,16 +139,18 @@ import ImportGame from "../components/ImportGame.astro";
         This will delete all data stored in your browser. This includes the
         current game and all past games. You can't undo this action.
       </p>
-      <button id="del_data" class="btn btn-warning btn-block mt-4">Delete all Data</button>
+      <button id="del_data" class="btn btn-warning btn-block mt-4"
+        >Delete all Data</button
+      >
       <button class="btn btn-info btn-block mt-2"> Cancel</button>
     </form>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>
     </form>
+  </dialog>
   <ImportGame />
   <Lightning />
 </Layout>
-
 <style>
   .boxbuttons {
     text-align: center;
@@ -204,16 +207,19 @@ import ImportGame from "../components/ImportGame.astro";
     if (localStorage.getItem("recent_games") == null) {
       document.getElementById("recent_games").classList.add("hidden");
     }
-    
-    if(localStorage.getItem("game") !== null || localStorage.getItem("recent_games") !== null){
+
+    if (
+      localStorage.getItem("game") !== null ||
+      localStorage.getItem("recent_games") !== null
+    ) {
       document.getElementById("export_data").classList.remove("hidden");
     }
   };
-  
+
   document.getElementById("delete_data").addEventListener("click", function () {
     document.getElementById("alert_delete").showModal();
   });
-  
+
   document.getElementById("del_data").addEventListener("click", function () {
     localStorage.clear();
     location.reload();

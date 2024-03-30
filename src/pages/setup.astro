@@ -31,9 +31,7 @@ import Alert from "../components/Alert.astro";
           aria-label="Help">?</button
         >
       </div>
-      <h2 class="text-center text-2xl" id="loading">
-        Loading...
-       </h2>
+      <h2 class="text-center text-2xl" id="loading">Loading...</h2>
       <!-- Player list -->
       <div class="lg:pr-10 lg:pl-10">
         <div class="pb-5">
@@ -265,6 +263,26 @@ import Alert from "../components/Alert.astro";
       <button>close</button>
     </form>
   </dialog>
+  <!-- Invalid Playername -->
+  <dialog id="alert_invalidplayer" class="modal modal-top sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        >✕</button
+      >
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="text-3xl mt-5">Invalid Playername</h2>
+        <div class="prose">
+          <p class="pb-2">Please enter a valid player name (2-30 Letters)</p>
+        </div>
+        <button class="btn btn-secondary mt-5 btn-block" formmethod="dialog" id="ok_invalidplayer"
+          >OK</button
+        >
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
 </Layout>
 
 <style is:global>
@@ -438,12 +456,29 @@ import Alert from "../components/Alert.astro";
   $("#addPlayer").on("click", function () {
     addPlayer($("#input_playername").val());
   });
+  
+  function validatename(name) {
+    let regex = /^[a-zA-Z ]{2,30}$/;
+    return regex.test(name);
+}
 
+  $(document).on("click", "#ok_invalidplayer", function () {
+    document.getElementById("modal_addplayer").showModal();
+  });
+  
   function addPlayer(playername) {
     //check if the input field with id input_playername is empty
     if (playername == null || playername.trim() == "") {
       return;
     }
+    //validate the playername
+    if(!validatename(playername)) {
+      document.getElementById("alert_invalidplayer").showModal();
+      console.log("invalid playername");
+      
+      return;
+    }
+    
     //check if the div does not contain more then 6 elements with the id player
     if ($("#playerlist").children().length > 5) {
       return;
@@ -670,18 +705,19 @@ import Alert from "../components/Alert.astro";
     //reverse the array so the newest games are on top
     past_games.reverse();
     for (let i = 0; i < past_games.length; i++) {
-      let game = past_games[i];
-      let players = game.players;
-      let rule_1 = game.rule_1;
-      let rule_random_dealer = game.rule_random_dealer;
-      let rule_expansion = game.rule_expansion;
-      let rule_crowdchaos = game.rule_crowdchaos;
-      let rule_custom_rounds = game.rule_custom_rounds;
-      let max_rounds = game.max_rounds;
+      try {
+        let game = past_games[i];
+        let players = game.players;
+        let rule_1 = game.rule_1;
+        let rule_random_dealer = game.rule_random_dealer;
+        let rule_expansion = game.rule_expansion;
+        let rule_crowdchaos = game.rule_crowdchaos;
+        let rule_custom_rounds = game.rule_custom_rounds;
+        let max_rounds = game.max_rounds;
 
-      //add a div containing the date and underneath the list of players and the rules
-      $("#presets").append(
-        `<div id='preset${i}' class='flex flex-col p-5 border-2 rounded border-white w-full hover:bg-sky-700'>
+        //add a div containing the date and underneath the list of players and the rules
+        $("#presets").append(
+          `<div id='preset${i}' class='flex flex-col p-5 border-2 rounded border-white w-full hover:bg-sky-700'>
           <span>${new Date(game.time_started).toLocaleString()}</span>
           <div class='flex flex-col w-full'>
             <div class='flex flex-row w-full'>
@@ -695,52 +731,55 @@ import Alert from "../components/Alert.astro";
             </div>
           </div>
         </div>`,
-      );
+        );
 
-      //add a click event to the button that loads the preset
-      $("#preset" + i).on("click", function () {
-        //clear playerlist and add the preset players
-        $("#playerlist").empty();
+        //add a click event to the button that loads the preset
+        $("#preset" + i).on("click", function () {
+          //clear playerlist and add the preset players
+          $("#playerlist").empty();
 
-        //loop over players and add them
-        for (let i = 0; i < players.length; i++) {
-          addPlayer(players[i]);
-        }
-        if (rule_1 == true) {
-          $("#rule_1").prop("checked", true);
-        } else {
-          $("#rule_1").prop("checked", false);
-        }
-        if (rule_random_dealer == true) {
-          $("#rule_random_dealer").prop("checked", true);
-        } else {
-          $("#rule_random_dealer").prop("checked", false);
-        }
-        if (rule_expansion == true) {
-          $("#rule_expansion").prop("checked", true);
-        } else {
-          $("#rule_expansion").prop("checked", false);
-        }
-        if (rule_crowdchaos == true) {
-          $("#rule_crowdchaos").prop("checked", true);
-        } else {
-          $("#rule_crowdchaos").prop("checked", false);
-        }
-        if (rule_custom_rounds == true) {
-          $("#rounds_custom").prop("checked", true);
-          $("#rounds_auto").prop("checked", false);
-          $("#range_container").show();
-          $("#range_container").removeClass("opacity-0");
-          $("#rounds_custom_range").val(max_rounds);
-          $("#range_val").text(max_rounds);
-        } else {
-          $("#rounds_custom").prop("checked", false);
-          $("#rounds_auto").prop("checked", true);
-          $("#range_container").hide();
-        }
-        //close modal
-        modal_edit.close();
-      });
+          //loop over players and add them
+          for (let i = 0; i < players.length; i++) {
+            addPlayer(players[i]);
+          }
+          if (rule_1 == true) {
+            $("#rule_1").prop("checked", true);
+          } else {
+            $("#rule_1").prop("checked", false);
+          }
+          if (rule_random_dealer == true) {
+            $("#rule_random_dealer").prop("checked", true);
+          } else {
+            $("#rule_random_dealer").prop("checked", false);
+          }
+          if (rule_expansion == true) {
+            $("#rule_expansion").prop("checked", true);
+          } else {
+            $("#rule_expansion").prop("checked", false);
+          }
+          if (rule_crowdchaos == true) {
+            $("#rule_crowdchaos").prop("checked", true);
+          } else {
+            $("#rule_crowdchaos").prop("checked", false);
+          }
+          if (rule_custom_rounds == true) {
+            $("#rounds_custom").prop("checked", true);
+            $("#rounds_auto").prop("checked", false);
+            $("#range_container").show();
+            $("#range_container").removeClass("opacity-0");
+            $("#rounds_custom_range").val(max_rounds);
+            $("#range_val").text(max_rounds);
+          } else {
+            $("#rounds_custom").prop("checked", false);
+            $("#rounds_auto").prop("checked", true);
+            $("#range_container").hide();
+          }
+          //close modal
+          modal_edit.close();
+        });
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 
@@ -787,7 +826,7 @@ import Alert from "../components/Alert.astro";
   $("#rounds_custom_range").on("input", function () {
     $("#range_val").val($(this).val());
   });
-  
+
   document.onreadystatechange = function () {
     if (document.readyState === "complete") {
       document.getElementById("loading").classList.add("hidden");
