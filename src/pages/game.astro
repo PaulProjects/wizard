@@ -470,7 +470,7 @@ import Alert from "../components/Alert.astro";
   }
   //get the players array from localstorage
   const players = game.players;
-
+  
   window.editmode = false;
 
   let input_block_reload = false;
@@ -644,7 +644,6 @@ import Alert from "../components/Alert.astro";
       location.reload();
     } else if (game.step == 3) {
       finish_game();
-      return;
     } else if (game.display == 1) {
       game.display = 2;
       localStorage.setItem("game", JSON.stringify(game));

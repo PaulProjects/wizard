@@ -214,17 +214,17 @@ import Celebration from "./Celebration.astro";
   };
   window.updatescore = function updatescore(players, game) {
     // Data
-    const bets = game.bets;
-    const score = game.score;
+    const bets = [...game.bets];
+    const gameScore = [...game.score];
     let playerlist = [];
     let sorted_playerlist = [];
 
     if (game.round > 1) {
       for (let i = 0; i < players.length; i++) {
-        playerlist[i] = [players[i], score[score.length - 1][i]];
+        playerlist[i] = [players[i], gameScore[gameScore.length - 1][i]];
         sorted_playerlist[i] = [
           players[i],
-          score[score.length - 1][i],
+          gameScore[gameScore.length - 1][i],
           bets[bets.length - 1][i],
         ];
       }
@@ -312,7 +312,7 @@ import Celebration from "./Celebration.astro";
       if(game.color != null) if(game.color[i+1] != null) $("#row" + i + "num").addClass(game.color[i+1] + "_tag");
       for (let j = 0; j < playerlist.length; j++) {
         try {
-          $(`#row${i}`).append(`<td id="std${i}${j}" round="${i}" player="${j}">${score[i][j]}</td>`);
+          $(`#row${i}`).append(`<td id="std${i}${j}" round="${i}" player="${j}">${gameScore[i][j]}</td>`);
         } catch {
           $(`#row${i}`).append(`<td></td>`);
         }
@@ -332,10 +332,6 @@ import Celebration from "./Celebration.astro";
     } else {
       //Graph
       let score_chart;
-      //add a round 0 with points 0 to the score array
-      for (let i = 0; i < players.length; i++) {
-        score[0].push(0);
-      }
 
       $("#icon_chart").removeClass("hidden");
       $("#chart").remove();
