@@ -3,6 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import { Icon } from "astro-icon";
 import Rule from "../components/Rule.astro";
 import Alert from "../components/Alert.astro";
+
+import {} from "../scripts/setup.ts";
 ---
 
 <Layout title="Configure the game.">
@@ -245,6 +247,8 @@ import Alert from "../components/Alert.astro";
   <!-- Start of edit preset and recent players modal -->
   <dialog id="modal_edit" class="modal modal-top sm:modal-middle">
     <form method="dialog" class="modal-box">
+      <button class="btn btn-sm btn-ghost absolute left-2 top-2" id="test-preset"
+        >test</button>
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
         >✕</button
       >
@@ -272,564 +276,96 @@ import Alert from "../components/Alert.astro";
       <div class="flex flex-col justify-center items-center">
         <h2 class="text-3xl mt-5">Invalid Playername</h2>
         <div class="prose">
-          <p class="pb-2">Please enter a valid player name (2-30 Letters)</p>
+          <p class="pb-2 text-center">Please enter a valid player name</p>
+          <p class="pb-2 text-center">2 - 12 characters</p>
+          <button
+            class="btn btn-secondary mt-5 btn-block"
+            formmethod="dialog"
+            id="ok_invalidplayer">OK</button
+          >
         </div>
-        <button class="btn btn-secondary mt-5 btn-block" formmethod="dialog" id="ok_invalidplayer"
-          >OK</button
-        >
       </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
+      <form method="dialog" class="modal-backdrop"></form>
     </form>
   </dialog>
+
+  <style is:global>
+    .optionbox {
+      width: 100%;
+      height: 6rem;
+      border-left: solid rgb(99 102 241);
+      background-color: rgba(240, 251, 239, 0.1);
+    }
+    .optionbox-flex {
+      width: 100%;
+      border-left: solid rgb(99 102 241);
+      background-color: rgba(240, 251, 239, 0.1);
+    }
+  </style>
+
+  <style>
+    @keyframes append-animate {
+      from {
+        transform: scaleY(0);
+        opacity: 0;
+      }
+      to {
+        transform: scaleY(1);
+        opacity: 1;
+      }
+    }
+
+    .appear {
+      transform-origin: 50% 0;
+      animation: append-animate 0.3s linear;
+    }
+
+    @media (hover: hover) {
+      .wlabel a:hover {
+        --tw-text-opacity: 1;
+        color: hsl(var(--bc) / var(--tw-text-opacity));
+      }
+    }
+    .wlabel {
+      display: flex;
+      user-select: none;
+      align-items: center;
+      padding-left: 0.25rem /* 4px */;
+      padding-right: 0.25rem /* 4px */;
+      padding-top: 0.5rem /* 8px */;
+      padding-bottom: 0.5rem /* 8px */;
+    }
+    .btm-nav > * .wlabel {
+      font-size: 1rem /* 16px */;
+      line-height: 1.5rem /* 24px */;
+    }
+
+    .bg_grey {
+      background-color: rgba(240, 251, 239, 0.1);
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      /* display: none; <- Crashes Chrome on hover */
+      -webkit-appearance: none;
+      margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield; /* Firefox */
+    }
+  </style>
+
+  <script
+    is:inline
+    src="https://code.jquery.com/jquery-3.7.0.min.js"
+    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+    crossorigin="anonymous"></script>
+  <script
+    is:inline
+    src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"
+  ></script>
+  <script>
+    import "../scripts/setup.ts";
+  </script>
 </Layout>
-
-<style is:global>
-  .optionbox {
-    width: 100%;
-    height: 6rem;
-    border-left: solid rgb(99 102 241);
-    background-color: rgba(240, 251, 239, 0.1);
-  }
-  .optionbox-flex {
-    width: 100%;
-    border-left: solid rgb(99 102 241);
-    background-color: rgba(240, 251, 239, 0.1);
-  }
-</style>
-
-<style>
-  @keyframes append-animate {
-    from {
-      transform: scaleY(0);
-      opacity: 0;
-    }
-    to {
-      transform: scaleY(1);
-      opacity: 1;
-    }
-  }
-
-  .appear {
-    transform-origin: 50% 0;
-    animation: append-animate 0.3s linear;
-  }
-
-  @media (hover: hover) {
-    .wlabel a:hover {
-      --tw-text-opacity: 1;
-      color: hsl(var(--bc) / var(--tw-text-opacity));
-    }
-  }
-  .wlabel {
-    display: flex;
-    user-select: none;
-    align-items: center;
-    padding-left: 0.25rem /* 4px */;
-    padding-right: 0.25rem /* 4px */;
-    padding-top: 0.5rem /* 8px */;
-    padding-bottom: 0.5rem /* 8px */;
-  }
-  .btm-nav > * .wlabel {
-    font-size: 1rem /* 16px */;
-    line-height: 1.5rem /* 24px */;
-  }
-
-  .bg_grey {
-    background-color: rgba(240, 251, 239, 0.1);
-  }
-
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    /* display: none; <- Crashes Chrome on hover */
-    -webkit-appearance: none;
-    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
-  }
-
-  input[type="number"] {
-    -moz-appearance: textfield; /* Firefox */
-  }
-</style>
-<script
-  is:inline
-  src="https://code.jquery.com/jquery-3.7.0.min.js"
-  integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
-  crossorigin="anonymous"></script>
-<script
-  is:inline
-  src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-
-<script>
-  $("#alert_invalidplayers").hide();
-  //make the list sortable
-  let el = document.getElementById("playerlist");
-  let sortable = Sortable.create(el);
-  //boolean that checks if the settings are valid
-  let valid_1 = false;
-  let valid_2 = true;
-
-  if (localStorage.getItem("playerlist") == null) {
-    localStorage.setItem("playerlist", JSON.stringify([]));
-  }
-
-  //onclick on button with id showmodal
-  $("#showmodal").on("click", function () {
-    document.getElementById("input_playername").focus();
-
-    //fill recent_players with players that are in localstorage playerlist but not in the playerlist
-    let recent_players = JSON.parse(localStorage.getItem("playerlist"));
-    $("#recent_players").empty();
-    //loop over max 10 recent players
-    let max = recent_players.length;
-    if (max > 10) {
-      max = 10;
-    }
-    for (let i = 0; i < max; i++) {
-      if (
-        !$("#playerlist")
-          .children()
-          .toArray()
-          .some((e) => {
-            return $(e).find("input[type='text']").val() == recent_players[i];
-          })
-      ) {
-        //append small badges with the names
-        $("#recent_players").append(
-          `<button class='btn btn-sm btn-secondary m-1' id='recent_player${i}'>${recent_players[i]}</button>`,
-        );
-
-        $("#recent_player" + i).on("click", function () {
-          addPlayer($(this).text());
-        });
-      }
-    }
-  });
-  //function that checks if valid 1 and 2 are both true and if so enables the button with id start_button
-  function checkValid() {
-    if (valid_1 && valid_2) {
-      $("#start_button").removeClass("btn-disabled");
-      $("#start_button").addClass("btn-secondary");
-    } else {
-      $("#start_button").removeClass("btn-secondary");
-      $("#start_button").addClass("btn-disabled");
-    }
-  }
-
-  let crowd_chaos = false;
-
-  $("#rule_crowdchaos").on("click", function () {
-    if ($(this).prop("checked") == true) {
-      crowd_chaos = true;
-      $("#alert_players_text").text("Please add at least 2 players");
-    } else {
-      crowd_chaos = false;
-      $("#alert_players_text").text("Please add at least 3 players");
-    }
-    checkPlayers();
-  });
-
-  //function that checks if the playerlist has at least 3 players and if not hide the div with the id alter_players and its children
-  function checkPlayers() {
-    if (
-      ($("#playerlist").children().length < 3 && crowd_chaos == false) ||
-      ($("#playerlist").children().length < 2 && crowd_chaos == true)
-    ) {
-      $("#alert_players").show();
-      valid_1 = false;
-      checkValid();
-    } else {
-      $("#alert_players").hide();
-      valid_1 = true;
-      checkValid();
-    }
-  }
-
-  //function user presses enter
-  $(document).keyup(function (event) {
-    if (event.which === 13) {
-      addPlayer($("#input_playername").val());
-    }
-  });
-
-  //method to add a new player
-  $("#addPlayer").on("click", function () {
-    addPlayer($("#input_playername").val());
-  });
-  
-  function validatename(name) {
-    let regex = /^[a-zA-Z ]{2,30}$/;
-    return regex.test(name);
-}
-
-  $(document).on("click", "#ok_invalidplayer", function () {
-    document.getElementById("modal_addplayer").showModal();
-  });
-  
-  function addPlayer(playername) {
-    //check if the input field with id input_playername is empty
-    if (playername == null || playername.trim() == "") {
-      return;
-    }
-    //validate the playername
-    if(!validatename(playername)) {
-      document.getElementById("alert_invalidplayer").showModal();
-      console.log("invalid playername");
-      
-      return;
-    }
-    
-    //check if the div does not contain more then 6 elements with the id player
-    if ($("#playerlist").children().length > 5) {
-      return;
-    }
-    //if the amount of player hits 6, disable the button
-    if ($("#playerlist").children().length == 5) {
-      $("#showmodal").prop("disabled", true);
-      //change text to max players
-      $("#showmodal").text("Max amount of players reached");
-    }
-    //insert
-    $("#playerlist").append(
-      `<div class='appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box'>
-        <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent' id='player' aria-label="playername">
-        <input type='checkbox' class='checkbox h-2/4' id='dealer' aria-label="toggle dealer">
-        <img src='/icon/trash.svg' class='inv h-2/4 pl-2' id='remove'/>
-      </div>`,
-    );
-    //set the value of the input field to an empty string and place the text in the newly added input field
-    $("#input_playername").val("");
-    $("#playerlist")
-      .children()
-      .last()
-      .find("input[type='text']")
-      .val(playername);
-
-    //if that was the first player check its checkbox
-    if ($("#playerlist").children().length == 1) {
-      $("#playerlist")
-        .children()
-        .first()
-        .find("input[type='checkbox']")
-        .prop("checked", true);
-    }
-    checkPlayers();
-  }
-
-  //check if an input with the id player is empty or just contains spaces
-  function checkEmpty() {
-    let empty = false;
-    $("#playerlist")
-      .children()
-      .each(function () {
-        if ($(this).find("input[type='text']").val().trim() == "") {
-          empty = true;
-          //remove the class input-secondary and add input-error from the parent div
-          $(this).removeClass("input-secondary");
-          $(this).addClass("input-error");
-        } else {
-          $(this).removeClass("input-error");
-          $(this).addClass("input-secondary");
-        }
-      });
-    return empty;
-  }
-  //call checkempty on edit of the input field with the id input_playername
-  $(document.body).on("input", "#player", function () {
-    if (checkEmpty()) {
-      $("#alert_invalidplayers").show();
-      //exchange input-secondary with input-error
-      valid_2 = false;
-      checkValid();
-    } else {
-      $("#alert_invalidplayers").hide();
-      valid_2 = true;
-      checkValid();
-    }
-  });
-
-  //method when player clicks a any checkbox with the id dealer
-  $(document).on("click", "#dealer", function () {
-    //uncheck all other checkboxes
-    $('input[id="dealer"]').not(this).prop("checked", false);
-    //check if the checkbox itself got unchecked and if so prevent that
-    if ($(this).prop("checked") == false) {
-      $(this).prop("checked", true);
-    }
-  });
-
-  //when user clicks on the remove button
-  $(document).on("click", "#remove", function () {
-    //store if the checkbox is checked
-    let checked = $(this)
-      .parent()
-      .find("input[type='checkbox']")
-      .prop("checked");
-    //remove the parent div
-    $(this).parent().remove();
-    //if the checkbox was checked, check the first checkbox
-    if (checked) {
-      $("#playerlist")
-        .children()
-        .first()
-        .find("input[type='checkbox']")
-        .prop("checked", true);
-    }
-    //if the amount of players is less then 6, enable the button
-    if ($("#playerlist").children().length < 6) {
-      $("#showmodal").prop("disabled", false);
-      //change text to new player
-      $("#showmodal").text("New Player");
-    }
-    checkPlayers();
-  });
-  //if Checkbox with id Random_Dealer is active add disabled to all checkboxes with the id dealer
-  $("#rule_random_dealer").on("click", function () {
-    if ($(this).prop("checked") == true) {
-      $('input[id="dealer"]').prop("disabled", true);
-    } else {
-      $('input[id="dealer"]').prop("disabled", false);
-    }
-  });
-
-  //listen for click on all divs with the class optionbox
-  $(".optionbox").on("click", function () {
-    //check if the user clicked on the checkbox itself
-    if ($(event.target).is("input[type='checkbox']")) {
-      return;
-    }
-    //get the checkbox inside the div
-    let checkbox = $(this).find("input[type='checkbox']");
-    //trigger a click on the checkbox
-    checkbox.trigger("click");
-  });
-
-  function amountofrounds(players) {
-    switch (players) {
-      case 3:
-        return 20;
-      case 4:
-        return 15;
-      case 5:
-        return 12;
-      case 6:
-        return 10;
-      default:
-        return 10;
-    }
-  }
-
-  //start button with id start_button
-  $("#start_button").on("click", function () {
-    $("#start_button").addClass("loading");
-    $("#start_button").addClass("loading-spinner");
-
-    let players = [];
-    $("#playerlist")
-      .children()
-      .each(function () {
-        players.push($(this).find("input[type='text']").val());
-      });
-
-    //push the playerlist to localstorage
-    let playerlist = JSON.parse(localStorage.getItem("playerlist"));
-    playerlist.push(...players);
-    //remove any duplicates
-    playerlist = [...new Set(playerlist)];
-    localStorage.setItem("playerlist", JSON.stringify(playerlist));
-
-    let dealer = 0;
-    //find out which player is the dealer
-    if ($("#rule_random_dealer").prop("checked")) {
-      dealer = Math.floor(Math.random() * players.length);
-    } else {
-      $("#playerlist")
-        .children()
-        .each(function () {
-          if ($(this).find("input[type='checkbox']").prop("checked")) {
-            return false;
-          }
-          dealer++;
-        });
-    }
-
-    let round_amount;
-    if ($("#rounds_custom").prop("checked")) {
-      round_amount = $("#rounds_custom_range").val();
-    } else {
-      round_amount = amountofrounds(players.length);
-    }
-    //create a json array with the game settings
-    let game = {
-      dealer: dealer,
-      rule_1: $("#rule_1").prop("checked"),
-      rule_random_dealer: $("#rule_random_dealer").prop("checked"),
-      rule_expansion: $("#rule_expansion").prop("checked"),
-      rule_custom_rounds: $("#rounds_custom").prop("checked"),
-      rule_crowdchaos: $("#rule_crowdchaos").prop("checked"),
-      round: 1,
-      max_rounds: round_amount,
-      players: players,
-      bets: [],
-      tricks: [],
-      score: [],
-      score_change: [],
-      color: {},
-      step: 1,
-      display: 1,
-      score_display: 3,
-      time_started: Date.now(),
-    };
-    //check if player is onmobile
-    if (window.innerWidth < 768) {
-      game.score_display = 3;
-    }
-
-    localStorage.setItem("game", JSON.stringify(game));
-    location.href = "/game/";
-  });
-
-  $("#tlbtn").on("click", function () {
-    location.href = "/";
-  });
-
-  //get the presets from localstorage
-  let past_games = JSON.parse(localStorage.getItem("recent_games"));
-  //check if presets is null or the array is empty
-  if (past_games == null || past_games.length == 0) {
-    //add a disabled "no presets yet" button to the presets div
-    $("#presets").append(
-      `<button class='btn btn-block btn-disabled m-2' id='preset0'>no past games found</button>`,
-    );
-  } else {
-    //reverse the array so the newest games are on top
-    past_games.reverse();
-    for (let i = 0; i < past_games.length; i++) {
-      try {
-        let game = past_games[i];
-        let players = game.players;
-        let rule_1 = game.rule_1;
-        let rule_random_dealer = game.rule_random_dealer;
-        let rule_expansion = game.rule_expansion;
-        let rule_crowdchaos = game.rule_crowdchaos;
-        let rule_custom_rounds = game.rule_custom_rounds;
-        let max_rounds = game.max_rounds;
-
-        //add a div containing the date and underneath the list of players and the rules
-        $("#presets").append(
-          `<div id='preset${i}' class='flex flex-col p-5 border-2 rounded border-white w-full hover:bg-sky-700'>
-          <span>${new Date(game.time_started).toLocaleString()}</span>
-          <div class='flex flex-col w-full'>
-            <div class='flex flex-row w-full'>
-              <div class='flex flex-col w-full'>
-                <div class='flex flex-row w-full overflow-auto' style='white-space: nowrap;'>${players
-                  .map((player: string) => {
-                    return `<span class="mr-1 ml-1">${player}</span>`;
-                  })
-                  .join("&")}</div>
-              </div>
-            </div>
-          </div>
-        </div>`,
-        );
-
-        //add a click event to the button that loads the preset
-        $("#preset" + i).on("click", function () {
-          //clear playerlist and add the preset players
-          $("#playerlist").empty();
-
-          //loop over players and add them
-          for (let i = 0; i < players.length; i++) {
-            addPlayer(players[i]);
-          }
-          if (rule_1 == true) {
-            $("#rule_1").prop("checked", true);
-          } else {
-            $("#rule_1").prop("checked", false);
-          }
-          if (rule_random_dealer == true) {
-            $("#rule_random_dealer").prop("checked", true);
-          } else {
-            $("#rule_random_dealer").prop("checked", false);
-          }
-          if (rule_expansion == true) {
-            $("#rule_expansion").prop("checked", true);
-          } else {
-            $("#rule_expansion").prop("checked", false);
-          }
-          if (rule_crowdchaos == true) {
-            $("#rule_crowdchaos").prop("checked", true);
-          } else {
-            $("#rule_crowdchaos").prop("checked", false);
-          }
-          if (rule_custom_rounds == true) {
-            $("#rounds_custom").prop("checked", true);
-            $("#rounds_auto").prop("checked", false);
-            $("#range_container").show();
-            $("#range_container").removeClass("opacity-0");
-            $("#rounds_custom_range").val(max_rounds);
-            $("#range_val").text(max_rounds);
-          } else {
-            $("#rounds_custom").prop("checked", false);
-            $("#rounds_auto").prop("checked", true);
-            $("#range_container").hide();
-          }
-          //close modal
-          modal_edit.close();
-        });
-      } catch (e) {
-        console.log(e);
-      }
-    }
-  }
-
-  $("#title").on("click", function () {
-    //show modal_edit modal
-    modal_edit.showModal();
-  });
-
-  //if the playlist is empty, hide the button
-  if ($("#playerlist").children().length == 0) {
-    $("#clearrecent").hide();
-  }
-
-  $("#clearrecent").on("click", function () {
-    localStorage.setItem("playerlist", JSON.stringify([]));
-    location.reload();
-  });
-
-  //range stuff
-  //check if the checkbox with id rounds_auto is checked and if so hide the range container
-  if ($("#rounds_auto").prop("checked")) {
-    $("#range_container").hide();
-    $("#range_container").addClass("opacity-0");
-  }
-
-  $("#rounds_auto_box").on("click", function () {
-    $("#range_container").hide();
-    $("#range_container").removeClass("opacity-100");
-    $("#range_container").addClass("opacity-0");
-
-    let val = amountofrounds($("#playerlist").children().length);
-    $("#range_val").val(val);
-    $("#rounds_custom_range").val(val);
-    $("#rounds_auto").prop("checked", true);
-  });
-
-  $("#rounds_custom_box").on("click", function () {
-    $("#range_container").show();
-    $("#range_container").removeClass("opacity-0");
-    $("#range_container").addClass("opacity-100");
-    $("#rounds_custom").prop("checked", true);
-  });
-
-  $("#rounds_custom_range").on("input", function () {
-    $("#range_val").val($(this).val());
-  });
-
-  document.onreadystatechange = function () {
-    if (document.readyState === "complete") {
-      document.getElementById("loading").classList.add("hidden");
-    }
-  };
-</script>
