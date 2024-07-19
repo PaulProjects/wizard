@@ -6,15 +6,7 @@ import matomo from 'astro-matomo';
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), prefetch(), sitemap(), matomo({
-    enabled: true,
-    host: "https://paulbertram.de/wa/",
-    trackerUrl: "js/", // defaults to matomo.php
-    srcUrl: "js/", // defaults to matomo.js
-    siteId: 2,
-    heartBeatTimer: 5,
-    disableCookies: true,
-  }),],
+  integrations: [tailwind(), prefetch(), sitemap()],
   site: 'https://wizzard.site',
   base: '/'
 });
