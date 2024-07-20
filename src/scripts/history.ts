@@ -1,67 +1,14 @@
 import { updatescore, score_switch_view } from "../scripts/score.ts";
 import { gamedata } from "../scripts/gamedata.ts";
 
+import confetti from 'canvas-confetti';
+
 let view = 0; //0 = overview ; 1 = details
 // check if past_games exists in local storage if not return
 let past_games = JSON.parse(localStorage.getItem("recent_games"));
 if (past_games === null || past_games.length === 0) {
     location.href = "/";
 }
-
-//advances modal
-$("#title").on("click", () => {
-    (document.getElementById("modal_settings") as HTMLDialogElement).open = true;
-});
-
-$("#del_game").on("click", () => {
-    //remove all onclick attributes
-    $("#rremovedata").removeAttr("onclick");
-    //show modal_delete
-    (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
-    //change text
-    document.getElementById("modal_del_text").innerHTML =
-        "Do you really want to delete this game?";
-    document.getElementById("modal_del_infotext").innerHTML =
-        "This will remove all stored data about this game permanently!";
-    //add onclick to the button
-    $("#rremovedata").on("click", () => {
-        //delete the game locally
-        let index = past_games.indexOf(Lgame);
-        past_games.splice(index, 1);
-        localStorage.setItem("recent_games", JSON.stringify(past_games));
-
-        //delete the game on the server
-        $.ajax({
-            url: `https://s.paulbertram.de/wizzardshare.php?id=${Lgame.getID()}`,
-            type: "DELETE",
-            success: function (result) {
-                console.log("Success deleting");
-            },
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            // Fehlerbehandlung hier
-            console.error("Error: " + textStatus, errorThrown);
-        }).always(function () {
-            location.reload();
-        });
-    });
-});
-
-$("#del_all").on("click", () => {
-    //remove all onclick attributes
-    $("#rremovedata").removeAttr("onclick");
-    //show modal_delete
-    (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
-    //change text
-    document.getElementById("modal_del_text").innerHTML =
-        "Do you really want to delete all data?";
-    document.getElementById("modal_del_infotext").innerHTML =
-        "This will remove all stored data about current and past games permanently!";
-    //add onclick to the button
-    $("#rremovedata").on("click", () => {
-        localStorage.clear();
-        location.reload();
-    });
-});
 
 //newest game first
 past_games.sort((a, b) => {
@@ -203,6 +150,8 @@ function clicked_more(i) {
     //get the game and store it in Lgame
     Lgame = games[i];
     Lgame.setStep(3);
+    //add the id to the url
+    history.replaceState({}, "", `?id=${Lgame.getID()}`);
     let players = Lgame.getPlayers();
     updatescore(players, Lgame);
 }
@@ -235,8 +184,10 @@ $("#tlbtn").on("click", () => {
         $("#past_games").removeClass("hidden");
         $("#del_game").addClass("hidden");
         view = 0;
-        end = Date.now() - 10;
+        
         confetti.reset();
+        //remove the id from the url
+        history.pushState({}, "", "/history/");
     } else {
         location.href = "/";
     }
@@ -249,6 +200,61 @@ $("#share_game").on("click", () => {
     let url = `${location.origin}/share?id=${id}`;
     //open the url in a new tab
     window.open(url, "_blank");
+});
+
+//advances modal
+$("#title").on("click", () => {
+    (document.getElementById("modal_settings") as HTMLDialogElement).open = true;
+});
+
+$("#del_game").on("click", () => {
+    let id = Lgame.getID();
+    //remove all onclick attributes
+    $("#rremovedata").removeAttr("onclick");
+    //show modal_delete
+    (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
+    //change text
+    document.getElementById("modal_del_text").innerHTML =
+        "Do you really want to delete this game?";
+    document.getElementById("modal_del_infotext").innerHTML =
+        "This will remove all stored data about this game permanently!";
+    //add onclick to the button
+    $("#rremovedata").on("click", () => {
+        //delete the game from the local storage
+        let index = past_games.findIndex((game) => game.id === id);
+        past_games.splice(index, 1);
+        localStorage.setItem("recent_games", JSON.stringify(past_games));
+        //delete the game on the server
+        $.ajax({
+            url: `https://s.paulbertram.de/wizzardshare.php?id=${Lgame.getID()}`,
+            type: "DELETE",
+            success: function (result) {
+                console.log("Success deleting");
+            },
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            // Fehlerbehandlung hier
+            console.error("Error: " + textStatus, errorThrown);
+        }).always(function () {
+            location.reload();
+        });
+    });
+});
+
+$("#del_all").on("click", () => {
+    //remove all onclick attributes
+    $("#rremovedata").removeAttr("onclick");
+    //show modal_delete
+    (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
+    //change text
+    document.getElementById("modal_del_text").innerHTML =
+        "Do you really want to delete all data?";
+    document.getElementById("modal_del_infotext").innerHTML =
+        "This will remove all locally stored data about current and past games permanently!";
+    //add onclick to the button
+    $("#rremovedata").on("click", () => {
+        localStorage.clear();
+        location.reload();
+    });
 });
 
 //get url params
