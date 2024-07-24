@@ -152,59 +152,6 @@ import Celebration from "./Celebration.astro";
   <div class="stats-vertical sm:stats-horizontal mx-auto w-full w-60"></div>
 </dialog>
 <!-- End of modal -->
-<!-- Player details Modal --> 
- <!-- Info modal -->
-<dialog id="modal_details" class="modal modal-top sm:modal-middle">
-  <form method="dialog" class="modal-box">
-    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-      >✕</button
-    >
-    <div class="flex flex-col justify-center items-center">
-      <h2 class="font-bold text-3xl mt-5">Info</h2>
-      <div class="prose">
-        <p class="mb-1 mt-5">
-          The Score Page offers various options to determine the top player.
-          Simply click on the icon to choose your preferred method.
-        </p>
-        <div class="mt-2">
-          <span>
-            <div class="w-10"><Icon name="mdi:format-list-numbered" /></div>
-            Displays the players sorted by their score
-          </span>
-        </div>
-        <div class="mt-2">
-          <div class="w-10"><Icon name="mdi:table-account" /></div><p>
-            Displays a table containing the score for every player and their bet
-            for that round <br /><span class="text-secondary text-xs"
-              >(just like on the physical score sheet)</span
-            >
-          </p>
-        </div>
-        <div class="mt-2">
-          <div class="w-10"><Icon name="mdi:poll" /></div><p>
-            Displays a bar chart of the score
-          </p>
-        </div>
-        <div class="mt-2">
-          <div class="w-10"><Icon name="mdi:chart-timeline-variant" /></div><p>
-            Displays a line chart of the score <br /><span
-              class="text-secondary text-xs"
-              >(both charts looks better in panorama mode and are disabled for
-              the two rounds)</span
-            >
-          </p>
-        </div>
-        <span class="badge badge-secondary mt-5"
-          >And this blue color highlights who the dealer is</span
-        >
-      </div>
-    </div>
-  </form>
-  <form method="dialog" class="modal-backdrop">
-    <button>close</button>
-  </form>
-</dialog>
-
 <!-- End of content -->
 
 <style>

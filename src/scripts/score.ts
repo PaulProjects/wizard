@@ -47,6 +47,7 @@ export function updatescore(players: any, game: gamedata) {
     // 2 -> Bet
     // 3 -> Place
     // 4 -> Dealer?
+    // 5 -> Name without decoration
 
     //sorting the players by score
     //Give the players a crown if they are first
@@ -57,6 +58,9 @@ export function updatescore(players: any, game: gamedata) {
                 players[i],
                 gameScore[gameScore.length - 1][i],
                 bets[bets.length - 1][i],
+                ,
+                ,
+                players[i],
             ];
         }
         for (let i = 0; i < playerlist.length; i++) {
@@ -75,9 +79,9 @@ export function updatescore(players: any, game: gamedata) {
         for (let i = 0; i < players.length; i++) {
             playerlist[i] = [players[i], 0];
             if (bets.length == 0) {
-                sorted_playerlist[i] = [players[i], 0, 0];
+                sorted_playerlist[i] = [players[i], 0, 0, , , players[i]];
             } else {
-                sorted_playerlist[i] = [players[i], 0, bets[bets.length - 1][i]];
+                sorted_playerlist[i] = [players[i], 0, bets[bets.length - 1][i], , , players[i]];
             }
             if (i == game.getDealer()) {
                 playerlist[i][2] = 1;
@@ -111,8 +115,8 @@ export function updatescore(players: any, game: gamedata) {
     //Top Players list
     for (let i = 0; i < sorted_playerlist.length; i++) {
         $("#top_players").append(
-            /*html*/`<div class="max-w-max w-full bg-neutral rounded-md p-4 mx-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary">
-                <div class="w-52 justify-start items-start gap-16 inline-flex">
+            /*html*/`<div class="min-w-72 w-screen max-w-full bg-neutral rounded-md p-4 mx-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary relative" id="top_players_${i}">
+                <div class="w-full justify-between items-center gap-16 inline-flex">
                     <h1 class="text-4xl font-medium ${sorted_playerlist[i][4] == 1 ? "text-secondary" : ""}" id="top_players_${i}">${sorted_playerlist[i][0]}</h1>
                 </div>
                 <div class="w-full h-9 justify-between items-center inline-flex mb-4 mt-3">
@@ -125,7 +129,7 @@ export function updatescore(players: any, game: gamedata) {
                         <h3 class="text-2xl">${sorted_playerlist[i][2]}</h3>
                         <p class="font-light text-sm">Bet<p>
                     </div>`
-                    : ""}  
+                : ""}  
                 </div>
             </div>`
         );

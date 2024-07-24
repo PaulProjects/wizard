@@ -348,7 +348,7 @@ function addplayertoInput(index: number, max: number) {
 
     let player = players[index];
     $("#players").append(
-        `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
+        /*html*/`<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
             <div class="card-body">
                 <h2 class="card-title text-2xl">${player}</h2>
                 <input type="range" min="0" max="${max}" value="0" class="range" step="1" aria-label="Input" id="input_range_${index}"/>
@@ -485,7 +485,7 @@ function Input_confirm() {
                     ps[index] = score[round - 2][index] + psc[index];
                 }
             }
-            
+
             game.addScore(ps);
             game.addScoreChange(psc);
 
