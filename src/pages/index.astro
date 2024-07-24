@@ -20,13 +20,14 @@ import ImportGame from "../components/ImportGame.astro";
         <h2 class="text-center text-2xl" id="loading">Loading...</h2>
         <nav class="boxbuttons mt-10">
           <button class="btn btn-secondary mb-2 btn-block" id="new_game"
-            ><span id="new_game_text">New game</span></button
+            ><a href="/setup"><span id="new_game_text">New game</span></a
+            ></button
           >
           <button class="btn btn-neutral mb-2 btn-block" id="resume_game"
-            ><span>Resume game</span></button
+            ><a href="/game"><span>Resume game</span></a></button
           >
-          <button class="btn btn-neutral mb-10 btn-block" id="recent_games"
-            ><span>Past games</span></button
+          <button class="btn btn-neutral mb-10 btn-block" id="past_games"
+            ><a href="/history"><span>Past games</span></a></button
           >
         </nav>
       </main>
@@ -39,6 +40,8 @@ import ImportGame from "../components/ImportGame.astro";
         href="https://github.com/PaulProjects/wizzard"
         class="w-full"
         aria-label="Github"
+        title="Github"
+        target="_blank"
       >
         <Icon name="mdi:github" /></a
       >
@@ -63,66 +66,37 @@ import ImportGame from "../components/ImportGame.astro";
         >✕</button
       >
       <h1 class="font-bold text-xl">About</h1>
-      <p class="py-4">
+      <p class="pt-2 pb-4">
         This site is a score counter for the popular card game Wizard. It is
         still work in progress and I will add more features from time to time.
-        If you have any suggestions or feedback, please let me know. Contact:
-        hi@paulbertram.de Have fun!
+        If you have any suggestions or feedback, <a class="underline" href="mailto:hi@paulbertram.de">let me know</a>. 
       </p>
-      <p class="py-4">
-        Thanks to Jack Rugile for this awesome <a
-          class="underline"
-          href="https://codepen.io/jackrugile/pen/kQwPRO"
-          >Lightning Background</a
-        >
-      </p>
-      <p class="py-4">
+      <h1 class="font-bold text-xl">Credits</h1>
+      <div class="pt-2 pb-4">
+        <a class="underline" href="https://codepen.io/jackrugile/pen/kQwPRO" target="_blank"><span>Lightning Background</span></a>
+        &
+        <a class="underline" href="https://codepen.io/jmolund/pen/jBqyqK" target="_blank"><span>ScoreBoard</span></a>
+      </div>
+      <h1 class="font-bold text-xl">Disclaimer</h1>
+      <p class="pt-2 pb-4">
         This site is not affiliated with Amigo Spiele or any other company. The
         game Wizard is a registered trademark of Amigo Spiele. This site is for
         private use only.
       </p>
-      <p>
-        If you exported an data from this site you can import it right back.
+      <h1 class="font-bold text-xl">Actions</h1>
+      <p class="pt-2 pb-4">
+        You can delete, import and export the games.
       </p>
 
-      <button class="btn btn-info btn-block mt-4 import_data">
-        Import Data
-      </button>
-      <button id="export_data" class="btn btn-info btn-block mt-2 hidden">
-        Export Data</button
-      >
-      <button id="delete_data" class="btn btn-warning btn-block mt-2">
-        Delete all Data</button
-      >
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- No Recent Game Modal -->
-  <dialog id="alert_2" class="modal">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <h1 class="font-bold text-lg">No past games found!</h1>
-      <p class="py-4">
-        There are no past games on record. Please finish a game. Make sure you
-        don't delete this website's data in your browser, or you will lose your
-        gamehistory.
-      </p>
-      <p>
-        If you exported an active game at some point you can import it right
-        back.
-      </p>
-      <div class="pb-5"></div>
       <button class="btn btn-info btn-block mt-2 import_data">
         Import Data
       </button>
       <button id="export_data" class="btn btn-info btn-block mt-2">
         Export Data</button
       >
-      <button class="btn btn-info btn-block mt-4"> Cancel</button>
+      <button id="delete_data" class="btn btn-primary btn-block mt-2">
+        Delete all Data</button
+      >
     </form>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>
@@ -150,78 +124,85 @@ import ImportGame from "../components/ImportGame.astro";
   </dialog>
   <ImportGame />
   <Lightning />
-</Layout>
-<style>
-  .boxbuttons {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  .credits {
-    width: 150px;
-    height: 50px;
-  }
-
-  .legal {
-    width: 200px;
-    height: 50px;
-  }
-</style>
-<script>
-  //onclick on the new game button, add a loading spinner
-  document.getElementById("new_game").addEventListener("click", function () {
-    const newGameText = document.getElementById("new_game_text");
-    newGameText.innerHTML = `Loading...`;
-    location.href = "/setup/";
-  });
-
-  document.getElementById("resume_game").addEventListener("click", function () {
-    if (localStorage.getItem("game") !== null) {
-      location.href = "/game/";
-    } else {
-      document.getElementById("alert_1").showModal();
+  <style>
+    .boxbuttons {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
-  });
+    .credits {
+      width: 150px;
+      height: 50px;
+    }
 
-  document
-    .getElementById("recent_games")
-    .addEventListener("click", function () {
-      if (localStorage.getItem("recent_games") !== null) {
-        location.href = "/history/";
-      } else {
-        document.getElementById("alert_2").showModal();
+    .legal {
+      width: 200px;
+      height: 50px;
+    }
+  </style>
+  <script>
+    import { gamedata } from "../scripts/gamedata";
+
+    //* Function to validate game data stored in local storage */
+    function validateGame(): boolean {
+      if (!localStorage.getItem("game")) {
+        return false;
       }
+
+      try {
+        let game: gamedata;
+        game = gamedata.fromJSONstring(localStorage.getItem("game"));
+      } catch (error) {
+        console.error("Error validating game data: " + error);
+        return false;
+      }
+      return true;
+    }
+
+    document.onreadystatechange = function () {
+      //hide loading text when page is loaded
+      if (document.readyState === "complete") {
+        document.getElementById("loading").classList.add("hidden");
+      }
+
+      //hide past games button if no past games are stored
+      if (!localStorage.getItem("recent_games")) {
+        document.getElementById("past_games").classList.add("hidden");
+      }
+
+      //hide resume game button if no valid game is stored
+      if (!validateGame()) {
+        document.getElementById("resume_game").classList.add("hidden");
+      }
+
+      //hide export data button if there is nothing to export
+      if (
+        !localStorage.getItem("game") &&
+        !localStorage.getItem("recent_games") &&
+        !localStorage.getItem("playerlist")
+      ) {
+        document.getElementById("export_data").classList.add("hidden");
+      }
+    };
+
+    //loading indicator when new game is clicked
+    document.getElementById("new_game").addEventListener("click", function () {
+      document.getElementById("new_game_text").innerHTML = `Loading...`;
     });
 
-  document.onreadystatechange = function () {
-    if (document.readyState === "complete") {
-      document.getElementById("loading").classList.add("hidden");
-    }
+    document
+      .getElementById("delete_data")
+      .addEventListener("click", function () {
+        (
+          document.getElementById("alert_delete") as HTMLDialogElement
+        ).showModal();
+      });
 
-    if (localStorage.getItem("game") == null) {
-      document.getElementById("resume_game").classList.add("hidden");
-    }
-
-    if (localStorage.getItem("recent_games") == null) {
-      document.getElementById("recent_games").classList.add("hidden");
-    }
-
-    if (
-      localStorage.getItem("game") !== null ||
-      localStorage.getItem("recent_games") !== null
-    ) {
-      document.getElementById("export_data").classList.remove("hidden");
-    }
-  };
-
-  document.getElementById("delete_data").addEventListener("click", function () {
-    document.getElementById("alert_delete").showModal();
-  });
-
-  document.getElementById("del_data").addEventListener("click", function () {
-    localStorage.clear();
-    location.reload();
-  });
-</script>
+    document.getElementById("del_data").addEventListener("click", function () {
+      localStorage.clear();
+      location.reload();
+    });
+  </script>
+</Layout>

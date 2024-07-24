@@ -85,7 +85,6 @@ export class gamedata {
 
     //constructor taking json
     static fromJson(json): gamedata {
-        console.log(json);
         //validate json
         if (typeof json.dealer !== 'number') {
             throw new Error('invalid dealer');
