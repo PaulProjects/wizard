@@ -16,7 +16,7 @@ export class gamedata {
     /** The maximum number of rounds */
     private max_rounds: number;
     /** The player names, order is essential*/
-    private players: string[];
+    private players: Array<string>;
     /** The bets of the players */
     private bets: number[][];
     /** The tricks of the players */
@@ -41,7 +41,7 @@ export class gamedata {
     /** game id on the server*/
     private id?: string;
 
-    constructor(dealer: number, rule_1: boolean, rule_random_dealer: boolean, rule_expansion: boolean, rule_custom_rounds: boolean, rule_crowdchaos: boolean, round: number, max_rounds: number, players: [], bets: number[][], tricks: number[][], score: number[][], score_change: number[][], color: {}, step: number, display: number, score_display: number, time_started: number, time_ended?: number, id?: string) {
+    constructor(dealer: number, rule_1: boolean, rule_random_dealer: boolean, rule_expansion: boolean, rule_custom_rounds: boolean, rule_crowdchaos: boolean, round: number, max_rounds: number, players: Array<string>, bets: number[][], tricks: number[][], score: number[][], score_change: number[][], color: {}, step: number, display: number, score_display: number, time_started: number, time_ended?: number, id?: string) {
         this.dealer = dealer;
         this.rule_1 = rule_1;
         this.rule_random_dealer = rule_random_dealer;
@@ -186,6 +186,29 @@ export class gamedata {
         });
     }
 
+    static demo(view: number): gamedata {
+        return new gamedata(
+            2,
+            true,
+            false,
+            false,
+            false,
+            false,
+            8,
+            12,
+            ["Darth Maul", "Rey", "Han Solo", "Andor"],
+            [[0, 0, 1, 0, 0], [1, 1, 0, 0, 1], [0, 1, 2, 0, 1], [0, 1, 0, 1, 1], [2, 0, 1, 0, 3], [0, 4, 1, 0, 2], [2, 1, 1, 0, 2]],
+            [[0, 0, 1, 0, 0], [1, 0, 0, 0, 1], [0, 0, 2, 1, 0], [1, 1, 0, 1, 1], [0, 1, 1, 0, 3], [1, 4, 1, 0, 0], [2, 1, 1, 0, 3]],
+            [[20, 20, 30, 20, 20], [50, 10, 50, 40, 50], [70, 0, 90, 30, 40], [60, 30, 110, 60, 70], [40, 20, 140, 80, 120], [30, 80, 170, 100, 100], [70, 110, 200, 120, 90]],
+            [[20, 20, 30, 20, 20], [30, -10, 20, 20, 30], [20, -10, 40, -10, -10], [-10, 30, 20, 30, 30], [-20, -10, 30, 20, 50], [-10, 60, 30, 20, -20], [40, 30, 30, 20, -10]],
+            {},
+            1, 
+            1,
+            view,
+            1722771652130
+        )
+    }
+
     public save(): void {
         let gamestring = gamedata.toJson(this);
         localStorage.setItem('game', gamestring);
@@ -313,9 +336,9 @@ export class gamedata {
     }
 
     public hasID(): boolean {
-        return typeof this.id === 'string';    
+        return typeof this.id === 'string';
     }
-    
+
     public getID(): string {
         return this.id;
     }

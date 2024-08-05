@@ -115,7 +115,7 @@ export function updatescore(players: any, game: gamedata) {
     //Top Players list
     for (let i = 0; i < sorted_playerlist.length; i++) {
         $("#top_players").append(
-            /*html*/`<div class="min-w-72 w-screen max-w-full bg-neutral rounded-md p-4 mx-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary relative" id="top_players_${i}">
+            /*html*/`<div class="min-w-72 w-5/12 max-w-full bg-neutral rounded-md p-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary relative" id="top_players_${i}">
                 <div class="w-full justify-between items-center gap-16 inline-flex">
                     <h1 class="text-4xl font-medium ${sorted_playerlist[i][4] == 1 ? "text-secondary" : ""}" id="top_players_${i}">${sorted_playerlist[i][0]}</h1>
                 </div>
@@ -170,7 +170,7 @@ export function updatescore(players: any, game: gamedata) {
         $("#icon_analytics").addClass("hidden");
     } else {
         //Graph
-        let score_chart;
+        let score_chart: Chart;
 
         $("#icon_chart").removeClass("hidden");
         $("#chart").remove();

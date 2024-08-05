@@ -1,19 +1,36 @@
 import { updatescore, score_switch_view } from "../scripts/score.ts";
 import { gamedata } from "../scripts/gamedata.ts";
 
-//if game is null then redirect to index
-if (localStorage.getItem("game") == null) {
-    window.location.href = "/";
+let game: gamedata;
+
+//check url params for demo mode and view instructions
+const urlParams = new URLSearchParams(window.location.search);
+const demomode = urlParams.has('demo');
+if (demomode) {
+    let view = 2;
+    if (urlParams.has('view')) {
+        view = parseInt(urlParams.get('view'));
+    }
+
+    game = gamedata.demo(view);
+    
+    $("#endgame").hide();
+    $("#savequit").text("Exit Demo Mode")
+} else {
+    //if game is null then redirect to startpage
+    if (localStorage.getItem("game") == null) {
+        window.location.href = "/";
+    }
+
+    //get the game from localstorage
+    try {
+        game = gamedata.fromJSONstring(localStorage.getItem("game"));
+    } catch (error) {
+        console.error(error);
+        window.location.href = "/";
+    }
 }
 
-//get the game json from localstorage
-let game: gamedata;
-try {
-    game = gamedata.fromJSONstring(localStorage.getItem("game"));
-} catch (error) {
-    console.error(error);
-    window.location.href = "/";
-}
 //get the players 
 const players = game.getPlayers();
 
@@ -81,33 +98,33 @@ $("#s_round").on("click", () => {
 //color picker modal
 $("#color_blue").on("click", () => {
     game.setColor(game.getRound(), "blue");
-    game.save();
+    if (!demomode) game.save();
     roundinfo();
     updatescore(players, game);
 });
 $("#color_red").on("click", () => {
     game.setColor(game.getRound(), "red");
-    game.save();
+    if (!demomode) game.save();
     roundinfo();
     updatescore(players, game);
 });
 $("#color_green").on("click", () => {
     game.setColor(game.getRound(), "green");
-    game.save();
+    if (!demomode) game.save();
     roundinfo();
     updatescore(players, game);
 });
 
 $("#color_yellow").on("click", () => {
     game.setColor(game.getRound(), "yellow");
-    game.save();
+    if (!demomode) game.save();
     roundinfo();
     updatescore(players, game);
 });
 $("#color_none").on("click", () => {
     game.removeColor(game.getRound());
     //game.setColor(game.getRound(), null);
-    game.save();
+    if (!demomode) game.save();
     roundinfo();
     updatescore(players, game);
 });
@@ -141,7 +158,7 @@ $("#color_random").on("click", () => {
             $("#slot_text").css("color", "white");
         }
 
-        game.save();
+        if (!demomode) game.save();
         roundinfo();
         $("#random_close_button").removeClass("btn-disabled");
         updatescore(players, game);
@@ -197,7 +214,7 @@ $("#nav_button").on("click", () => {
         finish_game();
     } else if (game.getDisplay() == 1) {
         game.setDisplay(2);
-        game.save();
+        if (!demomode) game.save();
         update();
     } else {
         Input_confirm();
@@ -210,7 +227,7 @@ $("#chart_nav").on("click", () => {
     freezebutton();
     if (game.getDisplay() == 2) {
         game.setDisplay(1);
-        game.save();
+        if (!demomode) game.save();
         update();
     }
 });
@@ -451,7 +468,7 @@ function Input_confirm() {
         if (game.getStep() == 1) {
             game.setRoundBets(scores);
             game.setStep(2);
-            game.save();
+            if (!demomode) game.save();
         } else {
             let tricks = game.getTricks();
             if (tricks === null) {
@@ -460,7 +477,7 @@ function Input_confirm() {
 
             //push the scores array to the tricks
             game.setRoundTricks(scores);
-            game.save();
+            if (!demomode) game.save();
 
             let score = game.getScore();
             //calculate the scores
@@ -489,7 +506,7 @@ function Input_confirm() {
             game.addScore(ps);
             game.addScoreChange(psc);
 
-            game.save();
+            if (!demomode) game.save();
 
             if (game.getRound() >= game.getMaxRounds()) {
                 game.setStep(3);
@@ -499,11 +516,11 @@ function Input_confirm() {
                 //shift dealer
                 game.setDealer((game.getDealer() + 1) % players.length);
                 game.setStep(1);
-                game.save();
+                if (!demomode) game.save();
             }
         }
         game.setDisplay(1);
-        game.save();
+        if (!demomode) game.save();
         update();
     } else {
         if (game.getStep() == 1) {
@@ -527,7 +544,7 @@ $("#continuegame").on("click", () => {
     game.setStep(1);
     game.setDisplay(1);
     score_switch_view(2);
-    game.save();
+    if (!demomode) game.save();
     update();
 });
 
@@ -551,12 +568,11 @@ $("#rule_1").on("click", () => {
     //if the checkbox is checked
     if ($("#rule_1").is(":checked")) {
         game.setRule_1(true);
-        game.save();
         //update the confirm button
     } else {
         game.setRule_1(false);
-        game.save();
     }
+    if (!demomode) game.save();
     updatetotal();
 });
 
@@ -609,7 +625,7 @@ $("#editscore").on("click", () => {
                 }
                 //rename the player
                 game.renamePlayer(index, new_name);
-                game.save();
+                if (!demomode) game.save();
                 //update the name
                 $(`#n_${index}`).text(new_name);
             });
@@ -633,7 +649,7 @@ $("#editscore").on("click", () => {
             let score_array = game.getScore();
             score_array[round][player] = new_score;
             game.setScore(score_array);
-            game.save();
+            if (!demomode) game.save();
             $(`#std${round}${player}`).text(new_score);
         });
     });
@@ -658,7 +674,7 @@ $("#editscore").on("click", () => {
             let bet_array = game.getBets();
             bet_array[round][player] = new_bet;
             game.setBets(bet_array);
-            game.save();
+            if (!demomode) game.save();
             $(`#btd${round}${player}`).text(new_bet);
         });
     });
@@ -684,7 +700,7 @@ $("#editdealer").on("click", () => {
 });
 $("#select_dealer_save").on("click", () => {
     game.setDealer(parseInt((document.getElementById("select_dealer") as HTMLSelectElement).value));
-    game.save();
+    if (!demomode) game.save();
     location.reload();
 });
 update();
