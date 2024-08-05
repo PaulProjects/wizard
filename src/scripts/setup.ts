@@ -410,7 +410,7 @@ function checkPlayers() {
     }
 }
 
-const regex = /^[a-zA-Z0-9\- ]{2,12}$/;
+const regex = /^[a-zA-Z0-9\- ]{2,15}$/;
 function validatename(playername: string) {
     return regex.test(playername);
 }
