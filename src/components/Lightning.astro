@@ -245,7 +245,7 @@
   /*=============================================================================*/
   window.addEventListener('load', function(event) {
     if (isCanvasSupported) {
-      var c = document.getElementById("canvas");
+      var c = document.getElementById("canvas") as HTMLCanvasElement;
       var cw = (c.width = window.innerWidth);
       var ch = (c.height = window.innerHeight);
       var cl = new canvasLightning(c, cw, ch);

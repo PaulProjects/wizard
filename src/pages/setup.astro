@@ -90,15 +90,12 @@ import {} from "../scripts/setup.ts";
           description="Requires the amount of possible bids to differ from the total amount of tricks"
           js_id="rule_1"
         />
-        <!-- +-1 Rule End -->
         <div class="pt-5"></div>
-        <!-- Random Dealer Rule Start -->
         <Rule
           title="Random dealer"
           description="Randomly select the dealer for the first round."
           js_id="rule_random_dealer"
         />
-        <!-- Random Dealer Rule End -->
         <div class="pt-5"></div>
         <Rule
           title="Expansion"
@@ -112,7 +109,69 @@ import {} from "../scripts/setup.ts";
           js_id="rule_crowdchaos"
         />
         <div class="pt-5"></div>
-        <!-- End Game Options -->
+
+        <!-- Start of calc options -->
+        <h2 class="pt-10 text-3xl w-full">Score calculation</h2>
+        <div class="pt-2"></div>
+        <div class="optionbox-flex pr-10 pl-3">
+          <div class="form-control">
+            <div
+              class="flex flex-row items-center h-full w-full"
+              id="calc_classic_box"
+            >
+              <div class="form-control pl-3">
+                <label class="cursor-pointer label">
+                  <input
+                    type="radio"
+                    name="calc"
+                    aria-label="radio button to toggle automatic rounds"
+                    class="radio checked:bg-blue-500"
+                    id="calc_classic"
+                    checked
+                  />
+                </label>
+              </div>
+              <div
+                class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+              >
+                <span class="label-text text-xl bold font-bold w-full"
+                  >Classic</span
+                >
+                <span class="label-text text-sm bold w-full"
+                  >Calculate the score according to the ruleset</span
+                >
+              </div>
+            </div>
+            <div
+              class="flex flex-row items-center h-full w-full"
+              id="calc_alt_box"
+            >
+              <div class="form-control pl-3">
+                <label class="cursor-pointer label">
+                  <input
+                    type="radio"
+                    name="calc"
+                    aria-label="radio button to toggle custom rounds"
+                    class="radio checked:bg-blue-500"
+                    id="calc_alt"
+                  />
+                </label>
+              </div>
+              <div
+                class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+              >
+                <span class="label-text text-xl bold font-bold w-full"
+                  >Custom</span
+                >
+                <span class="label-text text-sm bold w-full"
+                  >Use an alternative counting system thats less punishing towards a bad hand</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- End of calc options -->
+
         <!-- Start of round options -->
         <h2 class="pt-10 text-3xl w-full">Rounds</h2>
         <div class="pt-2"></div>
@@ -195,8 +254,8 @@ import {} from "../scripts/setup.ts";
             </div>
           </div>
         </div>
-
         <!-- End of round options -->
+
         <div
           class="rounded-md border-indigo-500 border-2 pt-5 pl-5 pr-5 pb-5 mt-10"
         >
@@ -247,8 +306,10 @@ import {} from "../scripts/setup.ts";
   <!-- Start of edit preset and recent players modal -->
   <dialog id="modal_edit" class="modal modal-top sm:modal-middle">
     <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-ghost absolute left-2 top-2" id="test-preset"
-        >test</button>
+      <button
+        class="btn btn-sm btn-ghost absolute left-2 top-2"
+        id="test-preset">test</button
+      >
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
         >✕</button
       >

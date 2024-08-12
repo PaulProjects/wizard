@@ -47,19 +47,22 @@
 <script>
     document.querySelectorAll(".import_data").forEach((element) => {
         element.addEventListener("click", function () {
-            document.getElementById("modal_import").open = true;
+            (
+                document.getElementById("modal_import") as HTMLDialogElement
+            ).open = true;
         });
     });
 
     document.getElementById("rimport").addEventListener("click", () => {
-        let file = document.getElementById("import_file").files[0];
+        let file = (document.getElementById("import_file") as HTMLInputElement)
+            .files[0];
         if (file) {
             let reader = new FileReader();
             reader.readAsText(file, "UTF-8");
             reader.onload = function (evt) {
                 try {
                     let didsomething = false;
-                    let data = JSON.parse(evt.target.result);
+                    let data = JSON.parse(evt.target.result as string);
                     let past_games = JSON.parse(
                         localStorage.getItem("recent_games"),
                     );
@@ -68,7 +71,7 @@
                             try {
                                 //loop over the array and add the games to past_games if they are not already in there compare by time_started and time_ended
                                 let new_games = JSON.parse(data[k]);
-                                if(!past_games) past_games = [];
+                                if (!past_games) past_games = [];
                                 for (let i = 0; i < new_games.length; i++) {
                                     let pgame = new_games[i];
                                     let exists = false;
@@ -100,8 +103,10 @@
                             }
                         } else if (k == "game") {
                             if (
-                                document.getElementById(
-                                    "overwrite_current_game",
+                                (
+                                    document.getElementById(
+                                        "overwrite_current_game",
+                                    ) as HTMLInputElement
                                 ).checked
                             ) {
                                 localStorage.setItem("game", data[k]);

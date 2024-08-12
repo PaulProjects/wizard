@@ -64,7 +64,7 @@ $("#rule_crowdchaos").on("click", function () {
 
 
 //function user presses enter
-$(document).keyup(function (event) {
+$(document).on( "keyup", function(event) {
     if (event.which === 13) {
         addPlayer($("#input_playername").val().toString());
     }
@@ -185,9 +185,9 @@ $("#start_button").on("click", function () {
             });
     }
 
-    let round_amount;
+    let round_amount: number;
     if ($("#rounds_custom").prop("checked")) {
-        round_amount = $("#rounds_custom_range").val();
+        round_amount = parseInt($("#rounds_custom_range").val() as string);
     } else {
         round_amount = amountofrounds(players.length);
     }
@@ -199,6 +199,7 @@ $("#start_button").on("click", function () {
         rule_expansion: $("#rule_expansion").prop("checked"),
         rule_custom_rounds: $("#rounds_custom").prop("checked"),
         rule_crowdchaos: $("#rule_crowdchaos").prop("checked"),
+        rule_altcount: $("#calc_alt").prop("checked"),
         round: 1,
         max_rounds: round_amount,
         players: players,
@@ -206,6 +207,8 @@ $("#start_button").on("click", function () {
         tricks: [],
         score: [],
         score_change: [],
+        alt_score: [],
+        alt_score_change: [],
         color: {},
         step: 1,
         display: 1,
@@ -248,6 +251,7 @@ if (past_games == null || past_games.length == 0) {
             let rule_expansion = game.rule_expansion;
             let rule_crowdchaos = game.rule_crowdchaos;
             let rule_custom_rounds = game.rule_custom_rounds;
+            let rule_altcount = game.rule_altcount;
             let max_rounds = game.max_rounds;
 
             //add a div containing the date and underneath the list of players and the rules
@@ -295,6 +299,11 @@ if (past_games == null || past_games.length == 0) {
                     $("#rule_crowdchaos").prop("checked", true);
                 } else {
                     $("#rule_crowdchaos").prop("checked", false);
+                }
+                if (rule_altcount == true) {
+                    $("#calc_alt").prop("checked", true);
+                } else {
+                    $("#calc_classic").prop("checked", true);
                 }
                 if (rule_custom_rounds == true) {
                     $("#rounds_custom").prop("checked", true);
@@ -380,8 +389,22 @@ document.onreadystatechange = function () {
     }
 };
 
+//toggles radio for rule_altcount if user clicks anywhere in div
+$("#calc_classic_box").on("click", (event) => {
+    //check if the user clicked on the radio itself
+    if ($(event.target).is("#calc_classic")) {
+        return;
+    }
+    $("#calc_classic").trigger("click");
+});
 
-
+$("#calc_alt_box").on("click", (event) => {
+    //check if the user clicked on the radio itself
+    if ($(event.target).is("#calc_alt")) {
+        return;
+    }
+    $("#calc_alt").trigger("click");
+});
 
 //function that checks if valid 1 and 2 are both true and if so enables the button with id start_button
 function checkValid() {
@@ -471,7 +494,7 @@ function checkEmpty() {
     $("#playerlist")
         .children()
         .each(function () {
-            if ($(this).find("input[type='text']").val().trim() == "") {
+            if (($(this).find("input[type='text']").val() as string).trim() == "") {
                 empty = true;
                 //remove the class input-secondary and add input-error from the parent div
                 $(this).removeClass("input-secondary");

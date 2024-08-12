@@ -271,7 +271,7 @@ import { Icon } from "astro-icon";
             savegame(game);
 
             $("#view_game").attr("href", "/history?id=" + gameId);
-            success();
+            success("The game has been imported successfully");
         });
     }
 </script>

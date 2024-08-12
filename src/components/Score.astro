@@ -103,10 +103,10 @@ import Celebration from "./Celebration.astro";
       >✕</button
     >
     <div class="flex flex-col justify-center items-center">
-      <h2 class="font-bold text-3xl mt-5">Info</h2>
+      <h2 class="font-bold text-3xl mt-5">Guide</h2>
       <div class="prose">
         <p class="mb-1 mt-5">
-          The Score Page offers various options to determine the top player.
+          The Score Page offers various options to determine the best player.
           Simply click on the icon to choose your preferred method.
         </p>
         <div class="mt-2">
@@ -124,17 +124,25 @@ import Celebration from "./Celebration.astro";
           </p>
         </div>
         <div class="mt-2">
-          <div class="w-10"><Icon name="mdi:poll" /></div><p>
-            Displays a bar chart of the score
+          <div class="flex flex-row">
+            <div class="w-10">
+              <Icon name="mdi:poll" /> 
+            </div>
+            <p> + </p>
+            <div class="w-10">
+              <Icon name="mdi:chart-timeline-variant" />
+            </div>
+          </div><p>
+            Displays a bar chart and a line chart of the score over the rounds
+            <br><span class="text-secondary text-xs"
+              >(both charts looks better in panorama mode and are disabled for
+              the first two rounds)</span
+            >
           </p>
         </div>
         <div class="mt-2">
-          <div class="w-10"><Icon name="mdi:chart-timeline-variant" /></div><p>
-            Displays a line chart of the score <br /><span
-              class="text-secondary text-xs"
-              >(both charts looks better in panorama mode and are disabled for
-              the two rounds)</span
-            >
+          <div class="w-10"><Icon name="mdi:magnify-scan" /></div><p>
+            Displays a detailed analysis of the game
           </p>
         </div>
         <span class="badge badge-secondary mt-5"

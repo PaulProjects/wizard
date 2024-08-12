@@ -18,7 +18,6 @@ past_games.sort((a, b) => {
 //create game objects from the games
 let games: gamedata[] = [];
 for (let i = 0; i < past_games.length; i++) {
-    console.log(past_games[i]);
     games[i] = gamedata.fromJson(past_games[i]);
 
     //check if it has a id else try to upload it
@@ -137,7 +136,7 @@ for (let i = 0; i < past_games.length; i++) {
 }
 
 let Lgame: gamedata;
-function clicked_more(i) {
+function clicked_more(i:number) {
     score_switch_view(4);
     view = 1;
     //hide past_games and remove hidden from score
@@ -228,7 +227,7 @@ $("#del_game").on("click", () => {
         $.ajax({
             url: `https://s.paulbertram.de/wizzardshare.php?id=${Lgame.getID()}`,
             type: "DELETE",
-            success: function (result) {
+            success: function () {
                 console.log("Success deleting");
             },
         }).fail(function (jqXHR, textStatus, errorThrown) {

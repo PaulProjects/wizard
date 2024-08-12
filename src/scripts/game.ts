@@ -1,6 +1,8 @@
 import { updatescore, score_switch_view } from "../scripts/score.ts";
 import { gamedata } from "../scripts/gamedata.ts";
 
+declare var editmode: boolean;
+
 let game: gamedata;
 
 //check url params for demo mode and view instructions
@@ -13,7 +15,7 @@ if (demomode) {
     }
 
     game = gamedata.demo(view);
-    
+
     $("#endgame").hide();
     $("#savequit").text("Exit Demo Mode")
 } else {
@@ -34,7 +36,7 @@ if (demomode) {
 //get the players 
 const players = game.getPlayers();
 
-window.editmode = false;
+globalThis.editmode = false;
 
 let input_block_reload = false;
 
@@ -207,7 +209,7 @@ function update() {
 //add a listener to the nav_button
 $("#nav_button").on("click", () => {
     freezebutton();
-    if (editmode == true) {
+    if (globalThis.editmode == true) {
         //reload page
         location.reload();
     } else if (game.getStep() == 3) {
@@ -238,10 +240,11 @@ function finish_game() {
     //TODO: remove display, step and score_display
     //put a time_ended timestamp
     game.setTimeEnded(Date.now());
+    game.save();
 
     $.post(
         "https://s.paulbertram.de/wizzardshare.php",
-        { game: JSON.stringify(gamedata.toJson(game)) },
+        { game: JSON.stringify(gamedata.toJsonStringEnd(game)) },
         function (data) {
             //add id info to the game
             game.setId(data);
@@ -258,7 +261,7 @@ function finish_game() {
             if (recent_games === null) {
                 recent_games = [];
             }
-            recent_games.push(gamedata.toJson(game));
+            recent_games.push(gamedata.toJsonObjectEnd(game));
             //delete game from localstorage
             localStorage.removeItem("game");
             //set recent_games in localstorage
@@ -278,23 +281,30 @@ function freezebutton() {
 }
 
 //Switch to graph
+
+function switch_view(view: number) {
+    score_switch_view(view);
+    game.setScoreDisplay(view);
+    game.save();
+}
+
 $("#icon_chart").on("click", () => {
-    score_switch_view(1);
+    switch_view(1);
 });
 $("#icon_table").on("click", () => {
-    score_switch_view(2);
+    switch_view(2);
 });
 $("#icon_top").on("click", () => {
-    score_switch_view(3);
+    switch_view(3);
 });
 $("#icon_celeb").on("click", () => {
-    score_switch_view(4);
+    switch_view(4);
 });
 $("#icon_bar").on("click", () => {
-    score_switch_view(5);
+    switch_view(5);
 });
 $("#icon_analytics").on("click", () => {
-    score_switch_view(6);
+    switch_view(6);
 });
 
 //Input
@@ -350,11 +360,19 @@ function updatetotal() {
     }
 }
 
-function scorecalc(bet, trick) {
+function scorecalc(bet: number, trick: number) {
     if (bet == trick) {
-        return 20 + parseFloat(bet) * 10;
+        return 20 + bet * 10;
     } else {
         return Math.abs(bet - trick) * -10;
+    }
+}
+
+function altscorecalc(bet: number, trick: number, round: number) {
+    if (bet == trick) {
+        return round * 10 + bet * 5;
+    } else {
+        return round * 10 - Math.abs(bet - trick) * -10;
     }
 }
 
@@ -479,16 +497,21 @@ function Input_confirm() {
             game.setRoundTricks(scores);
             if (!demomode) game.save();
 
-            let score = game.getScore();
             //calculate the scores
-            let score_change = game.getScoreChange();
-            let psc: number[] = [];
+            let score = game.getScore();
             let ps: number[] = [];
+            let psc: number[] = [];
+
+            let alt_score = game.getAltScore();
+            let alt_ps: number[] = [];
+            let alt_psc: number[] = [];
+
             const round = game.getRound();
 
             if (game.getRound() === 1) {
-                score_change = [];
                 score = [];
+
+                alt_score = [];
             }
             for (let index = 0; index < players.length; index++) {
                 psc[index] = scorecalc(
@@ -496,15 +519,26 @@ function Input_confirm() {
                     game.getTricks()[round - 1][index],
                 );
 
+                alt_psc[index] = altscorecalc(
+                    game.getBets()[round - 1][index],
+                    game.getTricks()[round - 1][index],
+                    round
+                );
+
                 if (round === 1) {
                     ps[index] = psc[index];
+                    alt_ps[index] = alt_psc[index];
                 } else {
                     ps[index] = score[round - 2][index] + psc[index];
+                    alt_ps[index] = alt_score[round - 2][index] + alt_psc[index];
                 }
             }
 
             game.addScore(ps);
             game.addScoreChange(psc);
+
+            game.addAltScore(alt_ps);
+            game.addAltScoreChange(alt_psc);
 
             if (!demomode) game.save();
 
@@ -576,12 +610,48 @@ $("#rule_1").on("click", () => {
     updatetotal();
 });
 
+//toggles radio for rule_altcount if user clicks anywhere in div
+$("#calc_classic_box").on("click", (event) => {
+    //check if the user clicked on the radio itself
+    if ($(event.target).is("#calc_classic")) {
+        return;
+    }
+    $("#calc_classic").trigger("click");
+});
+
+$("#calc_alt_box").on("click", (event) => {
+    //check if the user clicked on the radio itself
+    if ($(event.target).is("#calc_alt")) {
+        return;
+    }
+    $("#calc_alt").trigger("click");
+});
+
+//if rule_altcount is true then check the radio
+if (game.getRuleAltcount()) {
+    $("#calc_alt").prop("checked", true);
+} else {
+    $("#calc_classic").prop("checked", true);
+}
+//add a listener to the radio with id rule_altcount
+$("#calc_alt").on("click", () => {
+    game.setRuleAltcount(true);
+    if (!demomode) game.save();
+    updatescore(players, game);
+});
+
+$("#calc_classic").on("click", () => {
+    game.setRuleAltcount(false);
+    if (!demomode) game.save();
+    updatescore(players, game);
+});
+
+
 $("#endgame").on("click", () => {
     (document.getElementById("modal_settings") as HTMLDialogElement).close();
     (document.getElementById("modal_confirmend") as HTMLDialogElement).open = true;
 });
 
-//TODO
 $("#rendgame").on("click", () => {
     if (game.getRound() == 1) {
         localStorage.removeItem("game");
@@ -590,20 +660,19 @@ $("#rendgame").on("click", () => {
         game.setStep(3);
         game.setDisplay(1);
         navblue();
-        localStorage.setItem("game", JSON.stringify(game));
+        game.save();
         update();
     }
 });
 
+/** Edit Mode */
 $("#editscore").on("click", () => {
-    //change navtext to exit edit mode
     $("#navtext").text("Exit Edit Mode");
     score_switch_view(2);
-    editmode = true;
+    globalThis.editmode = true;
 
     //players
     for (let index = 0; index < players.length; index++) {
-        let player = players[index];
         $(`#n_${index}`).on("click", () => {
             (document.getElementById("modal_edit") as HTMLDialogElement).showModal();
             //set edit_name to the name of the player
@@ -636,11 +705,9 @@ $("#editscore").on("click", () => {
     //bind click event to each td with id std
     $("td[id^='std']").on("click", function () {
         //TODO: crown thing
-
-        let id = $(this).attr("id");
         let round = $(this).attr("round");
         let player = $(this).attr("player");
-        let score = game.getScore()[round][player];
+        let score: number = game.getRuleAltcount() ? game.getAltScore()[round][player] : game.getScore()[round][player];
         (document.getElementById("modal_edit") as HTMLDialogElement).showModal();
         $("#edit_name").val(score);
         $("#edit_save").on("click", () => {
@@ -648,7 +715,11 @@ $("#editscore").on("click", () => {
             let new_score = parseInt($("#edit_name").val() as string);
             let score_array = game.getScore();
             score_array[round][player] = new_score;
-            game.setScore(score_array);
+            if (game.getRuleAltcount()) {
+                game.setAltScore(score_array);
+            } else {
+                game.setScore(score_array);
+            }
             if (!demomode) game.save();
             $(`#std${round}${player}`).text(new_score);
         });
@@ -656,7 +727,6 @@ $("#editscore").on("click", () => {
 
     //bind click event to each td with id btd
     $("td[id^='btd']").on("click", function () {
-        let id = $(this).attr("id");
         let round = $(this).attr("round");
         let player = $(this).attr("player");
         let bet = game.getBets()[round][player];
@@ -685,7 +755,6 @@ $("#editscore").on("click", () => {
 
 $("#editdealer").on("click", () => {
     //set edit_name to the name of the player
-    let old_name = players[game.getDealer()];
     let select_dealer = document.getElementById("select_dealer") as HTMLSelectElement;
     select_dealer.innerHTML = "";
     for (let index = 0; index < players.length; index++) {

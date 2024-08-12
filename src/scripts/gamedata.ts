@@ -11,6 +11,8 @@ export class gamedata {
     private rule_custom_rounds: boolean;
     /** if crowdchaos is active -> No limit on the amount of players */
     private rule_crowdchaos: boolean;
+    /** if the altcount rule is active -> display the alternative counting system */
+    private rule_altcount: boolean;
     /** The current round */
     private round: number;
     /** The maximum number of rounds */
@@ -25,6 +27,10 @@ export class gamedata {
     private score: number[][];
     /** The change in score of the players */
     private score_change: number[][];
+    /** The score of the players calculated with an alternative method */
+    private alt_score: number[][];
+    /** The change in alternative score of the players of the alternative method*/
+    private alt_score_change: number[][];
     /** The color of the rounds */
     private color: {};
     /** 1 enter bets | 2 enter tricks - deleted after game finished*/
@@ -41,13 +47,14 @@ export class gamedata {
     /** game id on the server*/
     private id?: string;
 
-    constructor(dealer: number, rule_1: boolean, rule_random_dealer: boolean, rule_expansion: boolean, rule_custom_rounds: boolean, rule_crowdchaos: boolean, round: number, max_rounds: number, players: Array<string>, bets: number[][], tricks: number[][], score: number[][], score_change: number[][], color: {}, step: number, display: number, score_display: number, time_started: number, time_ended?: number, id?: string) {
+    constructor(dealer: number, rule_1: boolean, rule_random_dealer: boolean, rule_expansion: boolean, rule_custom_rounds: boolean, rule_crowdchaos: boolean, rule_altcount: boolean, round: number, max_rounds: number, players: Array<string>, bets: number[][], tricks: number[][], score: number[][], score_change: number[][], alt_score: number[][], alt_score_change: number[][], color: {}, step: number, display: number, score_display: number, time_started: number, time_ended?: number, id?: string) {
         this.dealer = dealer;
         this.rule_1 = rule_1;
         this.rule_random_dealer = rule_random_dealer;
         this.rule_expansion = rule_expansion;
         this.rule_custom_rounds = rule_custom_rounds;
         this.rule_crowdchaos = rule_crowdchaos;
+        this.rule_altcount = rule_altcount;
         this.round = round;
         this.max_rounds = max_rounds;
         this.players = players;
@@ -55,6 +62,8 @@ export class gamedata {
         this.tricks = tricks;
         this.score = score;
         this.score_change = score_change;
+        this.alt_score = alt_score;
+        this.alt_score_change = alt_score_change;
         this.color = color;
         this.step = step;
         this.display = display;
@@ -104,6 +113,11 @@ export class gamedata {
         if (typeof json.rule_crowdchaos !== 'boolean') {
             throw new Error('invalid rule_crowdchaos');
         }
+        if (typeof json.rule_altcount !== 'boolean') {
+            //backwards compatibility
+            console.error('invalid rule_altcount');
+            json.rule_altcount = false;
+        }
         if (typeof json.round !== 'number') {
             throw new Error('invalid round');
         }
@@ -125,11 +139,24 @@ export class gamedata {
         if (!Array.isArray(json.score_change)) {
             throw new Error('invalid score_change');
         }
+
+        if (!Array.isArray(json.alt_score)) {
+            //backwards compatibility
+            console.error('invalid alt_score');
+            json.alt_score = json.score;
+        }
+
+        if (!Array.isArray(json.alt_score_change)) {
+            //backwards compatibility
+            console.error('invalid alt_score_change');
+            json.alt_score_change = json.score_change;
+        }
+
         if (typeof json.color !== 'object') {
             throw new Error('invalid color');
         }
         if (typeof json.step !== 'number') {
-            //legacy stuff
+            //backwards compatibility
             if (typeof json.time_ended !== 'undefined') {
                 json.step = 0;
             } else {
@@ -155,22 +182,43 @@ export class gamedata {
         }
 
         if (typeof json.time_ended === 'undefined' && typeof json.id === 'undefined') {
-            return new gamedata(json.dealer, json.rule_1, json.rule_random_dealer, json.rule_expansion, json.rule_custom_rounds, json.rule_crowdchaos, json.round, json.max_rounds, json.players, json.bets, json.tricks, json.score, json.score_change, json.color, json.step, json.display, json.score_display, json.time_started);
+            return new gamedata(json.dealer, json.rule_1, json.rule_random_dealer, json.rule_expansion, json.rule_custom_rounds, json.rule_crowdchaos, json.rule_altcount, json.round, json.max_rounds, json.players, json.bets, json.tricks, json.score, json.score_change, json.alt_score, json.alt_score_change, json.color, json.step, json.display, json.score_display, json.time_started);
         }
         else {
-            return new gamedata(json.dealer, json.rule_1, json.rule_random_dealer, json.rule_expansion, json.rule_custom_rounds, json.rule_crowdchaos, json.round, json.max_rounds, json.players, json.bets, json.tricks, json.score, json.score_change, json.color, json.step, json.display, json.score_display, json.time_started, json.time_ended, json.id);
+            return new gamedata(json.dealer, json.rule_1, json.rule_random_dealer, json.rule_expansion, json.rule_custom_rounds, json.rule_crowdchaos, json.rule_altcount, json.round, json.max_rounds, json.players, json.bets, json.tricks, json.score, json.score_change, json.alt_score, json.alt_score_change, json.color, json.step, json.display, json.score_display, json.time_started, json.time_ended, json.id);
         }
     }
 
     //return json
-    static toJson(gamedata: gamedata): string {
-        return JSON.stringify({
+    static toJsonString(gamedata: gamedata): string {
+        return JSON.stringify(this.toJsonObject(gamedata));
+    }
+
+    static toJsonStringEnd(gamedata: gamedata): string {
+        let json = this.toJsonObject(gamedata);
+        delete json.step;
+        delete json.display;
+        delete json.score_display;
+        return JSON.stringify(json);
+    }
+    
+    static toJsonObjectEnd(gamedata: gamedata): any {
+        let json = this.toJsonObject(gamedata);
+        delete json.step;
+        delete json.display;
+        delete json.score_display;
+        return json;
+    }
+    
+    static toJsonObject(gamedata: gamedata): any {
+        return {
             dealer: gamedata.dealer,
             rule_1: gamedata.rule_1,
             rule_random_dealer: gamedata.rule_random_dealer,
             rule_expansion: gamedata.rule_expansion,
             rule_custom_rounds: gamedata.rule_custom_rounds,
             rule_crowdchaos: gamedata.rule_crowdchaos,
+            rule_altcount: gamedata.rule_altcount,
             round: gamedata.round,
             max_rounds: gamedata.max_rounds,
             players: gamedata.players,
@@ -178,18 +226,23 @@ export class gamedata {
             tricks: gamedata.tricks,
             score: gamedata.score,
             score_change: gamedata.score_change,
+            alt_score: gamedata.alt_score,
+            alt_score_change: gamedata.alt_score_change,
             color: gamedata.color,
             step: gamedata.step,
             display: gamedata.display,
             score_display: gamedata.score_display,
             time_started: gamedata.time_started,
-        });
+            time_ended: gamedata.time_ended,
+            id: gamedata.id,
+        }
     }
 
     static demo(view: number): gamedata {
         return new gamedata(
             2,
             true,
+            false,
             false,
             false,
             false,
@@ -201,26 +254,28 @@ export class gamedata {
             [[0, 0, 1, 0, 0], [1, 0, 0, 0, 1], [0, 0, 2, 1, 0], [1, 1, 0, 1, 1], [0, 1, 1, 0, 3], [1, 4, 1, 0, 0], [2, 1, 1, 0, 3]],
             [[20, 20, 30, 20, 20], [50, 10, 50, 40, 50], [70, 0, 90, 30, 40], [60, 30, 110, 60, 70], [40, 20, 140, 80, 120], [30, 80, 170, 100, 100], [70, 110, 200, 120, 90]],
             [[20, 20, 30, 20, 20], [30, -10, 20, 20, 30], [20, -10, 40, -10, -10], [-10, 30, 20, 30, 30], [-20, -10, 30, 20, 50], [-10, 60, 30, 20, -20], [40, 30, 30, 20, -10]],
+            [[20, 20, 30, 20, 20], [50, 10, 50, 40, 50], [70, 0, 90, 30, 40], [60, 30, 110, 60, 70], [40, 20, 140, 80, 120], [30, 80, 170, 100, 100], [70, 110, 200, 120, 90]],
+            [[20, 20, 30, 20, 20], [30, -10, 20, 20, 30], [20, -10, 40, -10, -10], [-10, 30, 20, 30, 30], [-20, -10, 30, 20, 50], [-10, 60, 30, 20, -20], [40, 30, 30, 20, -10]],
             {},
-            1, 
+            1,
             1,
             view,
             1722771652130
-        )
+        ) //ToDo: fix altscores
     }
 
     public save(): void {
-        let gamestring = gamedata.toJson(this);
+        let gamestring = gamedata.toJsonString(this);
         localStorage.setItem('game', gamestring);
     }
 
     //special getter / setter
 
-    public removeColor(round): void {
+    public removeColor(round:number): void {
         delete this.color[round];
     }
 
-    public setColor(round, color): void {
+    public setColor(round:number, color:string): void {
         this.color[round] = color;
     }
 
@@ -246,6 +301,22 @@ export class gamedata {
 
     public addScoreChange(scoreChange: number[]): void {
         this.score_change[this.round - 1] = scoreChange;
+    }
+
+    public addAltScore(altScore: number[]): void {
+        this.alt_score[this.round - 1] = altScore;
+    }
+
+    public setRoundAltScore(altScore: number[]): void {
+        this.alt_score[this.round - 1] = altScore;
+    }
+
+    public setRoundAltScoreChange(altScoreChange: number[]): void {
+        this.alt_score_change[this.round - 1] = altScoreChange;
+    }
+
+    public addAltScoreChange(altScoreChange: number[]): void {
+        this.alt_score_change[this.round - 1] = altScoreChange;
     }
 
     /** Adds 1 to the number of Rounds */
@@ -283,6 +354,10 @@ export class gamedata {
         return this.rule_crowdchaos;
     }
 
+    public getRuleAltcount(): boolean {
+        return this.rule_altcount;
+    }
+
     public getRound(): number {
         return this.round;
     }
@@ -309,6 +384,14 @@ export class gamedata {
 
     public getScoreChange(): number[][] {
         return this.score_change;
+    }
+
+    public getAltScore(): number[][] {
+        return this.alt_score;
+    }
+
+    public getAltScoreChange(): number[][] {
+        return this.alt_score_change;
     }
 
     public getColor(): {} {
@@ -368,6 +451,10 @@ export class gamedata {
         this.rule_crowdchaos = ruleCrowdchaos;
     }
 
+    public setRuleAltcount(ruleAltcount: boolean): void {
+        this.rule_altcount = ruleAltcount;
+    }
+
     public setRound(round: number): void {
         this.round = round;
     }
@@ -394,6 +481,14 @@ export class gamedata {
 
     public setScoreChange(scoreChange: number[][]): void {
         this.score_change = scoreChange;
+    }
+
+    public setAltScore(altScore: number[][]): void {
+        this.alt_score = altScore;
+    }
+
+    public setAltScoreChange(altScoreChange: number[][]): void {
+        this.alt_score_change = altScoreChange;
     }
 
     public setStep(step: number): void {

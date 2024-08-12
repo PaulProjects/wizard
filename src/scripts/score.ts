@@ -4,6 +4,8 @@ Chart.register(...registerables);
 
 import confetti from 'canvas-confetti';
 
+declare var editmode: boolean;
+
 var sections = [
     "graph",
     "table",
@@ -21,9 +23,8 @@ var icons = [
     "icon_analytics",
 ];
 export function score_switch_view(x: number): void {
-    let edit = window.editmode;
-    if (edit == null) var editmode = false;
-    if (edit == true) location.reload();
+    if (globalThis.editmode == null) globalThis.editmode = false;
+    if (globalThis.editmode == true) location.reload();
     for (var i = 0; i < sections.length; i++) {
         if (i == x - 1) {
             $("#" + sections[i]).removeClass("hidden");
@@ -38,7 +39,9 @@ export function score_switch_view(x: number): void {
 export function updatescore(players: any, game: gamedata) {
     // Data
     const bets = [...game.getBets()];
-    const gameScore = [...game.getScore()];
+    const gameScore: number[][] = game.getRuleAltcount() ? [...game.getAltScore()] : [...game.getScore()];
+    const score_change: number[][] = game.getRuleAltcount() ? [...game.getAltScoreChange()] : [...game.getScoreChange()];
+
     let playerlist = [];
     let sorted_playerlist = [];
     // Array Structure
@@ -178,7 +181,12 @@ export function updatescore(players: any, game: gamedata) {
         let ctx: CanvasRenderingContext2D = (document.getElementById("chart") as HTMLCanvasElement).getContext("2d");
         score_chart?.destroy();
 
-        let graph_score = [...game.getScore()];
+        let graph_score: number[][];
+        if (game.getRuleAltcount()) {
+            graph_score = [...game.getAltScore()];
+        } else {
+            graph_score = [...game.getScore()];
+        }
         let zero_line: number[] = [];
         for (let i = 0; i < players.length; i++) {
             zero_line.push(0);
@@ -272,7 +280,6 @@ export function updatescore(players: any, game: gamedata) {
         //Analytics
         $("#icon_analytics").removeClass("hidden");
         //analyze the score_change and save the highest and lowest score
-        let score_change = game.getScoreChange();
         let score_change_max_points = 0;
         let score_change_max_round = 0;
         let score_change_max_index = 0;

@@ -69,13 +69,24 @@ import ImportGame from "../components/ImportGame.astro";
       <p class="pt-2 pb-4">
         This site is a score counter for the popular card game Wizard. It is
         still work in progress and I will add more features from time to time.
-        If you have any suggestions or feedback, <a class="underline" href="mailto:hi@paulbertram.de">let me know</a>. 
+        If you have any suggestions or feedback, <a
+          class="underline"
+          href="mailto:hi@paulbertram.de">let me know</a
+        >.
       </p>
       <h1 class="font-bold text-xl">Credits</h1>
       <div class="pt-2 pb-4">
-        <a class="underline" href="https://codepen.io/jackrugile/pen/kQwPRO" target="_blank"><span>Lightning Background</span></a>
+        <a
+          class="underline"
+          href="https://codepen.io/jackrugile/pen/kQwPRO"
+          target="_blank"><span>Lightning Background</span></a
+        >
         &
-        <a class="underline" href="https://codepen.io/jmolund/pen/jBqyqK" target="_blank"><span>ScoreBoard</span></a>
+        <a
+          class="underline"
+          href="https://codepen.io/jmolund/pen/jBqyqK"
+          target="_blank"><span>ScoreBoard</span></a
+        >
       </div>
       <h1 class="font-bold text-xl">Disclaimer</h1>
       <p class="pt-2 pb-4">
@@ -84,9 +95,7 @@ import ImportGame from "../components/ImportGame.astro";
         private use only.
       </p>
       <h1 class="font-bold text-xl">Actions</h1>
-      <p class="pt-2 pb-4">
-        You can delete, import and export the games.
-      </p>
+      <p class="pt-2 pb-4">You can delete, import and export the games.</p>
 
       <button class="btn btn-info btn-block mt-2 import_data">
         Import Data
@@ -152,8 +161,7 @@ import ImportGame from "../components/ImportGame.astro";
       }
 
       try {
-        let game: gamedata;
-        game = gamedata.fromJSONstring(localStorage.getItem("game"));
+        gamedata.fromJSONstring(localStorage.getItem("game"));
       } catch (error) {
         console.error("Error validating game data: " + error);
         return false;
@@ -189,6 +197,7 @@ import ImportGame from "../components/ImportGame.astro";
 
     //loading indicator when new game is clicked
     document.getElementById("new_game").addEventListener("click", function () {
+      location.href = "/setup";
       document.getElementById("new_game_text").innerHTML = `Loading...`;
     });
 
