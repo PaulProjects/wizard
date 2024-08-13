@@ -442,14 +442,13 @@ function addplayertoInput(index: number, max: number) {
 }
 
 function updateInput() {
+    $("#navtext").text("Confirm");
     if (input_block_reload) {
         input_block_reload = false;
         updatetotal();
         return;
     }
     $("#players").empty();
-
-    $("#navtext").text("Confirm");
 
     if (game.getStep() == 1) {
         document.getElementById("round").innerHTML =

@@ -115,7 +115,7 @@ export class gamedata {
         }
         if (typeof json.rule_altcount !== 'boolean') {
             //backwards compatibility
-            console.error('invalid rule_altcount');
+            console.log('invalid rule_altcount');
             json.rule_altcount = false;
         }
         if (typeof json.round !== 'number') {
@@ -142,13 +142,13 @@ export class gamedata {
 
         if (!Array.isArray(json.alt_score)) {
             //backwards compatibility
-            console.error('invalid alt_score');
+            console.log('invalid alt_score');
             json.alt_score = json.score;
         }
 
         if (!Array.isArray(json.alt_score_change)) {
             //backwards compatibility
-            console.error('invalid alt_score_change');
+            console.log('invalid alt_score_change');
             json.alt_score_change = json.score_change;
         }
 

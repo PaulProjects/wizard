@@ -163,7 +163,7 @@ import ImportGame from "../components/ImportGame.astro";
       try {
         gamedata.fromJSONstring(localStorage.getItem("game"));
       } catch (error) {
-        console.error("Error validating game data: " + error);
+        console.log("Error validating game data: " + error);
         return false;
       }
       return true;
