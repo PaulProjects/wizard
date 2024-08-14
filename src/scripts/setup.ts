@@ -55,6 +55,10 @@ $("#rule_crowdchaos").on("click", function () {
     if ($(this).prop("checked") == true) {
         crowd_chaos = true;
         $("#alert_players_text").text("Please add at least 2 players");
+
+        $("#showmodal").prop("disabled", false);
+        //change text to new player
+        $("#showmodal").text("New Player");
     } else {
         crowd_chaos = false;
         $("#alert_players_text").text("Please add at least 3 players");
@@ -456,7 +460,7 @@ function addPlayer(playername: string) {
     }
     
     //if the amount of player hits 6, disable the button
-    if ($("#playerlist").children().length == 5) {
+    if ($("#playerlist").children().length == 5 && crowd_chaos == false) {
         $("#showmodal").prop("disabled", true);
         //change text to max players
         $("#showmodal").text("Max amount of players reached");
