@@ -455,7 +455,7 @@ function addPlayer(playername: string) {
     }
 
     //check if the div does not contain more then 6 elements with the id player
-    if ($("#playerlist").children().length > 5) {
+    if ($("#playerlist").children().length > 5 && crowd_chaos == false) {
         return;
     }
     
