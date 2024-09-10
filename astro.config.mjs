@@ -6,6 +6,6 @@ import sitemap from "@astrojs/sitemap";
 // https://astro.build/config
 export default defineConfig({
   integrations: [tailwind(), prefetch(), sitemap()],
-  site: 'https://wizzard.site',
-  base: '/'
+  site: 'https://wizard.paulbertram.de',
+  base: ''
 });
