@@ -201,7 +201,7 @@ export class gamedata {
         delete json.score_display;
         return JSON.stringify(json);
     }
-    
+
     static toJsonObjectEnd(gamedata: gamedata): any {
         let json = this.toJsonObject(gamedata);
         delete json.step;
@@ -209,7 +209,7 @@ export class gamedata {
         delete json.score_display;
         return json;
     }
-    
+
     static toJsonObject(gamedata: gamedata): any {
         return {
             dealer: gamedata.dealer,
@@ -271,11 +271,11 @@ export class gamedata {
 
     //special getter / setter
 
-    public removeColor(round:number): void {
+    public removeColor(round: number): void {
         delete this.color[round];
     }
 
-    public setColor(round:number, color:string): void {
+    public setColor(round: number, color: string): void {
         this.color[round] = color;
     }
 

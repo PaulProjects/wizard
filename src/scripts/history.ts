@@ -23,7 +23,7 @@ for (let i = 0; i < past_games.length; i++) {
     //check if it has a id else try to upload it
     if (!games[i].hasID()) {
         $.post(
-            "https://s.paulbertram.de/wizzardshare.php",
+            "https://s.paulbertram.de/wizardshare.php",
             { game: JSON.stringify(games[i]) },
             function (data: string) {
                 //add id info to the game
@@ -225,7 +225,7 @@ $("#del_game").on("click", () => {
         localStorage.setItem("recent_games", JSON.stringify(past_games));
         //delete the game on the server
         $.ajax({
-            url: `https://s.paulbertram.de/wizzardshare.php?id=${Lgame.getID()}`,
+            url: `https://s.paulbertram.de/wizardshare.php?id=${Lgame.getID()}`,
             type: "DELETE",
             success: function () {
                 console.log("Success deleting");

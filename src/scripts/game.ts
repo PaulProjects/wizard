@@ -237,14 +237,13 @@ $("#chart_nav").on("click", () => {
 function finish_game() {
     //saving thing:
     $("#navtext").text("Saving...");
-    //TODO: remove display, step and score_display
     //put a time_ended timestamp
     game.setTimeEnded(Date.now());
     game.save();
 
     $.post(
-        "https://s.paulbertram.de/wizzardshare.php",
-        { game: JSON.stringify(gamedata.toJsonStringEnd(game)) },
+        "https://s.paulbertram.de/wizardshare.php",
+        { game: gamedata.toJsonStringEnd(game) },
         function (data) {
             //add id info to the game
             game.setId(data);

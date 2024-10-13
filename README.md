@@ -4,7 +4,7 @@
     <img src="public/witch.svg" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">WIZZARD</h3>
+  <h3 align="center">WIZARD</h3>
 
   <p align="center">
     A score tracker and calculator for the popular german card game Wizard
