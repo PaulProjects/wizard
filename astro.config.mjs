@@ -5,7 +5,11 @@ import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), prefetch(), sitemap()],
+  integrations: [tailwind(), prefetch(),
+    sitemap({
+			filter: (page) =>
+				page == "https://wizard.paulbertram.de/"
+		}),
+  ],
   site: 'https://wizard.paulbertram.de',
-  base: ''
 });
