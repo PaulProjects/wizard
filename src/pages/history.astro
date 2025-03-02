@@ -6,6 +6,16 @@ import ImportGame from "../components/ImportGame.astro";
 ---
 
 <Layout title="Wizard - Game History">
+  <nav
+    id="nav_container"
+    class="boxbuttons self-center w-4/5 lg:w-3/5 fixed bottom-5 inset-x-0 mx-auto join flex justify-center items-center"
+  >
+    <button class="btn btn-secondary w-full join-item" id="share_button"
+      >
+      <Icon name="mi:share" class="w-6 h-6" />
+      <p>Share the game</p></button
+    >
+  </nav>
   <div class="flex justify-center">
     <div
       class="flex justify-center flex-wrap flex-col p-5 w-full lg:w-1/2 md:w-2/3 md:h-2/3"
@@ -39,9 +49,9 @@ import ImportGame from "../components/ImportGame.astro";
       <div class="flex flex-col justify-center items-center">
         <h2 class="font-bold text-3xl mt-5">Advanced options</h2>
         <div>
-          <button id="share_game" class="btn btn-info btn-block mt-2 hidden">
-            Share this game</button
-          >
+          <a id="share_game" class="btn btn-info btn-block mt-2 hidden" target="_blank">
+            Share this game
+          </a>
           <button id="export_data" class="btn btn-info btn-block mt-5">
             Export Data</button
           >
@@ -97,7 +107,7 @@ import ImportGame from "../components/ImportGame.astro";
   integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
   crossorigin="anonymous"></script>
 <script>
-  import "../scripts/history.ts"
+  import "../scripts/history.ts";
 </script>
 
 <style is:global>
