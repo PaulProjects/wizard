@@ -18,6 +18,7 @@
     "astro-seo": "^0.8.4",
     "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.8",
+    "qrcode": "^1.5.4",
     "sortablejs": "^1.15.6",
     "tailwindcss": "^3.4.17"
   },
