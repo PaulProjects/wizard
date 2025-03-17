@@ -4,11 +4,30 @@ import Celebration from "./Celebration.astro";
 ---
 
 <div class="wrapper flex justify-center items-center w-screen h-full">
-  <div class="flex items-center justify-center flex-col p-2 md:p-5 w-full lg:h-2/3">
+  <div
+    class="flex items-center justify-center flex-col p-2 md:p-5 w-full lg:h-2/3"
+  >
     <div class="w-full lg:w-2/3">
       <div class="sticky top-0 bg-base-100">
         <div class="flex flex-row items-center pl-5 lg:pl-0 gap-4">
-          <h2 class="text-3xl h-full" id="s_round">Loading...</h2>
+          <div class="flex flex-row items-center gap-1">
+            <h2 class="text-3xl h-full" id="s_round">Loading...</h2>
+            <div id="bet_display_container">
+              <div class="flex flex-col items-center" id="bet_above">
+                <span class="text-sm -mb-1" id="bet_above_text">3</span>
+                <img src="/icon/above.svg" alt="above" class="w-8" />
+              </div>
+              <div class="flex flex-col items-center" id="bet_below">
+                <img
+                  src="/icon/above.svg"
+                  alt="above"
+                  class="w-8"
+                  style="transform: scaleY(-1);"
+                />
+                <span class="text-sm -mt-1" id="bet_below_text">3</span>
+              </div>
+            </div>
+          </div>
           <div class="flex flex-row flex-nowrap gap-3 pb-1 items-center">
             <div class="w-8" id="icon_celeb">
               <Icon name="mdi:trophy-variant" />
@@ -18,9 +37,6 @@ import Celebration from "./Celebration.astro";
             </div>
             <div class="w-8" id="icon_table">
               <Icon name="mdi:table-account" />
-            </div>
-            <div class="w-8" id="icon_bar">
-              <Icon name="mdi:poll" />
             </div>
             <div class="w-8" id="icon_chart">
               <Icon name="mdi:chart-timeline-variant" />
@@ -52,12 +68,6 @@ import Celebration from "./Celebration.astro";
       <div class="hidden h-full w-full flex items-center" id="graph">
         <div class="chart_content" id="chart_container">
           <canvas id="chart"></canvas>
-        </div>
-      </div>
-      <!-- BarChart -->
-      <div class="hidden h-full w-full flex items-center" id="bar_graph">
-        <div class="chart_content" id="barchartcontainer">
-          <canvas id="barchart"></canvas>
         </div>
       </div>
       <!-- Top -->
@@ -126,15 +136,15 @@ import Celebration from "./Celebration.astro";
         <div class="mt-2">
           <div class="flex flex-row">
             <div class="w-10">
-              <Icon name="mdi:poll" /> 
+              <Icon name="mdi:poll" />
             </div>
-            <p> + </p>
+            <p>+</p>
             <div class="w-10">
               <Icon name="mdi:chart-timeline-variant" />
             </div>
           </div><p>
             Displays a bar chart and a line chart of the score over the rounds
-            <br><span class="text-secondary text-xs"
+            <br /><span class="text-secondary text-xs"
               >(both charts looks better in panorama mode and are disabled for
               the first two rounds)</span
             >

@@ -71,6 +71,9 @@ $("#rule_crowdchaos").on("click", function () {
 $(document).on( "keyup", function(event) {
     if (event.which === 13) {
         addPlayer($("#input_playername").val().toString());
+        //open the modal again and focus the input field
+        (document.getElementById("modal_addplayer") as HTMLDialogElement).showModal();
+        $("#input_playername").trigger("focus");
     }
 });
 

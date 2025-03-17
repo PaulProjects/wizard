@@ -169,11 +169,8 @@ $("#icon_top").on("click", () => {
 $("#icon_celeb").on("click", () => {
   score_switch_view(4);
 });
-$("#icon_bar").on("click", () => {
-  score_switch_view(5);
-});
 $("#icon_analytics").on("click", () => {
-  score_switch_view(6);
+  score_switch_view(5);
 });
 
 //#endregion
