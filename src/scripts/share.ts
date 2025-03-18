@@ -1,8 +1,6 @@
 import { gamedata } from "../scripts/gamedata.ts";
 import QRCode from "qrcode";
 
-let game: gamedata;
-
 function error(error: string) {
   document.getElementById("loading").classList.add("hidden");
   document.getElementById("start").classList.add("hidden");
@@ -16,8 +14,9 @@ function success(msg: string) {
     msg || "The game has been imported successfully.";
   document.getElementById("success").classList.remove("hidden");
 }
-function savegame() {
-  let gameid = game.getID();
+
+function savegame(save_game: gamedata) {
+  let gameid = save_game.getID();
   let found = false;
   //check if the game is already in the recent games
   for (let i = 0; i < recent_games.length; i++) {
@@ -30,7 +29,7 @@ function savegame() {
     console.log("Game with id " + gameid + "already in recent games");
     return;
   }
-  recent_games.push(gamedata.toJsonObjectEnd(game));
+  recent_games.push(gamedata.toJsonObjectEnd(save_game));
   localStorage.setItem("recent_games", JSON.stringify(recent_games));
 }
 
@@ -57,7 +56,8 @@ if (gameId === null) {
       if (xhr.status === 210) {
         //loop over the response array and request the games and then add them to the recent games if they are not already in there
         let games = JSON.parse(xhr.responseText);
-        console.log("Importing all: " + games);
+        console.log("Importing all: ");
+        console.log(games);
         for (let i = 0; i < games.length; i++) {
           let gameid = games[i];
           const url = `https://s.paulbertram.de/wizardshare.php?id=${gameid}`;
@@ -66,19 +66,20 @@ if (gameId === null) {
           xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
               if (xhr.status === 200) {
+                console.log("Importing game: " + gameid);
+                //get the game from localstorage
                 try {
-                  //get the game from localstorage
-                  try {
-                    let gamejson = JSON.parse(xhr.responseText);
-                    gamejson.id = gameId;
-                    game = gamedata.fromJson(gamejson);
-                    savegame();
-                  } catch (error) {
-                    console.error(error);
-                    window.location.href = "/";
-                  }
-                } catch (e) {
-                  error("Invalid game data" + e);
+                  let imported_game = gamedata.fromJson(
+                    JSON.parse(xhr.responseText)
+                  );
+                  imported_game.setId(gameid);
+                  savegame(imported_game);
+                } catch (error) {
+                  console.error(error);
+                  console.log(
+                    "Gameid: " + gameid + JSON.parse(xhr.responseText)
+                  );
+                  //window.location.href = "/";
                 }
               } else {
                 error(xhr.status);
@@ -94,7 +95,9 @@ if (gameId === null) {
         try {
           let gamejson = JSON.parse(xhr.responseText);
           gamejson.id = gameId;
-          game = gamedata.fromJson(gamejson);
+          let game = gamedata.fromJson(gamejson);
+
+          console.log(game);
 
           let players = game.getPlayers();
 
@@ -161,6 +164,13 @@ if (gameId === null) {
 
           //add class="bg-base-200 to the first row"
           $(`#import_table tr:first-child`).addClass("bg-info");
+
+          $("#import-game").on("click", function () {
+            savegame(game);
+
+            $("#view_game").attr("href", "/history?id=" + gameId);
+            success("The game has been imported successfully");
+          });
         } catch (e) {
           error("Invalid game data" + e);
         }
@@ -178,13 +188,6 @@ if (gameId === null) {
     .catch((err) => {
       console.error(err);
     });
-
-  $("#import-game").on("click", function () {
-    savegame();
-
-    $("#view_game").attr("href", "/history?id=" + gameId);
-    success("The game has been imported successfully");
-  });
 
   document.getElementById("copy-url").addEventListener("click", function () {
     navigator.clipboard.writeText(window.location.href);

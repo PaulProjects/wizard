@@ -22,6 +22,9 @@ for (let i = 0; i < past_games.length; i++) {
 
   //check if it has a id else try to upload it
   if (!games[i].hasID()) {
+    console.log("No id found, trying to upload");
+    console.log(games[i]);
+    /*
     $.post(
       "https://s.paulbertram.de/wizardshare.php",
       { game: JSON.stringify(games[i]) },
@@ -36,17 +39,19 @@ for (let i = 0; i < past_games.length; i++) {
       // Fehlerbehandlung hier
       console.error("Error: " + textStatus, errorThrown);
     });
+    */
   }
 
   let players = games[i].getPlayers();
 
+  console.log("Game " + i + " " + games[i].getTimeStarted() + " " + games[i].getTimeEnded());
   let time_started = games[i].getTimeStarted();
   let time_ended = games[i].getTimeEnded();
   let time_diff = time_ended - time_started;
   let time_diff_minutes = Math.floor(time_diff / 60000);
 
   //Extract date from time_ended
-  let date = new Date(time_ended);
+  let date = new Date(time_started);
   let day = date.getDate();
   //write month as string
   let month = date.toLocaleString("default", { month: "short" });
@@ -137,6 +142,7 @@ for (let i = 0; i < past_games.length; i++) {
 
 let Lgame: gamedata;
 function clicked_more(i: number) {
+  document.getElementById("nav_container").classList.remove("hidden");
   score_switch_view(4);
   view = 1;
   //hide past_games and remove hidden from score
@@ -177,6 +183,7 @@ $("#icon_analytics").on("click", () => {
 
 $("#tlbtn").on("click", () => {
   if (view == 1) {
+    document.getElementById("nav_container").classList.add("hidden");
     $("#score").addClass("hidden");
     $("#past_games").removeClass("hidden");
     $("#del_game").addClass("hidden");
