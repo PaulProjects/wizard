@@ -85,7 +85,7 @@ function roundinfo() {
     s_round.innerHTML = `${game.getRound()}/${game.getMaxRounds()}`;
   }
   s_round.className = "";
-  s_round.classList.add("text-3xl");
+  s_round.classList.add("text-4xl");
   s_round.classList.add("h-full");
   if (game.getColor()[game.getRound()] != null) {
     s_round.classList.add(game.getColor()[game.getRound()] + "_tag");

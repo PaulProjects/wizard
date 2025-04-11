@@ -131,7 +131,7 @@ export function updatescore(players: any, game: gamedata) {
                 <div class="w-full justify-between items-center gap-16 inline-flex">
                     <h1 class="text-4xl font-medium ${sorted_playerlist[i][4] == 1 ? "text-secondary" : ""}" id="top_players_${i}">${sorted_playerlist[i][0]}</h1>
                 </div>
-                <div class="w-full h-9 justify-between items-center inline-flex mb-4 mt-3">
+                <div class="w-full h-9 justify-between items-center inline-flex mb-2 mt-2">
                     <div class="w-10 self-stretch">
                             <h3 class="text-2xl">${sorted_playerlist[i][1]}</h3>
                             <p class="font-light text-sm">Score<p>
