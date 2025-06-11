@@ -10,9 +10,9 @@ if (past_games === null || past_games.length === 0) {
   location.href = "/";
 }
 
-//newest game first
+//newest game first - time_started for backwards compatibility
 past_games.sort((a, b) => {
-  return b.time_ended - a.time_ended;
+  return b.time_started - a.time_started;
 });
 
 //create game objects from the games
