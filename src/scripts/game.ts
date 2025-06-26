@@ -80,9 +80,9 @@ let s_round = document.getElementById("s_round");
 
 function roundinfo() {
   if (game.getMaxRounds() == Number.MAX_SAFE_INTEGER) {
-    s_round.innerHTML = `${game.getRound()}/∞`;
+    s_round.textContent = `${game.getRound()}/∞`;
   } else {
-    s_round.innerHTML = `${game.getRound()}/${game.getMaxRounds()}`;
+    s_round.textContent = `${game.getRound()}/${game.getMaxRounds()}`;
   }
   s_round.className = "";
   s_round.classList.add("text-4xl");
@@ -331,7 +331,7 @@ let scores: number[] = [];
 function updatetotal() {
   if (game.getStep() == 1) {
     let total = scores.reduce((a, b) => +a + +b, 0);
-    $("#total").html(`Total: ${total}`);
+    $("#total").text(`Total: ${total}`);
     if (game.getRound() !== 1 && game.getRule_1() == true) {
       if (total === game.getRound()) {
         valid = false;
@@ -361,7 +361,7 @@ function updatetotal() {
       navblue();
     }
   } else {
-    $("#total").html(
+    $("#total").text(
       `Total: ${scores.reduce((a, b) => +a + +b, 0)}/${game.getRound()}`
     );
     if (scores.reduce((a, b) => +a + +b, 0) === game.getRound()) {
@@ -398,16 +398,22 @@ function addplayertoInput(index: number, max: number) {
   last_player_index = index;
 
   let player = players[index];
-  $("#players")
-    .append(/*html*/ `<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
+  
+  // Create the card structure safely
+  const card = $(`<div class="card w-full lg:w-2/3 bg-base-100 shadow-xl">
             <div class="card-body">
-                <h2 class="card-title text-2xl">${player}</h2>
+                <h2 class="card-title text-2xl"></h2>
                 <input type="range" min="0" max="${max}" value="0" class="range" step="1" aria-label="Input" id="input_range_${index}"/>
                 <div class="w-full flex justify-between text-xl range-lg insets pl-1 pr-1" id="input_insets_${index}">
                 </div>
             </div>
         </div>
     </div>`);
+  
+  // Safely set the player name
+  card.find('.card-title').text(player);
+  
+  $("#players").append(card);
 
   $(`#input_range_${index}`).on("input", function () {
     scores[index] = parseInt($(this).val() as string);
@@ -466,10 +472,10 @@ function updateInput() {
   $("#players").empty();
 
   if (game.getStep() == 1) {
-    document.getElementById("round").innerHTML =
+    document.getElementById("round").textContent =
       `${game.getRound()}/${game.getMaxRounds()} - Place Bets`;
   } else {
-    document.getElementById("round").innerHTML =
+    document.getElementById("round").textContent =
       `${game.getRound()}/${game.getMaxRounds()} - Enter Tricks`;
   }
 

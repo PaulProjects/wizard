@@ -58,11 +58,11 @@ for (let i = 0; i < past_games.length; i++) {
   let year = date.getFullYear();
   let date_string = `${day}.${month}.${year}`;
 
-  $("#past_games").append(`
-    <div class="card mt-10 bg-base-200 w-full" id="card${i}">
+  // Create game card using safe DOM manipulation
+  const card = $(`<div class="card mt-10 bg-base-200 w-full" id="card${i}">
           <div class="w-full h-full">
-            <span class="inline-block pl-3 pt-3">${date_string}</span>
-            <span class="float-right pr-3 pt-3"> ${time_diff_minutes} Minutes</span>
+            <span class="inline-block pl-3 pt-3"></span>
+            <span class="float-right pr-3 pt-3"></span>
             <div class="card-body">
               <div class="overflow-x-auto">
                 <table class="table">
@@ -83,8 +83,13 @@ for (let i = 0; i < past_games.length; i++) {
           <div class="card--hover">
               <a id="more${i}">Find out more</a>
           </div>
-        </div>
-    `);
+        </div>`);
+  
+  // Safely set the text content
+  card.find('.inline-block').text(date_string);
+  card.find('.float-right').text(time_diff_minutes + ' Minutes');
+  
+  $("#past_games").append(card);
 
   //add event listener to the more button
   $(`#more${i}`).on("click", function () {
@@ -127,13 +132,11 @@ for (let i = 0; i < past_games.length; i++) {
 
   // loop through players and add them to the table
   for (let j = 0; j < p_s.length; j++) {
-    $(`#table${i}`).append(`
-        <tr>
-          <th>${p_s[j].position}</th>
-          <td>${p_s[j].name}</td>
-          <td>${p_s[j].points}</td>
-        </tr>
-      `);
+    const row = $("<tr>");
+    row.append($("<th>").text(p_s[j].position));
+    row.append($("<td>").text(p_s[j].name));
+    row.append($("<td>").text(p_s[j].points));
+    $(`#table${i}`).append(row);
   }
 
   //add class="bg-base-200 to the first row"
@@ -209,9 +212,9 @@ $("#del_game").on("click", () => {
   //show modal_delete
   (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
   //change text
-  document.getElementById("modal_del_text").innerHTML =
+  document.getElementById("modal_del_text").textContent =
     "Do you really want to delete this game?";
-  document.getElementById("modal_del_infotext").innerHTML =
+  document.getElementById("modal_del_infotext").textContent =
     "This will remove all stored data about this game permanently!";
   //add onclick to the button
   $("#rremovedata").on("click", () => {
@@ -243,9 +246,9 @@ $("#del_all").on("click", () => {
   //show modal_delete
   (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
   //change text
-  document.getElementById("modal_del_text").innerHTML =
+  document.getElementById("modal_del_text").textContent =
     "Do you really want to delete all data?";
-  document.getElementById("modal_del_infotext").innerHTML =
+  document.getElementById("modal_del_infotext").textContent =
     "This will remove all locally stored data about current and past games permanently!";
   //add onclick to the button
   $("#rremovedata").on("click", () => {

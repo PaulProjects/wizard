@@ -126,10 +126,10 @@ export function updatescore(players: any, game: gamedata) {
 
   //Top Players list
   for (let i = 0; i < sorted_playerlist.length; i++) {
-    $("#top_players")
-      .append(/*html*/ `<div class="min-w-72 w-11/12 sm:w-5/12 max-w-full bg-neutral rounded-md p-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary relative" id="top_players_${i}">
+    // Create the player card structure safely
+    const playerCard = $(`<div class="min-w-72 w-11/12 sm:w-5/12 max-w-full bg-neutral rounded-md p-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary relative" id="top_players_${i}">
                 <div class="w-full justify-between items-center gap-16 inline-flex">
-                    <h1 class="text-4xl font-medium ${sorted_playerlist[i][4] == 1 ? "text-secondary" : ""}" id="top_players_${i}">${sorted_playerlist[i][0]}</h1>
+                    <h1 class="text-4xl font-medium ${sorted_playerlist[i][4] == 1 ? "text-secondary" : ""}" id="top_players_name_${i}"></h1>
                 </div>
                 <div class="w-full h-9 justify-between items-center inline-flex mb-2 mt-2">
                     <div class="w-10 self-stretch">
@@ -146,17 +146,23 @@ export function updatescore(players: any, game: gamedata) {
                     }  
                 </div>
             </div>`);
+    
+    // Safely set the player name
+    playerCard.find(`#top_players_name_${i}`).text(sorted_playerlist[i][0]);
+    
+    $("#top_players").append(playerCard);
   }
   $("#names").append(`<th>Round</th>`);
   for (let index = 0; index < playerlist.length; index++) {
-    if (playerlist[index][2] == 1)
-      $("#names").append(
-        `<th> <span class="badge badge-secondary" id="n_${index}">${playerlist[index][0]}</span></th><th>   </th>`
-      );
-    else
-      $("#names").append(
-        `<th id="n_${index}">${playerlist[index][0]}</th><th>   </th>`
-      );
+    if (playerlist[index][2] == 1) {
+      const th = $(`<th> <span class="badge badge-secondary"></span></th><th>   </th>`);
+      th.find('.badge').text(playerlist[index][0]);
+      $("#names").append(th);
+    } else {
+      const th = $(`<th></th><th>   </th>`);
+      th.first().text(playerlist[index][0]);
+      $("#names").append(th);
+    }
   }
   for (let i = 0; i < game.getRound(); i++) {
     $("#rows").append(`<tr id="row${i}"></tr>`);
@@ -369,9 +375,10 @@ export function updatescore(players: any, game: gamedata) {
       //round the average bet to 2 decimals
       average_bet = Math.round(average_bet * 100) / 100;
 
-      $("#player_stats").append(`
+      // Create player stats section safely
+      const playerStatsHTML = $(`
       <div class="pb-5">
-        <h2 class="pt-10 text-3xl">${playerlist[i][0]}</h2>
+        <h2 class="pt-10 text-3xl player-stats-name"></h2>
       </div>
       <div class="stats stats-vertical sm:stats-horizontal shadow w-full">
         <div class="stat mx-auto w-60">
@@ -423,6 +430,11 @@ export function updatescore(players: any, game: gamedata) {
         </div>
         </div>
         </div>`);
+
+      // Safely set the player name
+      playerStatsHTML.find('.player-stats-name').text(playerlist[i][0]);
+      
+      $("#player_stats").append(playerStatsHTML);
     }
   }
 
@@ -464,16 +476,22 @@ function podium(sorted_playerlist) {
 function add_bottomlist(sorted_playerlist) {
   $("#scoreboard_items").empty();
   for (let i = 3; i < sorted_playerlist.length; i++) {
-    $("#scoreboard_items").append(`
+    const listItem = $(`
         <li class="scoreboard__item" id="item_${i}">
-            <div class="scoreboard__title">${sorted_playerlist[i][0]}</div>
+            <div class="scoreboard__title bottom-player-name"></div>
             <div class="scoreboard__numbers">
-              <span class="js-number">${sorted_playerlist[i][1]}</span>
+              <span class="js-number bottom-player-score"></span>
             </div>
             <div class="scoreboard__bar js-bar">
               <div class="scoreboard__bar-bar" id="bar_${i}"></div>
             </div>
         </li>`);
+    
+    // Safely set the player name and score
+    listItem.find('.bottom-player-name').text(sorted_playerlist[i][0]);
+    listItem.find('.bottom-player-score').text(sorted_playerlist[i][1]);
+    
+    $("#scoreboard_items").append(listItem);
     $("#bar_" + i).css(
       "width",
       (sorted_playerlist[i][1] / sorted_playerlist[2][1]) * 100 + "%"
@@ -508,41 +526,50 @@ function add_podium(sorted_playerlist) {
 function append_graph(place, name, score) {
   switch (place) {
     case 1:
-      $("#scoreboard_podium").append(`
+      const podium1 = $(`
                 <div class="scoreboard__podium js-podium" data-height="250">
                   <div class="scoreboard__podium-base scoreboard__podium-base--first">
                     <div class="scoreboard__podium-rank">1</div>
                   </div>
                   <div class="scoreboard__podium-number">
-                    <p class="scoreboard__text">${name}</p>
-                    <small><span class="js-podium-data"">${score}</span></small>
+                    <p class="scoreboard__text podium-name"></p>
+                    <small><span class="js-podium-data podium-score"></span></small>
                   </div>
                 </div>`);
+      podium1.find('.podium-name').text(name);
+      podium1.find('.podium-score').text(score);
+      $("#scoreboard_podium").append(podium1);
       break;
     case 2:
-      $("#scoreboard_podium").append(`
+      const podium2 = $(`
                 <div class="scoreboard__podium js-podium" data-height="200">
                   <div class="scoreboard__podium-base scoreboard__podium-base--second">
                     <div class="scoreboard__podium-rank">2</div>
                   </div>
                   <div class="scoreboard__podium-number">
-                    <p class="scoreboard__text">${name}</p>
-                    <small><span class="js-podium-data">${score}</span></small>
+                    <p class="scoreboard__text podium-name"></p>
+                    <small><span class="js-podium-data podium-score"></span></small>
                   </div>
                 </div>`);
+      podium2.find('.podium-name').text(name);
+      podium2.find('.podium-score').text(score);
+      $("#scoreboard_podium").append(podium2);
       break;
     case 3:
-      $("#scoreboard_podium").append(`
+      const podium3 = $(`
                  <div class="scoreboard__podium js-podium" data-height="150">
                    <div class="scoreboard__podium-base scoreboard__podium-base--third">
                      <div class="scoreboard__podium-rank">3</div>
                    </div>
                    <div class="scoreboard__podium-number">
-                     <p class="scoreboard__text">${name}</p>
-                     <small><span class="js-podium-data">${score}</span></small>
+                     <p class="scoreboard__text podium-name"></p>
+                     <small><span class="js-podium-data podium-score"></span></small>
                    </div>
                  </div>
                </div>`);
+      podium3.find('.podium-name').text(name);
+      podium3.find('.podium-score').text(score);
+      $("#scoreboard_podium").append(podium3);
       break;
   }
 }

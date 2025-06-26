@@ -1,16 +1,16 @@
 import { gamedata } from "../scripts/gamedata.ts";
 import QRCode from "qrcode";
 
-function error(error: string) {
+function error(error: any) {
   document.getElementById("loading").classList.add("hidden");
   document.getElementById("start").classList.add("hidden");
   document.getElementById("error").classList.remove("hidden");
-  document.getElementById("errorcode").innerHTML = error;
+  document.getElementById("errorcode").textContent = error;
 }
 function success(msg: string) {
   document.getElementById("loading").classList.add("hidden");
   document.getElementById("start").classList.add("hidden");
-  document.getElementById("success_message").innerHTML =
+  document.getElementById("success_message").textContent =
     msg || "The game has been imported successfully.";
   document.getElementById("success").classList.remove("hidden");
 }
@@ -153,17 +153,15 @@ if (gameId === null) {
 
           // loop through players and add them to the table
           for (let j = 0; j < p_s.length; j++) {
-            $(`#import_table`).append(`
-                                 <tr>
-                                   <th>${p_s[j].position}</th>
-                                   <td>${p_s[j].name}</td>
-                                   <td>${p_s[j].points}</td>
-                                 </tr>
-                            `);
+            const row = $("<tr>");
+            row.append($("<th>").text(p_s[j].position));
+            row.append($("<td>").text(p_s[j].name));
+            row.append($("<td>").text(p_s[j].points));
+            $("#import_table").append(row);
           }
 
           //add class="bg-base-200 to the first row"
-          $(`#import_table tr:first-child`).addClass("bg-info");
+          $("#import_table tr:first-child").addClass("bg-info");
 
           $("#import-game").on("click", function () {
             savegame(game);
