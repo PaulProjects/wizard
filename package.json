@@ -10,17 +10,20 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/prefetch": "^0.4.1",
-    "@astrojs/sitemap": "^3.2.1",
+    "@astrojs/sitemap": "^3.4.2",
     "@astrojs/tailwind": "^6.0.2",
-    "astro": "^5.3.1",
-    "astro-icon": "^0.8.2",
+    "@iconify-json/mdi": "^1.2.3",
+    "@iconify-json/mi": "^1.2.2",
+    "@openreplay/tracker": "^16.4.7",
+    "astro": "^5.12.8",
+    "astro-icon": "^1.1.5",
     "astro-seo": "^0.8.4",
     "canvas-confetti": "^1.9.3",
-    "chart.js": "^4.4.8",
+    "chart.js": "^4.5.0",
     "qrcode": "^1.5.4",
     "sortablejs": "^1.15.6",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@types/chart.js": "^2.9.41",

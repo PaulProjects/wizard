@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Icon } from "astro-icon";
+import { Icon } from "astro-icon/components";
 import Lightning from "../components/Lightning.astro";
 import ImportGame from "../components/ImportGame.astro";
 ---
@@ -34,7 +34,7 @@ import ImportGame from "../components/ImportGame.astro";
     </div>
   </div>
 
-  <div class="credits float-left">
+  <div class="credits float-left pl-4">
     <div class="flex flex-row w-1/2">
       <a
         href="https://github.com/PaulProjects/wizard"
@@ -43,7 +43,7 @@ import ImportGame from "../components/ImportGame.astro";
         title="Github"
         target="_blank"
       >
-        <Icon name="mdi:github" /></a
+        <Icon name="mdi:github" class="w-8 h-8" /></a
       >
       <button
         class="w-full"
@@ -51,13 +51,13 @@ import ImportGame from "../components/ImportGame.astro";
         about.showModal()
         "
         id="buttonAbout"
-        title="Open About Modal"><Icon name="mdi:help-circle-outline" /></button
+        title="Open About Modal"><Icon name="mdi:help-circle-outline" class="w-8 h-8" /></button
       >
     </div>
   </div>
   <div class="legal float-right">
-    <a class="underline pr-2" href="/Impressum/">Impressum</a>
-    <a class="underline" href="/Datenschutz/">Datenschutz</a>
+    <a class="underline pr-2" href="https://paulbertram.de/impressum/">Impressum</a>
+    <a class="underline" href="https://paulbertram.de/datenschutz/">Datenschutz</a>
   </div>
   <!-- About Modal -->
   <dialog id="about" class="modal">
@@ -94,7 +94,7 @@ import ImportGame from "../components/ImportGame.astro";
         game Wizard is a registered trademark of Amigo Spiele. This site is for
         private use only.
       </p>
-      <h1 class="font-bold text-xl">Actions</h1>
+      <h1 class="font-bold text-xl">Data actions</h1>
       <p class="pt-2 pb-4">You can delete, import and export the games.</p>
 
       <button class="btn btn-info btn-block mt-2 import_data">

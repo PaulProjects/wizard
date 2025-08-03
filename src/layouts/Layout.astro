@@ -104,3 +104,33 @@ const { title } = Astro.props;
     }
   </style>
 </html>
+<script>
+  import OpenReplay from '@openreplay/tracker';
+  
+  // Check for demo mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const demomode = urlParams.has("demo");
+  
+  // Only initialize tracking if not in demo mode
+  let tracker;
+  if (!demomode) {
+    tracker = new OpenReplay({
+      projectKey: "wK6Af6wnN7o3nHIMRgGC",
+      obscureTextNumbers: false,
+      obscureTextEmails: false,
+      obscureInputDates: false,
+      obscureInputEmails: false,
+      obscureInputNumbers: false,
+    });
+    tracker.start();
+    tracker.setMetadata('dev', !import.meta.env.PROD ? 'true' : 'false');
+    tracker.setMetadata('referrer', document.referrer);
+    tracker.setMetadata('userAgent', navigator.userAgent);
+  }
+  
+  document.addEventListener('astro:page-load', () => {
+    if (tracker) {
+      tracker.setMetadata('page', window.location.pathname);
+    }
+  });
+</script>
