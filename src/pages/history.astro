@@ -10,10 +10,10 @@ import ImportGame from "../components/ImportGame.astro";
     id="nav_container"
     class="boxbuttons self-center w-4/5 lg:w-3/5 fixed bottom-5 inset-x-0 mx-auto join flex justify-center items-center hidden z-10"
   >
-    <button class="btn btn-secondary w-full join-item" id="share_button"
+    <a class="btn btn-secondary w-full join-item" id="share_game" target="_blank"
       >
       <Icon name="mi:share" class="w-6 h-6" />
-      <p>Share the game</p></button
+      <p>Share the game</p></a
     >
   </nav>
   <div class="flex justify-center">
@@ -49,9 +49,6 @@ import ImportGame from "../components/ImportGame.astro";
       <div class="flex flex-col justify-center items-center">
         <h2 class="font-bold text-3xl mt-5">Advanced options</h2>
         <div>
-          <a id="share_game" class="btn btn-info btn-block mt-2 hidden" target="_blank">
-            Share this game
-          </a>
           <button id="export_data" class="btn btn-info btn-block mt-5">
             Export Data</button
           >

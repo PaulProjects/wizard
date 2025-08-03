@@ -16,8 +16,9 @@
     display: flex;
     max-width: 100vw;
     margin: 0 auto;
-    padding: 3rem 20px;
+    padding: 2rem 20px;
     flex-direction: column;
+    align-items: center;
   }
   .scoreboard__item {
     display: flex;
@@ -36,7 +37,7 @@
   }
   .scoreboard__title {
     width: 100%;
-    max-width:;
+    max-width: 100%;
     font-weight: 600;
   }
   .scoreboard__title small {
@@ -84,25 +85,34 @@
   .scoreboard__podiums {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: center;
+    align-items: flex-end;
     margin: 20px auto 100px auto;
     min-height: 350px;
-    max-width: 40%;
+    max-width: 600px;
+    width: 100%;
+    gap: 10px;
   }
   .scoreboard__podiums .scoreboard__podium {
-    margin: 0 20px;
     display: flex;
-    flex-direction: column;
-    align-self: baseline;
-    flex-wrap: wrap;
+    flex-direction: column-reverse; /* Reverse order: name at bottom, base at top */
+    align-items: center;
     flex: 1;
+    max-width: 180px;
+    min-width: 120px;
     opacity: 0;
-    top: -10px;
+    transform: translateY(-10px);
+    position: relative;
+    justify-content: flex-end; /* Align podium bases to the same baseline */
   }
   .scoreboard__podiums .scoreboard__podium.is-visible {
-    top: 0;
+    transform: translateY(0);
     opacity: 1;
     transition: all 500ms ease-in-out;
+  }
+  .scoreboard__podiums .scoreboard__podium:nth-child(2) {
+    margin-top: -50px; /* Make first place taller visually */
+    z-index: 2; /* Ensure it's on top */
   }
   .scoreboard__podiums .scoreboard__podium-rank {
     font-size: 4rem;
@@ -116,12 +126,17 @@
     height: 0;
     background: #ececec;
     color: #fff;
-    min-width: 150px;
-    max-width: 30%;
+    width: 100%;
+    min-width: 100px;
+    max-width: 150px;
     border-radius: 5px;
     transition: all 1000ms ease-in-out;
     opacity: 0;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    order: 1; /* Ensure this comes first (top in reversed column) */
   }
   .scoreboard__podiums .scoreboard__podium-base.is-expanding {
     opacity: 1;
@@ -138,12 +153,22 @@
     background: linear-gradient(to bottom, #5e9ead 0%, #49828f 100%);
   }
   .scoreboard__text {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.3;
+    text-align: center;
   }
   .scoreboard__podiums .scoreboard__podium-number {
     text-align: center;
-    font-size: 1.5rem;
-    margin-top: 10px;
+    font-size: 1.2rem;
+    margin-bottom: 15px; /* Changed from margin-top to margin-bottom */
+    width: 100%;
+    padding: 0 5px;
+    order: 2; /* Ensure this comes after the base */
   }
   .scoreboard__podiums .scoreboard__podium-number small {
     display: block;
@@ -154,26 +179,74 @@
   }
   @media (max-width: 768px) {
     .scoreboard__podiums {
-      justify-content: center;
-      padding: 0 10px;
+      max-width: 100%;
+      margin: 20px auto 80px auto; /* Increased bottom margin for name space */
+      min-height: 280px;
+      gap: 8px;
+      padding: 0 15px;
     }
     .scoreboard__podiums .scoreboard__podium {
-      max-width: 100%;
+      min-width: 80px;
+      max-width: 120px;
+    }
+    .scoreboard__podiums .scoreboard__podium:nth-child(2) {
+      margin-top: -30px; /* Reduce first place elevation on mobile */
     }
     .scoreboard__podiums .scoreboard__podium-base {
-      max-width: 33vw;
+      min-width: 80px;
+      max-width: 100px;
     }
+    .scoreboard__podiums .scoreboard__podium-number {
+      font-size: 1rem;
+      margin-bottom: 10px; /* Changed from margin-top to margin-bottom */
+      min-height: 3em; /* Reserve space for wrapped names */
+    }
+    .scoreboard__podiums .scoreboard__podium-rank {
+      font-size: 3rem;
+    }
+    .scoreboard__text {
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+  }
+  @media (max-width: 480px) {
     .scoreboard__podiums {
-      min-height: 10vh;
+      min-height: 220px;
+      gap: 5px;
+      padding: 0 10px;
+      margin: 20px auto 100px auto; /* Increased bottom margin for small screens */
+    }
+    .scoreboard__podiums .scoreboard__podium {
+      min-width: 70px;
+      max-width: 90px;
+    }
+    .scoreboard__podiums .scoreboard__podium:nth-child(2) {
+      margin-top: -20px;
+    }
+    .scoreboard__podiums .scoreboard__podium-base {
+      min-width: 70px;
+      max-width: 80px;
+    }
+    .scoreboard__podiums .scoreboard__podium-number {
+      font-size: 0.9rem;
+      margin-bottom: 8px; /* Changed from margin-top to margin-bottom */
+      min-height: 3.5em; /* More space for wrapped names on small screens */
+    }
+    .scoreboard__podiums .scoreboard__podium-rank {
+      font-size: 2.5rem;
+    }
+    .scoreboard__text {
+      font-size: 0.85rem;
+      line-height: 1.1;
     }
   }
 
-  #scoreboard__items {
+  .scoreboard__items {
     position: relative;
     margin: 0;
     padding: 0;
     list-style-type: decimal;
+    width: 100%;
+    max-width: 800px;
   }
 </style>
-
-<script></script>

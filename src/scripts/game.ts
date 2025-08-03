@@ -384,11 +384,20 @@ function scorecalc(bet: number, trick: number) {
   }
 }
 
-function altscorecalc(bet: number, trick: number, round: number) {
-  if (bet == trick) {
-    return round * 10 + bet * 5;
+/* https://de.wikipedia.org/wiki/Wizard_(Spiel)
+  Für die richtige Prognose erhält der Spieler 10 Bonuspunkte pro ausgeteilte Karte, also in der ersten Runde zehn Punkte, in der zweiten zwanzig usw. bis hin zu hundert Punkten in der zehnten Runde usw. 10 Punkte gibt es nur für jeden angesagten Stich. Für jede Abweichung gibt es sukzessive zehn Strafpunkte mehr, also für die erste Abweichung 10 Punkte, die zweite 20 (also insgesamt 30), die dritte 30 (also 10 + 20 + 30 = 60 Minuspunkte) usw. – Beispiele für Runde 8:
+  3 Stiche prognostiziert und diese auch bekommen: 3·10 + 8⋅10 = 110 Punkte.
+  2 Stiche prognostiziert, aber 3 bekommen: 2·10 − 1⋅10 = 10 Punkte.
+  4 Stiche prognostiziert, aber 2 bekommen: 2·10 − (10 + 20) = −10 Punkte.
+*/
+function altscorecalc(bet: number, trick: number, round: number) {  
+  if (bet === trick) {
+    // trick points + 10 points per card in the round
+    return bet * 10 + round * 10;
   } else {
-    return round * 10 - Math.abs(bet - trick) * -10;
+    // Wrong prediction: trick points minus penalty
+    const deviation = Math.abs(bet - trick);
+    return bet * 10 - 10 * (deviation * (deviation + 1) / 2);
   }
 }
 
