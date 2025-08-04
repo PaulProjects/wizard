@@ -4,196 +4,409 @@ import Celebration from "./Celebration.astro";
 ---
 
 <div class="wrapper flex justify-center items-center w-screen h-full">
-  <div
-    class="flex items-center justify-center flex-col p-2 md:p-5 w-full lg:h-2/3"
-  >
-    <div class="w-full lg:w-2/3">
-      <div class="sticky top-0 bg-base-100 z-50">
-        <div class="flex flex-row items-center pl-5 lg:pl-0 gap-4">
-          <div class="flex flex-row items-center gap-1">
-            <h2 class="text-3xl h-full" id="s_round">Loading...</h2>
-            <div id="bet_display_container" class="hidden">
-              <div class="flex flex-col items-center" id="bet_above">
-                <span class="text-sm -mb-1" id="bet_above_text">3</span>
-                <img src="/icon/above.svg" alt="above" class="w-8" />
-              </div>
-              <div class="flex flex-col items-center" id="bet_below">
-                <img
-                  src="/icon/above.svg"
-                  alt="above"
-                  class="w-8"
-                  style="transform: scaleY(-1);"
-                />
-                <span class="text-sm -mt-1" id="bet_below_text">3</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex flex-row flex-nowrap gap-3 pb-1 items-center">
-            <div class="w-8" id="icon_celeb">
-              <Icon name="mdi:trophy-variant" class="w-8 h-8" />
-            </div>
-            <div class="w-8" id="icon_top">
-              <Icon name="mdi:format-list-numbered" class="w-8 h-8" />
-            </div>
-            <div class="w-8" id="icon_table">
-              <Icon name="mdi:table-account" class="w-8 h-8" />
-            </div>
-            <div class="w-8" id="icon_chart">
-              <Icon name="mdi:chart-timeline-variant" class="w-8 h-8" />
-            </div>
-            <div class="w-8" id="icon_analytics">
-              <Icon name="mdi:magnify-scan" class="w-8 h-8" />
-            </div>
-          </div>
-          <button class="btn ml-auto" onclick="modal_settings.showModal();">
-            <div class="w-4">
-              <Icon name="mdi:cog" class="w-4 h-4" />
-            </div>
-          </button>
-        </div>
-      </div>
-      <!-- Table -->
-      <div class="overflow-x-auto lg:w-full p-5 lg:p-0 tcontainer" id="table">
-        <table class="table lg:table-fixed">
-          <!-- head -->
-          <thead>
-            <tr id="names">
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="rows"> </tbody>
-        </table>
-      </div>
-      <!-- Graph -->
-      <div class="hidden h-full w-full flex items-center" id="graph">
-        <div class="chart_content" id="chart_container">
-          <canvas id="chart"></canvas>
-        </div>
-      </div>
-      <!-- Top -->
-      <div
-        id="top_players"
-        class="flex flex-row flex-wrap items-start justify-center hidden w-full gap-4 mt-5"
-      >
-      </div>
-      <div id="celebration" class="hidden w-full h-full">
-        <Celebration />
-      </div>
-      <div id="analytics" class="hidden w-full h-full pt-2">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div class="stats bg-secondary text-primary-content">
-            <div class="stat">
-              <div class="stat-title text-primary-content">Best Round</div>
-              <div class="stat-value" id="best_bet_name">Jakob</div>
-              <div class="stat-desc text-primary-content" id="best_bet_desc">
-                Runde 10
-              </div>
-            </div>
-          </div>
-          <div class="stats bg-secondary text-primary-content">
-            <div class="stat">
-              <div class="stat-title text-primary-content">Worst Round</div>
-              <div class="stat-value" id="worst_bet_name">Jakob</div>
-              <div class="stat-desc text-primary-content" id="worst_bet_desc">
-                Runde 10
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="player_stats"></div>
-      </div>
-    </div>
-  </div>
+	<div
+		class="flex items-center justify-center flex-col p-3 md:p-5 w-full lg:h-2/3"
+	>
+		<div class="w-full lg:w-2/3">
+			<div class="sticky top-0 bg-base-100 z-50 mb-4">
+				<div
+					class="flex items-center justify-between gap-2 min-h-[3rem]"
+				>
+					<!-- Left: Round and Bet Display -->
+					<div class="flex items-center gap-3 flex-shrink-0">
+						<h2 class="text-2xl font-bold" id="s_round">
+							Loading...
+						</h2>
+						<div id="bet_display_container" class="hidden">
+							<div class="flex items-center gap-2">
+								<div
+									id="bet_above"
+									class="flex flex-col items-center justify-center bg-base-200 rounded-lg p-2 min-w-[2.5rem]"
+								>
+									<span
+										class="text-xs font-medium"
+										id="bet_above_text">3</span
+									>
+									<Icon
+										name="mdi:chevron-up"
+										class="w-4 h-4"
+									/>
+								</div>
+								<div
+									id="bet_below"
+									class="flex flex-col items-center justify-center bg-base-200 rounded-lg p-2 min-w-[2.5rem]"
+								>
+									<Icon
+										name="mdi:chevron-down"
+										class="w-4 h-4"
+									/>
+									<span
+										class="text-xs font-medium"
+										id="bet_below_text">3</span
+									>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Center: Tab Navigation - Flexible -->
+					<div class="flex justify-center flex-1 px-2">
+						<div
+							id="tab_navigation"
+							class="bg-base-200 rounded-lg flex gap-1 sm:gap-1 p-1 sm:p-1 max-w-none w-full sm:w-auto"
+						>
+							<button
+								class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 sm:flex-initial min-w-[2.25rem] sm:min-w-[2.5rem] h-10"
+								id="tab_celeb"
+								data-tab="celebration"
+							>
+								<Icon
+									name="mdi:trophy-variant"
+									class="w-5 h-5 flex-shrink-0"
+								/>
+								<span
+									class="tab-label text-sm pl-2 whitespace-nowrap"
+									>Winner</span
+								>
+							</button>
+							<button
+								class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 sm:flex-initial min-w-[2.25rem] sm:min-w-[2.5rem] h-10"
+								id="tab_top"
+								data-tab="top_players"
+							>
+								<Icon
+									name="mdi:format-list-numbered"
+									class="w-5 h-5 flex-shrink-0"
+								/>
+								<span
+									class="tab-label text-sm pl-2 whitespace-nowrap"
+									>Overview</span
+								>
+							</button>
+
+							<button
+								class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 sm:flex-initial min-w-[2.25rem] sm:min-w-[2.5rem] h-10"
+								id="tab_chart"
+								data-tab="graph"
+							>
+								<Icon
+									name="mdi:chart-timeline-variant"
+									class="w-5 h-5 flex-shrink-0"
+								/>
+								<span
+									class="tab-label text-sm pl-2 whitespace-nowrap"
+									>Chart</span
+								>
+							</button>
+							<button
+								class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 sm:flex-initial min-w-[2.25rem] sm:min-w-[2.5rem] h-10"
+								id="tab_analytics"
+								data-tab="analytics"
+							>
+								<Icon
+									name="mdi:magnify-scan"
+									class="w-5 h-5 flex-shrink-0"
+								/>
+								<span
+									class="tab-label text-sm pl-2 whitespace-nowrap"
+									>Analytics</span
+								>
+							</button>
+						</div>
+					</div>
+
+					<!-- Right: Settings Button -->
+					<div class="flex justify-end flex-shrink-0">
+						<button
+							class="btn h-10 px-3"
+							onclick="modal_settings.showModal();"
+						>
+							<Icon name="mdi:cog" class="w-5 h-5" />
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Tab Content Panels -->
+			<div class="tab-content-container">
+				<!-- Celebration Tab -->
+				<div class="tab-panel hidden" id="celebration">
+					<Celebration />
+				</div>
+
+				<!-- Top Players Tab -->
+				<div class="tab-panel hidden" id="top_players">
+					<div
+						class="flex flex-row flex-wrap items-start justify-center w-full gap-4"
+					>
+						<!-- Top players content will be populated by JavaScript -->
+					</div>
+				</div>
+
+
+				<!-- Chart Tab -->
+				<div class="tab-panel hidden" id="graph" style="height: 80svh;">
+					<div class="h-full w-full" id="chart_container">
+						<canvas id="chart"></canvas>
+					</div>
+				</div>
+
+				<!-- Analytics Tab -->
+				<div class="tab-panel hidden" id="analytics">
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+						<div class="stats bg-secondary text-primary-content">
+							<div class="stat">
+								<div class="stat-title text-primary-content">
+									Best Round
+								</div>
+								<div class="stat-value" id="best_bet_name">
+									Jakob
+								</div>
+								<div
+									class="stat-desc text-primary-content"
+									id="best_bet_desc"
+								>
+									Runde 10
+								</div>
+							</div>
+						</div>
+						<div class="stats bg-secondary text-primary-content">
+							<div class="stat">
+								<div class="stat-title text-primary-content">
+									Worst Round
+								</div>
+								<div class="stat-value" id="worst_bet_name">
+									Jakob
+								</div>
+								<div
+									class="stat-desc text-primary-content"
+									id="worst_bet_desc"
+								>
+									Runde 10
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="player_stats"></div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 <div class="pb-20"></div>
 <!-- Info modal -->
 <dialog id="modal_info" class="modal modal-top sm:modal-middle">
-  <form method="dialog" class="modal-box">
-    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-      >✕</button
-    >
-    <div class="flex flex-col justify-center items-center">
-      <h2 class="font-bold text-3xl mt-5">Guide</h2>
-      <div class="prose">
-        <p class="mb-1 mt-5">
-          The Score Page offers various options to determine the best player.
-          Simply click on the icon to choose your preferred method.
-        </p>
-        <div class="mt-2">
-          <span>
-            <div class="w-10"><Icon name="mdi:format-list-numbered" class="w-6 h-6" /></div>
-            Displays the players sorted by their score
-          </span>
-        </div>
-        <div class="mt-2">
-          <div class="w-10"><Icon name="mdi:table-account" class="w-6 h-6" /></div><p>
-            Displays a table containing the score for every player and their bet
-            for that round <br /><span class="text-secondary text-xs"
-              >(just like on the physical score sheet)</span
-            >
-          </p>
-        </div>
-        <div class="mt-2">
-          <div class="flex flex-row">
-            <div class="w-10">
-              <Icon name="mdi:poll" class="w-6 h-6" />
-            </div>
-            <p>+</p>
-            <div class="w-10">
-              <Icon name="mdi:chart-timeline-variant" class="w-6 h-6" />
-            </div>
-          </div><p>
-            Displays a bar chart and a line chart of the score over the rounds
-            <br /><span class="text-secondary text-xs"
-              >(both charts looks better in panorama mode and are disabled for
-              the first two rounds)</span
-            >
-          </p>
-        </div>
-        <div class="mt-2">
-          <div class="w-10"><Icon name="mdi:magnify-scan" class="w-6 h-6" /></div><p>
-            Displays a detailed analysis of the game
-          </p>
-        </div>
-        <span class="badge badge-secondary mt-5"
-          >And this blue color highlights who the dealer is</span
-        >
-      </div>
-    </div>
-  </form>
-  <form method="dialog" class="modal-backdrop">
-    <button>close</button>
-  </form>
+	<form method="dialog" class="modal-box">
+		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+			>✕</button
+		>
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Guide</h2>
+			<div class="prose">
+				<p class="mb-1 mt-5">
+					The Score Page offers various options to determine the best
+					player. Simply click on the icon to choose your preferred
+					method.
+				</p>
+				<div class="mt-2">
+					<span>
+						<div class="w-10">
+							<Icon
+								name="mdi:format-list-numbered"
+								class="w-6 h-6"
+							/>
+						</div>
+						Displays the players sorted by their score
+					</span>
+				</div>
+
+				<div class="mt-2">
+					<div class="flex flex-row">
+						<div class="w-10">
+							<Icon name="mdi:poll" class="w-6 h-6" />
+						</div>
+						<p>+</p>
+						<div class="w-10">
+							<Icon
+								name="mdi:chart-timeline-variant"
+								class="w-6 h-6"
+							/>
+						</div>
+					</div><p>
+						Displays a bar chart and a line chart of the score over
+						the rounds
+						<br /><span class="text-secondary text-xs"
+							>(both charts looks better in panorama mode and are
+							disabled for the first two rounds)</span
+						>
+					</p>
+				</div>
+				<div class="mt-2">
+					<div class="w-10">
+						<Icon name="mdi:magnify-scan" class="w-6 h-6" />
+					</div><p>Displays a detailed analysis of the game</p>
+				</div>
+				<span class="badge badge-secondary mt-5"
+					>And this blue color highlights who the dealer is</span
+				>
+			</div>
+		</div>
+	</form>
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
+</dialog>
+
+<!-- Player Stats Modal -->
+<dialog id="modal_player_stats" class="modal modal-bottom sm:modal-middle">
+	<form id="modal_player_stats_form" method="dialog" class="modal-box">
+		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+			>✕</button
+		>
+
+		<div class="flex flex-col items-center mb-6">
+			<h2 class="font-bold text-3xl mt-2" id="modal_player_name">
+				Player Name
+			</h2>
+			<div
+				class="badge badge-secondary text-lg px-4 py-2 mt-2"
+				id="modal_player_rank"
+			>
+				Rank #1
+			</div>
+		</div>
+
+		<!-- Player Summary Stats -->
+		<div class="modal_player_stat grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+			<div class="stat bg-base-200 rounded-lg p-4 text-center">
+				<div class="stat-title">Total Score</div>
+				<div class="stat-value text-primary" id="modal_total_score">
+					0
+				</div>
+			</div>
+			<div class="stat bg-base-200 rounded-lg p-4 text-center">
+				<div class="stat-title">Bet Accuracy</div>
+				<div class="stat-value text-secondary" id="modal_bet_accuracy">
+					0%
+				</div>
+			</div>
+			<div class="stat bg-base-200 rounded-lg p-4 text-center">
+				<div class="stat-title">Average Bet</div>
+				<div class="stat-value" id="modal_avg_bet">0</div>
+			</div>
+		</div>
+
+		<!-- Round by Round Performance -->
+		<div class="mb-4">
+			<h3 class="text-xl font-semibold mb-3">Round Performance</h3>
+			<div class="overflow-x-auto">
+				<table class="table table-zebra w-full">
+					<thead>
+						<tr>
+							<th>Round</th>
+							<th>Bet</th>
+							<th>Tricks</th>
+							<th>Points</th>
+						</tr>
+					</thead>
+					<tbody id="modal_rounds_table">
+						<!-- Round data will be populated by JavaScript -->
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<!-- Performance Indicators -->
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4 modal_player_stat">
+			<div class="bg-success/10 rounded-lg p-4">
+				<h4 class="font-semibold text-success mb-2">Best Round</h4>
+				<p class="text-sm" id="modal_best_round">
+					Round data will appear here
+				</p>
+			</div>
+			<div class="bg-error/10 rounded-lg p-4">
+				<h4 class="font-semibold text-error mb-2">Worst Round</h4>
+				<p class="text-sm" id="modal_worst_round">
+					Round data will appear here
+				</p>
+			</div>
+		</div>
+	</form>
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
 </dialog>
 <dialog>
-  <!-- ToDo: Überdenken ob das wirklich die beste lösung ist -->
-  <div class="stats-vertical sm:stats-horizontal mx-auto w-full w-60"></div>
+	<!-- ToDo: Überdenken ob das wirklich die beste lösung ist -->
+	<div class="stats-vertical sm:stats-horizontal mx-auto w-60"></div>
 </dialog>
 <!-- End of modal -->
 <!-- End of content -->
 
 <style>
-  td {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    word-wrap: break-word;
-  }
-  .tcontainer {
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  .chart_content {
-    width: 95lvw;
-    height: 60lvh;
-  }
+	td {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		word-wrap: break-word;
+	}
+	.tcontainer {
+		overflow-x: auto;
+		white-space: nowrap;
+	}
 
-  @media screen and (max-width: 600px) {
-    .chart_content {
-      width: 90vw;
-      height: 90vh;
-    }
-  }
-  .icon_underline {
-    border-bottom: 4px solid green;
-  }
+	@media screen and (max-width: 600px) {
+		.chart_content {
+			width: 90vw;
+			height: 90vh;
+		}
+	}
+
+	/* Custom tab styling */
+	.tab-btn {
+		color: hsl(var(--bc) / 0.6);
+		background-color: transparent;
+		border: none;
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.tab-btn:hover {
+		color: hsl(var(--bc));
+		background-color: hsl(var(--p) / 0.1);
+		box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.15);
+	}
+
+	.tab-btn.active {
+		@apply bg-white text-neutral;
+	}
+
+	/* Touch-friendly tab content for swipe gestures */
+	.tab-content-container {
+		touch-action: pan-y; /* Allow vertical scrolling but handle horizontal swipes */
+		user-select: none; /* Prevent text selection during swipes */
+		transition: opacity 0.1s ease-in-out; /* Smooth opacity transition for swipe feedback */
+	}
+
+	/* Player card interaction styles */
+	.top-player-card {
+		cursor: pointer;
+		transition: all 0.3s ease;
+	}
+
+	.top-player-card:hover {
+		transform: translateY(-8px);
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+	}
+
+	.top-player-card:active {
+		transform: translateY(-4px);
+	}
+
+	/* Tab label visibility and responsive adjustments are handled by Tailwind classes */
+	@media screen and (max-width: 640px) {
+		/* Hide tab labels on mobile */
+		.tab-label {
+			display: none;
+		}
+	}
 </style>

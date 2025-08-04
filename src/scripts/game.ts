@@ -9,7 +9,7 @@ let game: gamedata;
 const urlParams = new URLSearchParams(window.location.search);
 const demomode = urlParams.has("demo");
 if (demomode) {
-  let view = 2;
+  let view = 3; // Default to top_players view (table view removed)
   if (urlParams.has("view")) {
     view = parseInt(urlParams.get("view"));
   }
@@ -35,6 +35,9 @@ if (demomode) {
 
 //get the players
 const players = game.getPlayers();
+
+// Make game object globally accessible for tab handlers
+(globalThis as any).game = game;
 
 globalThis.editmode = false;
 
@@ -187,31 +190,36 @@ function update() {
       document.getElementById("bet_display_container").classList.remove("hidden");
 
       let total_bet = game.getBets()[game.getBets().length - 1].reduce((a, b) => a + b, 0);
-      if(total_bet > game.getRound()){
-        document.getElementById("bet_above").classList.remove("hidden");
-        document.getElementById("bet_below").classList.add("hidden");
-        document.getElementById("bet_above_text").textContent = (total_bet - game.getRound()).toString();
-      } else if(total_bet < game.getRound()) {
-        document.getElementById("bet_above").classList.add("hidden");
-        document.getElementById("bet_below").classList.remove("hidden");
-        document.getElementById("bet_below_text").textContent = (game.getRound() - total_bet).toString();
+      let currentRound = game.getRound();
+      
+      if(total_bet > currentRound){
+        // Too many bets - show "above" indicator
+        document.getElementById("bet_above")?.classList.remove("hidden");
+        document.getElementById("bet_below")?.classList.add("hidden");
+        document.getElementById("bet_above_text").textContent = (total_bet - currentRound).toString();
+      } else if(total_bet < currentRound) {
+        // Too few bets - show "below" indicator  
+        document.getElementById("bet_above")?.classList.add("hidden");
+        document.getElementById("bet_below")?.classList.remove("hidden");
+        document.getElementById("bet_below_text").textContent = (currentRound - total_bet).toString();
       } else {
-        document.getElementById("bet_above").classList.add("hidden");
-        document.getElementById("bet_below").classList.add("hidden");
+        // Perfect bet total - hide both indicators
+        document.getElementById("bet_above")?.classList.add("hidden");
+        document.getElementById("bet_below")?.classList.add("hidden");
       }
     }
 
     if (game.getStep() == 3) {
       navblue();
       score_switch_view(4);
-      $("#icon_celeb").removeClass("hidden");
+      $("#tab_celeb").css("display", "");
       $("#endgame").addClass("hidden");
       $("#savequit").addClass("hidden");
       $("#continuegame").removeClass("hidden");
       $("#rules").addClass("hidden");
     } else {
       score_switch_view(game.getScoreDisplay());
-      $("#icon_celeb").addClass("hidden");
+      $("#tab_celeb").css("display", "none");
     }
 
     updatescore(players, game);
@@ -305,21 +313,7 @@ function switch_view(view: number) {
   game.save();
 }
 
-$("#icon_chart").on("click", () => {
-  switch_view(1);
-});
-$("#icon_table").on("click", () => {
-  switch_view(2);
-});
-$("#icon_top").on("click", () => {
-  switch_view(3);
-});
-$("#icon_celeb").on("click", () => {
-  switch_view(4);
-});
-$("#icon_analytics").on("click", () => {
-  switch_view(5);
-});
+// Tab switching is now handled in score.ts
 
 //Input
 let valid = true;
@@ -606,7 +600,7 @@ $("#continuegame").on("click", () => {
 
   game.setStep(1);
   game.setDisplay(1);
-  score_switch_view(2);
+  score_switch_view(1);
   if (!demomode) game.save();
   update();
 });
@@ -697,7 +691,7 @@ $("#rendgame").on("click", () => {
 /** Edit Mode */
 $("#editscore").on("click", () => {
   $("#navtext").text("Exit Edit Mode");
-  score_switch_view(2);
+  score_switch_view(3);
   globalThis.editmode = true;
 
   //players

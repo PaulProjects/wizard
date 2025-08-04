@@ -6,33 +6,145 @@ import confetti from "canvas-confetti";
 
 declare var editmode: boolean;
 
-var sections = [
-  "graph",
-  "table",
-  "top_players",
-  "celebration",
-  "analytics",
-];
-var icons = [
-  "icon_chart",
-  "icon_table",
-  "icon_top",
-  "icon_celeb",
-  "icon_analytics",
-];
 export function score_switch_view(x: number): void {
+  console.log(`score_switch_view called with: ${x}`);
   if (globalThis.editmode == null) globalThis.editmode = false;
   if (globalThis.editmode == true) location.reload();
-  for (var i = 0; i < sections.length; i++) {
-    if (i == x - 1) {
-      $("#" + sections[i]).removeClass("hidden");
-      $("#" + icons[i]).addClass("icon_underline");
-    } else {
-      $("#" + sections[i]).addClass("hidden");
-      $("#" + icons[i]).removeClass("icon_underline");
-    }
+  
+  // Redirect removed table view (2) to top_players view (3)
+  if (x === 2) {
+    x = 3;
+  }
+  
+  // Map view numbers to tab IDs and panel IDs
+  const tabMapping = {
+    1: { tabId: "tab_chart", panelId: "graph" },
+    3: { tabId: "tab_top", panelId: "top_players" },
+    4: { tabId: "tab_celeb", panelId: "celebration" },
+    5: { tabId: "tab_analytics", panelId: "analytics" }
+  };
+  
+  // Hide all panels and remove active class from all tabs
+  $(".tab-panel").addClass("hidden");
+  $(".tab-btn").removeClass("active");
+  
+  // Show the target panel and activate the target tab
+  const mapping = tabMapping[x];
+  if (mapping) {
+    console.log(`Switching to tab: ${mapping.tabId}, panel: ${mapping.panelId}`);
+    $(`#${mapping.panelId}`).removeClass("hidden");
+    $(`#${mapping.tabId}`).addClass("active");
+  } else {
+    console.log(`No mapping found for view number: ${x}`);
   }
 }
+
+// Initialize tab click handlers
+$(() => {
+  $(".tab-btn").on("click", function() {
+    const panelId = $(this).data("tab");
+    
+    // Create reverse mapping from panel ID to view number
+    const panelToViewMapping = {
+      "graph": 1,
+      "top_players": 3,
+      "celebration": 4,
+      "analytics": 5
+    };
+    
+    // Hide all panels and remove active class from all tabs
+    $(".tab-panel").addClass("hidden");
+    $(".tab-btn").removeClass("active");
+    
+    // Show the clicked panel and activate the clicked tab
+    $(`#${panelId}`).removeClass("hidden");
+    $(this).addClass("active");
+    
+    // Save the selected view to game data if available
+    const viewNumber = panelToViewMapping[panelId];
+    if (viewNumber && typeof globalThis !== 'undefined' && (globalThis as any).game) {
+      (globalThis as any).game.setScoreDisplay(viewNumber);
+      // Save to localStorage immediately
+      (globalThis as any).game.save();
+    } else {
+      console.log(`Could not save score display - game not available or invalid view number: ${viewNumber}`);
+    }
+  });
+
+  // Touch swipe functionality for tab switching
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+  
+  const tabContainer = document.querySelector('.tab-content-container');
+  if (tabContainer) {
+    tabContainer.addEventListener('touchstart', function(e: TouchEvent) {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+    
+    tabContainer.addEventListener('touchend', function(e: TouchEvent) {
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipe();
+    }, { passive: true });
+  }
+  
+  function handleSwipe() {
+    const swipeThreshold = 50; // Minimum distance for a swipe
+    const swipeAngleThreshold = 30; // Maximum angle from horizontal for a valid swipe
+    
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // Check if swipe is long enough
+    if (distance < swipeThreshold) return;
+    
+    // Check if swipe is mostly horizontal
+    const angle = Math.abs(Math.atan2(deltaY, deltaX) * 180 / Math.PI);
+    if (angle > swipeAngleThreshold && angle < (180 - swipeAngleThreshold)) return;
+    
+    // Get current active tab
+    const currentTab = $('.tab-btn.active');
+    if (currentTab.length === 0) return;
+    
+    // Get only visible tabs (not hidden with display: none)
+    const visibleTabButtons = $('.tab-btn').filter(function() {
+      return $(this).css('display') !== 'none';
+    });
+    
+    if (visibleTabButtons.length <= 1) return; // No point swiping if only one tab
+    
+    const currentIndex = visibleTabButtons.index(currentTab);
+    if (currentIndex === -1) return; // Current tab not in visible list
+    
+    let nextIndex = -1;
+    
+    if (deltaX > 0) {
+      // Swipe right - go to previous visible tab
+      nextIndex = currentIndex > 0 ? currentIndex - 1 : visibleTabButtons.length - 1;
+    } else {
+      // Swipe left - go to next visible tab
+      nextIndex = currentIndex < visibleTabButtons.length - 1 ? currentIndex + 1 : 0;
+    }
+    
+    if (nextIndex >= 0 && nextIndex < visibleTabButtons.length) {
+      // Add a brief visual feedback before switching
+      const tabContainer = document.querySelector('.tab-content-container') as HTMLElement;
+      if (tabContainer) {
+        tabContainer.style.opacity = '0.7';
+        setTimeout(() => {
+          $(visibleTabButtons[nextIndex]).click();
+          tabContainer.style.opacity = '1';
+        }, 100);
+      } else {
+        $(visibleTabButtons[nextIndex]).click();
+      }
+    }
+  }
+});
 
 export function updatescore(players: any, game: gamedata) {
   // Data
@@ -120,14 +232,12 @@ export function updatescore(players: any, game: gamedata) {
   }
 
   //Views
-  $("#top_players").empty();
-  $("#names").empty();
-  $("#rows").empty();
+  $("#top_players > div").empty();
 
   //Top Players list
   for (let i = 0; i < sorted_playerlist.length; i++) {
     // Create the player card structure safely
-    const playerCard = $(`<div class="min-w-72 w-11/12 sm:w-5/12 max-w-full bg-neutral rounded-md p-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary relative" id="top_players_${i}">
+    const playerCard = $(`<div class="min-w-72 w-11/12 sm:w-5/12 max-w-full bg-neutral rounded-md p-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary relative cursor-pointer" id="top_players_${i}" data-player-index="${i}">
                 <div class="w-full justify-between items-center gap-16 inline-flex">
                     <h1 class="text-4xl font-medium ${sorted_playerlist[i][4] == 1 ? "text-secondary" : ""}" id="top_players_name_${i}"></h1>
                 </div>
@@ -150,53 +260,22 @@ export function updatescore(players: any, game: gamedata) {
     // Safely set the player name
     playerCard.find(`#top_players_name_${i}`).text(sorted_playerlist[i][0]);
     
-    $("#top_players").append(playerCard);
+    // Add click handler to show player stats modal
+    playerCard.on('click', function() {
+      showPlayerStatsModal(i, sorted_playerlist, players, game, gameScore, bets, game.getTricks(), score_change);
+    });
+    
+    $("#top_players > div").append(playerCard);
   }
-  $("#names").append(`<th>Round</th>`);
-  for (let index = 0; index < playerlist.length; index++) {
-    if (playerlist[index][2] == 1) {
-      const th = $(`<th> <span class="badge badge-secondary"></span></th><th>   </th>`);
-      th.find('.badge').text(playerlist[index][0]);
-      $("#names").append(th);
-    } else {
-      const th = $(`<th></th><th>   </th>`);
-      th.first().text(playerlist[index][0]);
-      $("#names").append(th);
-    }
-  }
-  for (let i = 0; i < game.getRound(); i++) {
-    $("#rows").append(`<tr id="row${i}"></tr>`);
-    $(`#row${i}`).append(`<td id="row${i}num">${i + 1}</td>`);
-    if (game.getColor() != null)
-      if (game.getColor()[i + 1] != null)
-        $("#row" + i + "num").addClass(game.getColor()[i + 1] + "_tag");
-    for (let j = 0; j < playerlist.length; j++) {
-      try {
-        $(`#row${i}`).append(
-          `<td id="std${i}${j}" round="${i}" player="${j}">${gameScore[i][j]}</td>`
-        );
-      } catch {
-        $(`#row${i}`).append(`<td></td>`);
-      }
-      try {
-        $(`#row${i}`).append(
-          `<td id="btd${i}${j}" round="${i}" player="${j}">${bets[i][j]}</td>`
-        );
-      } catch {
-        $(`#row${i}`).append(`<td></td>`);
-      }
-    }
-  }
-  $("#rows tr:last-child").addClass("bg-base-200");
 
   if (game.getRound() == 1 || game.getRound() == 2) {
-    $("#icon_chart").addClass("hidden");
-    $("#icon_analytics").addClass("hidden");
+    $("#tab_chart").css("display", "none");
+    $("#tab_analytics").css("display", "none");
   } else {
     //Graph
     let score_chart: Chart;
 
-    $("#icon_chart").removeClass("hidden");
+    $("#tab_chart").css("display", "");
     $("#chart").remove();
     $("#chart_container").append('<canvas id="chart"></canvas>');
     let ctx: CanvasRenderingContext2D = (
@@ -259,7 +338,7 @@ export function updatescore(players: any, game: gamedata) {
     });
 
     //Analytics
-    $("#icon_analytics").removeClass("hidden");
+    $("#tab_analytics").css("display", "");
     //analyze the score_change and save the highest and lowest score
     let score_change_max_points = 0;
     let score_change_max_round = 0;
@@ -625,4 +704,125 @@ function confetticannon() {
   if (Date.now() < end) {
     requestAnimationFrame(confetticannon);
   }
+}
+
+function showPlayerStatsModal(playerIndex: number, sorted_playerlist: any[], players: string[], game: gamedata, gameScore: number[][], bets: number[][], tricks: number[][], score_change: number[][]) {
+  // Find the actual player index in the original players array
+  const playerName = sorted_playerlist[playerIndex][5]; // Use the name without decoration
+  const actualPlayerIndex = players.indexOf(playerName);
+  
+  if (actualPlayerIndex === -1) return;
+  
+  // Set player name and rank
+  $("#modal_player_name").text(sorted_playerlist[playerIndex][0]);
+  $("#modal_player_rank").text(`Rank #${sorted_playerlist[playerIndex][3]}`);
+  
+  // Set total score
+  $("#modal_total_score").text(sorted_playerlist[playerIndex][1]);
+  
+  // Check if we have any game data yet
+  const hasGameData = bets.length > 0 || tricks.length > 0 || gameScore.length > 0;
+  
+  if (!hasGameData) {
+    // hide modal content at the start of the game
+    $("#modal_rounds_table").empty();
+    const noDataRow = $(`
+      <tr>
+        <td colspan="4" class="text-center text-base-content/60 py-8">
+          No round data available yet. Start playing to see statistics!
+        </td>
+      </tr>
+    `);
+    $("#modal_rounds_table").append(noDataRow);
+    $(".modal_player_stat").hide();
+    
+    // Show the modal
+    (document.getElementById('modal_player_stats') as HTMLDialogElement).showModal();
+    return;
+  }
+  
+  $(".modal_player_stat").show();
+
+  // Calculate and set bet accuracy
+  let betAccuracy = 0;
+  let accurateRounds = 0;
+  let totalRounds = 0;
+  let totalBetDifference = 0;
+  let totalBets = 0;
+  
+  for (let round = 0; round < bets.length; round++) {
+    if (tricks.length > round) {
+      if (bets[round][actualPlayerIndex] === tricks[round][actualPlayerIndex]) {
+        accurateRounds++;
+      }
+      totalBetDifference += Math.abs(bets[round][actualPlayerIndex] - tricks[round][actualPlayerIndex]);
+      totalRounds++;
+    }
+    totalBets += bets[round][actualPlayerIndex];
+  }
+  
+  const accuracy = totalRounds > 0 ? Math.round((accurateRounds / totalRounds) * 100) : 0;
+  const avgBet = bets.length > 0 ? Math.round((totalBets / bets.length) * 100) / 100 : 0;
+  
+  $("#modal_bet_accuracy").text(accuracy + "%");
+  $("#modal_avg_bet").text(avgBet);
+  
+  // Populate round-by-round table
+  $("#modal_rounds_table").empty();
+  let bestRound = { round: 0, points: -1000, data: "" };
+  let worstRound = { round: 0, points: 1000, data: "" };
+  
+  const roundsToShow = Math.max(game.getRound(), bets.length, tricks.length, gameScore.length);
+  
+  for (let round = 0; round < roundsToShow; round++) {
+    const bet = bets.length > round ? bets[round][actualPlayerIndex] : "-";
+    const trick = tricks.length > round ? tricks[round][actualPlayerIndex] : "-";
+    const points = gameScore.length > round ? gameScore[round][actualPlayerIndex] : "-";
+    const pointChange = score_change.length > round ? score_change[round][actualPlayerIndex] : 0;
+    
+    // Track best and worst rounds only if we have score change data
+    if (score_change.length > round) {
+      if (pointChange > bestRound.points) {
+        bestRound = {
+          round: round + 1,
+          points: pointChange,
+          data: `+${pointChange} points (Bet: ${bet}, Got: ${trick})`
+        };
+      }
+      if (pointChange < worstRound.points) {
+        worstRound = {
+          round: round + 1,
+          points: pointChange,
+          data: `${pointChange} points (Bet: ${bet}, Got: ${trick})`
+        };
+      }
+    }
+    
+    // Determine if bet was accurate (only if we have both bet and trick data)
+    const isAccurate = (bet !== "-" && trick !== "-") ? bet === trick : false;
+    const rowClass = (bet !== "-" && trick !== "-") ? (isAccurate ? "bg-success/20" : "bg-error/20") : "";
+    
+    const row = $(`
+      <tr class="${rowClass}">
+        <td class="font-semibold">${round + 1}</td>
+        <td>${bet}</td>
+        <td>${trick}</td>
+        <td>${points}</td>
+      </tr>
+    `);
+    
+    $("#modal_rounds_table").append(row);
+  }
+  
+  // Set best and worst round info
+  if (score_change.length > 0) {
+    $("#modal_best_round").text(`Round ${bestRound.round}: ${bestRound.data}`);
+    $("#modal_worst_round").text(`Round ${worstRound.round}: ${worstRound.data}`);
+  } else {
+    $("#modal_best_round").text("Complete a round to see best performance");
+    $("#modal_worst_round").text("Complete a round to see worst performance");
+  }
+  
+  // Show the modal
+  (document.getElementById('modal_player_stats') as HTMLDialogElement).showModal();
 }

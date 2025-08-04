@@ -165,22 +165,7 @@ function clicked_more(i: number) {
   $("#share_game").attr("href", `${location.origin}/share?id=${Lgame.getID()}`);
 }
 
-//Switch to graph
-$("#icon_chart").on("click", () => {
-  score_switch_view(1);
-});
-$("#icon_table").on("click", () => {
-  score_switch_view(2);
-});
-$("#icon_top").on("click", () => {
-  score_switch_view(3);
-});
-$("#icon_celeb").on("click", () => {
-  score_switch_view(4);
-});
-$("#icon_analytics").on("click", () => {
-  score_switch_view(5);
-});
+// Tab switching is now handled in score.ts
 
 //#endregion
 
