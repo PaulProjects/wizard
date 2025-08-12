@@ -7,521 +7,567 @@ import Rule from "../components/Rule.astro";
 ---
 
 <Layout title="Wizard - Running Game">
-  <!--
+	<!--
   <div class="prose prose-sm md:prose-base w-full flex-grow pt-2">
     <h1 class="text-center text-6xl" id="title">Wizard</h1>
   </div>
  -->
-  <div class="hidden" id="input"><Input /></div>
-  <div id="score"><Score /></div>
-  <nav
-    id="nav_container"
-    class="boxbuttons self-center w-4/5 lg:w-2/3 fixed bottom-5 inset-x-0 mx-auto join flex justify-center items-center"
-  >
-    <button class="btn btn-secondary join-item nav_graph" id="chart_nav"
-      ><div id="chart_nav_icon" class="w-6">
-        <Icon name="mdi:chart-box" class="w-6 h-6" />
-      </div></button
-    >
-    <button class="btn btn-secondary w-4/5 join-item" id="nav_button"
-      ><p id="navtext">Loading...</p></button
-    >
-    <button class="btn btn-secondary join-item nav_graph" id="chart_nav_right"
-      ><div class="w-6"></div></button
-    >
-  </nav>
-  <!-- Settings modal -->
-  <dialog id="modal_settings" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Settings</h2>
-        <div>
-          <button
-            class="btn btn-secondary btn-block mt-2"
-            id="questionbutton"
-            onclick="
+	<div class="hidden" id="input"><Input /></div>
+	<div id="score"><Score /></div>
+	<nav
+		id="nav_container"
+		class="boxbuttons self-center w-4/5 lg:w-2/3 fixed bottom-5 inset-x-0 mx-auto join flex justify-center items-center"
+	>
+		<button class="btn btn-secondary join-item nav_graph" id="chart_nav"
+			><div id="chart_nav_icon" class="w-6">
+				<Icon name="mdi:chart-box" class="w-6 h-6" />
+			</div></button
+		>
+		<button class="btn btn-secondary w-4/5 join-item" id="nav_button"
+			><p id="navtext">Loading...</p></button
+		>
+		<button
+			class="btn btn-secondary join-item nav_graph"
+			id="chart_nav_right"><div class="w-6"></div></button
+		>
+	</nav>
+	<!-- Settings modal -->
+	<dialog id="modal_settings" class="modal modal-top sm:modal-middle">
+		<form method="dialog" class="modal-box">
+			<button
+				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+				>✕</button
+			>
+			<div class="flex flex-col justify-center items-center">
+				<h2 class="font-bold text-3xl mt-5">Settings</h2>
+				<div>
+					<button
+						class="btn btn-secondary btn-block mt-2"
+						id="questionbutton"
+						onclick="
           modal_info.showModal();
-          ">Help</button
-          >
-          <button
-          class="btn btn-secondary btn-block mt-5"
-          id="questionbutton"
-          onclick="
-          modal_color.showModal();">Set Round Color</button
-        >
-          <button
-            class="btn btn-secondary btn-block mt-5"
-            id="questionbutton"
-            onclick="
-            modal_rules.showModal();">Change Rules</button
-          >
-          <button class="btn btn-secondary btn-block mt-2" id="editdealer"
-            >Change Dealer</button
-          >
-          <button class="btn btn-secondary btn-block mt-2" id="editscore">
-            Edit Names, Scores and Bets
-          </button>
-          <button
-            class="btn btn-info btn-block mt-5"
-            onclick="location.href = '/';"
-            id="savequit"
-          >
-            Save and Quit
-          </button>
-          <button class="btn btn-primary btn-block mt-2" id="endgame">
-            Finish the Game
-          </button>
-          <button
-            class="btn btn-secondary btn-block mt-5 hidden"
-            id="continuegame"
-          >
-            Continue Game
-          </button>
-          <button class="btn btn-neutral btn-block mt-5">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- End of Settings modal -->
-  <!-- Rules Modal -->
-  <dialog id="modal_rules" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Rules</h2>
+          "
+						>Help</button
+					>
+					<button
+						class="btn btn-secondary btn-block mt-5"
+						id="questionbutton"
+						onclick="
+          modal_color.showModal();"
+						>Set Round Color</button
+					>
+					<button
+						class="btn btn-secondary btn-block mt-5"
+						id="questionbutton"
+						onclick="
+            modal_rules.showModal();"
+						>Change Rules</button
+					>
+					<button
+						class="btn btn-secondary btn-block mt-2"
+						id="editdealer">Change Dealer</button
+					>
+					<button
+						class="btn btn-info btn-block mt-5"
+						onclick="location.href = '/';"
+						id="savequit"
+					>
+						Save and Quit
+					</button>
+					<button class="btn btn-primary btn-block mt-2" id="endgame">
+						Finish the Game
+					</button>
+					<button
+						class="btn btn-secondary btn-block mt-5 hidden"
+						id="continuegame"
+					>
+						Continue Game
+					</button>
+					<button class="btn btn-neutral btn-block mt-5">
+						Cancel
+					</button>
+				</div>
+			</div>
+		</form>
+		<form method="dialog" class="modal-backdrop">
+			<button>close</button>
+		</form>
+	</dialog>
+	<!-- End of Settings modal -->
+	<!-- Rules Modal -->
+	<dialog id="modal_rules" class="modal modal-top sm:modal-middle">
+		<form method="dialog" class="modal-box">
+			<button
+				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+				>✕</button
+			>
+			<div class="flex flex-col justify-center items-center">
+				<h2 class="font-bold text-3xl mt-5">Rules</h2>
 
-        <div id="rules">
-          <Rule
-            title="±1 Rule"
-            description="Requires the amount of possible bids to differ from the total amount of tricks"
-            js_id="rule_1"
-          />
-        </div>
+				<div id="rules">
+					<Rule
+						title="±1 Rule"
+						description="Requires the amount of possible bids to differ from the total amount of tricks"
+						js_id="rule_1"
+					/>
+				</div>
 
-        <!-- Start of calc options -->
-        <h2 class="pt-10 text-3xl w-full">Score calculation</h2>
-        <div class="pt-2"></div>
-        <div class="optionbox-flex pr-10 pl-3">
-          <div class="form-control">
-            <div
-              class="flex flex-row items-center h-full w-full"
-              id="calc_classic_box"
-            >
-              <div class="form-control pl-3">
-                <label class="cursor-pointer label">
-                  <input
-                    type="radio"
-                    name="calc"
-                    aria-label="radio button to toggle automatic rounds"
-                    class="radio checked:bg-blue-500"
-                    id="calc_classic"
-                    checked
-                  />
-                </label>
-              </div>
-              <div
-                class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
-              >
-                <span class="label-text text-xl bold font-bold w-full"
-                  >Classic</span
-                >
-                <span class="label-text text-sm bold w-full"
-                  >Calculate the score according to the ruleset</span
-                >
-              </div>
-            </div>
-            <div
-              class="flex flex-row items-center h-full w-full"
-              id="calc_alt_box"
-            >
-              <div class="form-control pl-3">
-                <label class="cursor-pointer label">
-                  <input
-                    type="radio"
-                    name="calc"
-                    aria-label="radio button to toggle custom rounds"
-                    class="radio checked:bg-blue-500"
-                    id="calc_alt"
-                  />
-                </label>
-              </div>
-              <div
-                class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
-              >
-                <span class="label-text text-xl bold font-bold w-full"
-                  >Custom</span
-                >
-                <span class="label-text text-sm bold w-full"
-                  >Use an alternative counting system thats less punishing
-                  towards a bad hand</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- End of calc options -->
+				<!-- Start of calc options -->
+				<h2 class="pt-10 text-3xl w-full">Score calculation</h2>
+				<div class="pt-2"></div>
+				<div class="optionbox-flex pr-10 pl-3">
+					<div class="form-control">
+						<div
+							class="flex flex-row items-center h-full w-full"
+							id="calc_classic_box"
+						>
+							<div class="form-control pl-3">
+								<label class="cursor-pointer label">
+									<input
+										type="radio"
+										name="calc"
+										aria-label="radio button to toggle automatic rounds"
+										class="radio checked:bg-blue-500"
+										id="calc_classic"
+										checked
+									/>
+								</label>
+							</div>
+							<div
+								class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+							>
+								<span
+									class="label-text text-xl bold font-bold w-full"
+									>Classic</span
+								>
+								<span class="label-text text-sm bold w-full"
+									>Calculate the score according to the
+									ruleset</span
+								>
+							</div>
+						</div>
+						<div
+							class="flex flex-row items-center h-full w-full"
+							id="calc_alt_box"
+						>
+							<div class="form-control pl-3">
+								<label class="cursor-pointer label">
+									<input
+										type="radio"
+										name="calc"
+										aria-label="radio button to toggle custom rounds"
+										class="radio checked:bg-blue-500"
+										id="calc_alt"
+									/>
+								</label>
+							</div>
+							<div
+								class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+							>
+								<span
+									class="label-text text-xl bold font-bold w-full"
+									>Custom</span
+								>
+								<span class="label-text text-sm bold w-full"
+									>Use an alternative counting system thats
+									less punishing towards a bad hand</span
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- End of calc options -->
 
-        <button class="btn btn-info btn-block mt-2"> Ok</button>
-      </div>
-    </form>
-  </dialog>
-  <!-- End of Rules modal -->
-  <!-- Really End game? modal -->
-  <dialog id="modal_confirmend" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="text-2xl mt-5">
-          Do you really want to finish the game? This ends this game.
-          <br /><br />You can continue it by clicking on the settings and then
-          on continue.
-        </h2>
-        <div>
-          <!-- Cancel Game Button that navigates to / -->
-          <button class="btn btn-primary btn-block mt-5" id="rendgame">
-            Finish Game
-          </button>
-          <button class="btn btn-info btn-block mt-2"> Cancel</button>
-        </div>
-      </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- End of Settings modal -->
-  <!-- Edit Modal -->
-  <dialog id="modal_edit" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Edit Game</h2>
-        <div>
-          <input
-            type="text"
-            class="input input-bordered w-full"
-            placeholder="Game Name"
-            id="edit_name"
-          />
-          <!-- Cancel Game Button that navigates to / -->
-          <button class="btn btn-info btn-block mt-2" id="edit_save">
-            Save</button
-          >
-          <button class="btn btn-info btn-block mt-2"> Cancel</button>
-        </div>
-      </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- Warning Modal -->
-  <!-- Edit Modal -->
-  <dialog id="modal_attention" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Info</h2>
-        <span id="info_text"></span>
-        <button class="btn btn-info btn-block mt-5">OK</button>
-      </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- Select Dealer Modal -->
-  <dialog id="modal_dealer" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Select Dealer</h2>
-        <label class="form-control w-full max-w-xs">
-          <div class="label">
-            <span class="label-text">Pick the new dealer</span>
-          </div>
-          <select class="select select-bordered" id="select_dealer"> </select>
-        </label>
-        <button class="btn btn-info btn-block mt-2" id="select_dealer_save"
-          >Save</button
-        >
-      </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- Select color Modal -->
-  <dialog id="modal_color" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Select Color</h2>
-        <div>
-          <button class="btn blue_tag btn-block mt-2" id="color_blue"
-            >Blue</button
-          >
-          <button class="btn red_tag btn-block mt-2" id="color_red">Red</button>
-          <button class="btn green_tag btn-block mt-2" id="color_green"
-            >Green</button
-          >
-          <button class="btn yellow_tag btn-block mt-2" id="color_yellow"
-            >Yellow</button
-          >
-          <button class="btn btn-neutral btn-block mt-2" id="color_none">
-            Remove Color
-          </button>
-          <button
-            class="btn bg-gradient-to-r from-blue-500 via-red-500 to-green-500 btn-block mt-2"
-            id="color_random">Random</button
-          >
-          <button class="btn btn-neutral btn-block mt-2"> Cancel</button>
-        </div>
-      </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
-  <!-- Random Color Got Selected Modal -->
-  <dialog id="modal_randomcolor" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box" id="random_color_form">
-      <div class="flex flex-col justify-center items-center">
-        <div class="container">
-          <div class="flex items-center justify-center">
-            <div
-              class="rounded-e-2xl fill-neutral flex justify-center content-center"
-              style="width:70vw; height:60vh;"
-            >
-              <div
-                class="rounded flex justify-center items-center w-full h-full"
-                id="random_text_container"
-              >
-                <h1 class="h-3 text-3xl" id="slot_text"><h1></h1></h1>
-              </div>
-              <div id="slot-trigger" class="cursor-pointer">
-                <svg
-                  id="trigger"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlns:xlink="http://www.w3.org/1999/xlink"
-                  width="35"
-                  height="143.6"
-                  viewBox="0 0 35 143.6"
-                >
-                  <defs>
-                    <linearGradient
-                      id="linear-gradient"
-                      x1="6.21"
-                      y1="143.63"
-                      x2="6.21"
-                      y2="67.37"
-                      gradientUnits="userSpaceOnUse"
-                    >
-                      <stop offset="0" stop-color="#515151"></stop>
-                      <stop offset="0.21" stop-color="#989898"></stop>
-                      <stop offset="0.51" stop-color="#e3e3e3"></stop>
-                      <stop offset="0.82" stop-color="#949494"></stop>
-                      <stop offset="1" stop-color="#444"></stop>
-                    </linearGradient>
-                    <linearGradient
-                      id="linear-gradient-2"
-                      x1="23.71"
-                      y1="127.98"
-                      x2="23.71"
-                      y2="83.01"
-                      xlink:href="#linear-gradient"></linearGradient>
-                    <linearGradient
-                      id="linear-gradient-3"
-                      x1="20.46"
-                      y1="55.66"
-                      x2="25.41"
-                      y2="55.66"
-                      gradientUnits="userSpaceOnUse"
-                    >
-                      <stop offset="0" stop-color="#6b6b6b"></stop>
-                      <stop offset="1" stop-color="#454545"></stop>
-                    </linearGradient>
-                    <radialGradient
-                      id="radial-gradient"
-                      cx="23.05"
-                      cy="12.33"
-                      fx="31.426365772510508"
-                      r="12.04"
-                      gradientTransform="translate(1.5 -0.3) scale(0.93 0.93)"
-                      gradientUnits="userSpaceOnUse"
-                    >
-                      <stop offset="0" stop-color="#e47f7f"></stop>
-                      <stop offset="0.68" stop-color="#ae292a"></stop>
-                    </radialGradient>
-                  </defs>
-                  <path
-                    id="ring1"
-                    d="M0,67.4H7.3a5.1,5.1,0,0,1,5.1,5.1v66.1a5.1,5.1,0,0,1-5.1,5.1H0a0,0,0,0,1,0,0V67.4A0,0,0,0,1,0,67.4Z"
-                    fill="url(#linear-gradient)"></path>
-                  <path
-                    id="ring2"
-                    d="M12.4,83H29.7A5.3,5.3,0,0,1,35,88.3v34.4a5.3,5.3,0,0,1-5.3,5.3H12.4a0,0,0,0,1,0,0V83A0,0,0,0,1,12.4,83Z"
-                    fill="url(#linear-gradient-2)"></path>
-                  <ellipse
-                    id="hole"
-                    cx="22.9"
-                    cy="88.6"
-                    rx="5.9"
-                    ry="2.2"
-                    fill="#3f3f3f"></ellipse>
-                  <rect
-                    id="stick"
-                    x="20.5"
-                    y="22.2"
-                    width="5"
-                    height="66.88"
-                    fill="url(#linear-gradient-3)"></rect>
-                  <ellipse
-                    id="head"
-                    cx="22.9"
-                    cy="11.3"
-                    rx="11.2"
-                    ry="11.3"
-                    fill="url(#radial-gradient)"></ellipse>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button
-          class="btn btn-info btn-block mt-3 btn-disabled"
-          id="random_close_button">OK</button
-        >
-      </div>
-      <form method="dialog" class="modal-backdrop">
-        <button>ok</button>
-      </form>
-    </form>
-  </dialog>
+				<button class="btn btn-info btn-block mt-2"> Ok</button>
+			</div>
+		</form>
+	</dialog>
+	<!-- End of Rules modal -->
+	<!-- Really End game? modal -->
+	<dialog id="modal_confirmend" class="modal modal-top sm:modal-middle">
+		<form method="dialog" class="modal-box">
+			<button
+				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+				>✕</button
+			>
+			<div class="flex flex-col justify-center items-center">
+				<h2 class="text-2xl mt-5">
+					Do you really want to finish the game? This ends this game.
+					<br /><br />You can continue it by clicking on the settings
+					and then on continue.
+				</h2>
+				<div>
+					<!-- Cancel Game Button that navigates to / -->
+					<button
+						class="btn btn-primary btn-block mt-5"
+						id="rendgame"
+					>
+						Finish Game
+					</button>
+					<button class="btn btn-info btn-block mt-2"> Cancel</button>
+				</div>
+			</div>
+		</form>
+		<form method="dialog" class="modal-backdrop">
+			<button>close</button>
+		</form>
+	</dialog>
+	<!-- End of Settings modal -->
+	<!-- Edit Modal -->
+	<dialog id="modal_edit" class="modal modal-top sm:modal-middle">
+		<form method="dialog" class="modal-box">
+			<button
+				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+				>✕</button
+			>
+			<div class="flex flex-col justify-center items-center">
+				<h2 class="font-bold text-3xl mt-5">Edit Game</h2>
+				<div>
+					<input
+						type="text"
+						class="input input-bordered w-full"
+						placeholder="Game Name"
+						id="edit_name"
+					/>
+					<!-- Cancel Game Button that navigates to / -->
+					<button class="btn btn-info btn-block mt-2" id="edit_save">
+						Save</button
+					>
+					<button class="btn btn-info btn-block mt-2"> Cancel</button>
+				</div>
+			</div>
+		</form>
+		<form method="dialog" class="modal-backdrop">
+			<button>close</button>
+		</form>
+	</dialog>
+	<!-- Warning Modal -->
+	<!-- Edit Modal -->
+	<dialog id="modal_attention" class="modal modal-top sm:modal-middle">
+		<form method="dialog" class="modal-box">
+			<button
+				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+				>✕</button
+			>
+			<div class="flex flex-col justify-center items-center">
+				<h2 class="font-bold text-3xl mt-5">Info</h2>
+				<span id="info_text"></span>
+				<button class="btn btn-info btn-block mt-5">OK</button>
+			</div>
+		</form>
+		<form method="dialog" class="modal-backdrop">
+			<button>close</button>
+		</form>
+	</dialog>
+	<!-- Select Dealer Modal -->
+	<dialog id="modal_dealer" class="modal modal-top sm:modal-middle">
+		<form method="dialog" class="modal-box">
+			<button
+				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+				>✕</button
+			>
+			<div class="flex flex-col justify-center items-center">
+				<h2 class="font-bold text-3xl mt-5">Select Dealer</h2>
+				<label class="form-control w-full max-w-xs">
+					<div class="label">
+						<span class="label-text">Pick the new dealer</span>
+					</div>
+					<select class="select select-bordered" id="select_dealer">
+					</select>
+				</label>
+				<button
+					class="btn btn-info btn-block mt-2"
+					id="select_dealer_save">Save</button
+				>
+			</div>
+		</form>
+		<form method="dialog" class="modal-backdrop">
+			<button>close</button>
+		</form>
+	</dialog>
+	<!-- Select color Modal -->
+	<dialog id="modal_color" class="modal modal-top sm:modal-middle">
+		<form method="dialog" class="modal-box">
+			<button
+				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+				>✕</button
+			>
+			<div class="flex flex-col justify-center items-center">
+				<h2 class="font-bold text-3xl mt-5">Select Color</h2>
+				<div>
+					<button class="btn blue_tag btn-block mt-2" id="color_blue"
+						>Blue</button
+					>
+					<button class="btn red_tag btn-block mt-2" id="color_red"
+						>Red</button
+					>
+					<button
+						class="btn green_tag btn-block mt-2"
+						id="color_green">Green</button
+					>
+					<button
+						class="btn yellow_tag btn-block mt-2"
+						id="color_yellow">Yellow</button
+					>
+					<button
+						class="btn btn-neutral btn-block mt-2"
+						id="color_none"
+					>
+						Remove Color
+					</button>
+					<button
+						class="btn bg-gradient-to-r from-blue-500 via-red-500 to-green-500 btn-block mt-2"
+						id="color_random">Random</button
+					>
+					<button class="btn btn-neutral btn-block mt-2">
+						Cancel</button
+					>
+				</div>
+			</div>
+		</form>
+		<form method="dialog" class="modal-backdrop">
+			<button>close</button>
+		</form>
+	</dialog>
+	<!-- Random Color Got Selected Modal -->
+	<dialog id="modal_randomcolor" class="modal modal-top sm:modal-middle">
+		<form method="dialog" class="modal-box" id="random_color_form">
+			<div class="flex flex-col justify-center items-center">
+				<div class="container">
+					<div class="flex items-center justify-center">
+						<div
+							class="rounded-e-2xl fill-neutral flex justify-center content-center"
+							style="width:70vw; height:60vh;"
+						>
+							<div
+								class="rounded flex justify-center items-center w-full h-full"
+								id="random_text_container"
+							>
+								<h1 class="h-3 text-3xl" id="slot_text">
+									<h1></h1>
+								</h1>
+							</div>
+							<div id="slot-trigger" class="cursor-pointer">
+								<svg
+									id="trigger"
+									xmlns="http://www.w3.org/2000/svg"
+									xmlns:xlink="http://www.w3.org/1999/xlink"
+									width="35"
+									height="143.6"
+									viewBox="0 0 35 143.6"
+								>
+									<defs>
+										<linearGradient
+											id="linear-gradient"
+											x1="6.21"
+											y1="143.63"
+											x2="6.21"
+											y2="67.37"
+											gradientUnits="userSpaceOnUse"
+										>
+											<stop
+												offset="0"
+												stop-color="#515151"></stop>
+											<stop
+												offset="0.21"
+												stop-color="#989898"></stop>
+											<stop
+												offset="0.51"
+												stop-color="#e3e3e3"></stop>
+											<stop
+												offset="0.82"
+												stop-color="#949494"></stop>
+											<stop offset="1" stop-color="#444"
+											></stop>
+										</linearGradient>
+										<linearGradient
+											id="linear-gradient-2"
+											x1="23.71"
+											y1="127.98"
+											x2="23.71"
+											y2="83.01"
+											xlink:href="#linear-gradient"
+										></linearGradient>
+										<linearGradient
+											id="linear-gradient-3"
+											x1="20.46"
+											y1="55.66"
+											x2="25.41"
+											y2="55.66"
+											gradientUnits="userSpaceOnUse"
+										>
+											<stop
+												offset="0"
+												stop-color="#6b6b6b"></stop>
+											<stop
+												offset="1"
+												stop-color="#454545"></stop>
+										</linearGradient>
+										<radialGradient
+											id="radial-gradient"
+											cx="23.05"
+											cy="12.33"
+											fx="31.426365772510508"
+											r="12.04"
+											gradientTransform="translate(1.5 -0.3) scale(0.93 0.93)"
+											gradientUnits="userSpaceOnUse"
+										>
+											<stop
+												offset="0"
+												stop-color="#e47f7f"></stop>
+											<stop
+												offset="0.68"
+												stop-color="#ae292a"></stop>
+										</radialGradient>
+									</defs>
+									<path
+										id="ring1"
+										d="M0,67.4H7.3a5.1,5.1,0,0,1,5.1,5.1v66.1a5.1,5.1,0,0,1-5.1,5.1H0a0,0,0,0,1,0,0V67.4A0,0,0,0,1,0,67.4Z"
+										fill="url(#linear-gradient)"></path>
+									<path
+										id="ring2"
+										d="M12.4,83H29.7A5.3,5.3,0,0,1,35,88.3v34.4a5.3,5.3,0,0,1-5.3,5.3H12.4a0,0,0,0,1,0,0V83A0,0,0,0,1,12.4,83Z"
+										fill="url(#linear-gradient-2)"></path>
+									<ellipse
+										id="hole"
+										cx="22.9"
+										cy="88.6"
+										rx="5.9"
+										ry="2.2"
+										fill="#3f3f3f"></ellipse>
+									<rect
+										id="stick"
+										x="20.5"
+										y="22.2"
+										width="5"
+										height="66.88"
+										fill="url(#linear-gradient-3)"></rect>
+									<ellipse
+										id="head"
+										cx="22.9"
+										cy="11.3"
+										rx="11.2"
+										ry="11.3"
+										fill="url(#radial-gradient)"></ellipse>
+								</svg>
+							</div>
+						</div>
+					</div>
+				</div>
+				<button
+					class="btn btn-info btn-block mt-3 btn-disabled"
+					id="random_close_button">OK</button
+				>
+			</div>
+			<form method="dialog" class="modal-backdrop">
+				<button>ok</button>
+			</form>
+		</form>
+	</dialog>
 
-  <style>
-    .confetti {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: -1;
-      user-select: none;
-    }
-    :root {
-      --padding-card: 10px;
-    }
-  </style>
+	<style>
+		.confetti {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: -1;
+			user-select: none;
+		}
+		:root {
+			--padding-card: 10px;
+		}
+	</style>
 
-  <style is:global>
-    .range_number {
-      display: inline-block;
-      margin: 0 auto;
-      width: 10px; /* adjust this value as needed */
-      text-align: center;
-    }
+	<style is:global>
+		.range_number {
+			display: inline-block;
+			margin: 0 auto;
+			width: 10px; /* adjust this value as needed */
+			text-align: center;
+		}
 
-    /* select first range_number */
-    .range_number:first-child {
-      margin-left: 0;
-    }
+		/* select first range_number */
+		.range_number:first-child {
+			margin-left: 0;
+		}
 
-    /* select last range_number */
-    .range_number:last-child {
-      margin-right: 0;
-    }
+		/* select last range_number */
+		.range_number:last-child {
+			margin-right: 0;
+		}
 
-    .range_number_small_font {
-      font-size: 0.7em;
-    }
+		.range_number_small_font {
+			font-size: 0.7em;
+		}
 
-    .range_number_highlighted {
-      display: inline-block;
-      margin: 0 auto;
-      width: 20px; /* adjust this value as needed */
-      text-align: center;
-      background-color: #76c4ee;
-      border-radius: 10px;
-      color: black;
-      /* move the border up one pixel*/
-      margin-bottom: 2px;
-    }
+		.range_number_highlighted {
+			display: inline-block;
+			margin: 0 auto;
+			width: 20px; /* adjust this value as needed */
+			text-align: center;
+			background-color: #76c4ee;
+			border-radius: 10px;
+			color: black;
+			/* move the border up one pixel*/
+			margin-bottom: 2px;
+		}
 
-    .range_number_impossible {
-      display: inline-block;
-      margin: 0 auto;
-      width: 20px; /* adjust this value as needed */
-      text-align: center;
-      background-color: #ef8585;
-      border-radius: 10px;
-      color: black;
-      /* move the border up one pixel*/
-      margin-bottom: 2px;
-    }
+		.range_number_impossible {
+			display: inline-block;
+			margin: 0 auto;
+			width: 20px; /* adjust this value as needed */
+			text-align: center;
+			background-color: #ef8585;
+			border-radius: 10px;
+			color: black;
+			/* move the border up one pixel*/
+			margin-bottom: 2px;
+		}
 
-    .range_number_highlighted:first-child {
-      margin-left: 0;
-    }
+		.range_number_highlighted:first-child {
+			margin-left: 0;
+		}
 
-    .range_number_highlighted:last-child {
-      margin-right: 0;
-    }
+		.range_number_highlighted:last-child {
+			margin-right: 0;
+		}
 
-    .green_tag {
-      background-color: #4caf50;
-      color: white;
-      border-radius: 5px;
-      padding: 5px;
-    }
+		.green_tag {
+			background-color: #4caf50;
+			color: white;
+			border-radius: 5px;
+			padding: 5px;
+		}
 
-    .red_tag {
-      background-color: #f44336;
-      color: white;
-      border-radius: 5px;
-      padding: 5px;
-    }
+		.red_tag {
+			background-color: #f44336;
+			color: white;
+			border-radius: 5px;
+			padding: 5px;
+		}
 
-    .blue_tag {
-      background-color: #2196f3;
-      color: white;
-      border-radius: 5px;
-      padding: 5px;
-    }
+		.blue_tag {
+			background-color: #2196f3;
+			color: white;
+			border-radius: 5px;
+			padding: 5px;
+		}
 
-    .yellow_tag {
-      background-color: #ffeb3b;
-      color: black;
-      border-radius: 5px;
-      padding: 5px;
-    }
-  </style>
-  <script
-    is:inline
-    src="https://code.jquery.com/jquery-3.7.0.min.js"
-    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
-    crossorigin="anonymous"></script>
-  <script>
-    import "../scripts/game.ts";
-  </script>
+		.yellow_tag {
+			background-color: #ffeb3b;
+			color: black;
+			border-radius: 5px;
+			padding: 5px;
+		}
+	</style>
+	<script
+		is:inline
+		src="https://code.jquery.com/jquery-3.7.0.min.js"
+		integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+		crossorigin="anonymous"></script>
+	<script>
+		import "../scripts/game.ts";
+	</script>
 </Layout>

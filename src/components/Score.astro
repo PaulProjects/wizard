@@ -143,7 +143,6 @@ import Celebration from "./Celebration.astro";
 					</div>
 				</div>
 
-
 				<!-- Chart Tab -->
 				<div class="tab-panel hidden" id="graph" style="height: 80svh;">
 					<div class="h-full w-full" id="chart_container">
@@ -264,6 +263,18 @@ import Celebration from "./Celebration.astro";
 			>✕</button
 		>
 
+		{
+			Astro.url.pathname === "/game" && (
+				<button
+					class="btn btn-circle btn-ghost absolute left-2 top-2"
+					id="edit_player_button"
+					title="Edit Player Data"
+				>
+					<Icon name="mdi:pencil" class="w-5 h-5" />
+				</button>
+			)
+		}
+
 		<div class="flex flex-col items-center mb-6">
 			<h2 class="font-bold text-3xl mt-2" id="modal_player_name">
 				Player Name
@@ -277,7 +288,9 @@ import Celebration from "./Celebration.astro";
 		</div>
 
 		<!-- Player Summary Stats -->
-		<div class="modal_player_stat grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+		<div
+			class="modal_player_stat grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+		>
 			<div class="stat bg-base-200 rounded-lg p-4 text-center">
 				<div class="stat-title">Total Score</div>
 				<div class="stat-value text-primary" id="modal_total_score">
@@ -336,6 +349,84 @@ import Celebration from "./Celebration.astro";
 		<button>close</button>
 	</form>
 </dialog>
+
+<!-- Edit Player Modal -->
+<dialog id="modal_edit_player" class="modal modal-bottom sm:modal-middle">
+	<form
+		id="modal_edit_player_form"
+		method="dialog"
+		class="modal-box max-w-4xl"
+	>
+		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+			>✕</button
+		>
+
+		<div class="flex flex-col items-center mb-6">
+			<h2 class="font-bold text-3xl mt-2">Edit Player Data</h2>
+			<div
+				class="badge badge-secondary text-lg px-4 py-2 mt-2"
+				id="edit_player_name_display"
+			>
+				Player Name
+			</div>
+		</div>
+
+		<!-- Player Name Input -->
+		<div class="mb-6">
+			<label class="form-control w-full">
+				<h3 class="text-xl font-semibold mb-3">Name</h3>
+				<input
+					type="text"
+					class="input input-bordered w-full"
+					id="edit_player_name_input"
+					placeholder="Enter player name"
+				/>
+			</label>
+		</div>
+
+		<!-- Round by Round Edits -->
+		<div class="mb-6">
+			<h3 class="text-xl font-semibold mb-3">Rounds</h3>
+			<div class="overflow-x-auto max-h-80 overflow-y-auto">
+				<table class="table table-zebra w-full">
+					<thead>
+						<tr>
+							<th>Round</th>
+							<th>Bet</th>
+							<th>Tricks</th>
+							<th class="text-center">Points</th>
+						</tr>
+					</thead>
+					<tbody id="edit_rounds_table">
+						<!-- Round data will be populated by JavaScript -->
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<!-- Save/Cancel Buttons -->
+		<div class="flex gap-4 justify-end w-full">
+			<button
+				class="btn btn-neutral flex-1"
+				type="button"
+				id="edit_player_cancel"
+			>
+				Cancel
+			</button>
+			<button
+				class="btn btn-secondary flex-1"
+				type="button"
+				id="edit_player_save"
+			>
+				Save Changes
+			</button>
+		</div>
+	</form>
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
+</dialog>
+
 <dialog>
 	<!-- ToDo: Überdenken ob das wirklich die beste lösung ist -->
 	<div class="stats-vertical sm:stats-horizontal mx-auto w-60"></div>
