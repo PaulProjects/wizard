@@ -1,4 +1,4 @@
-import { gamedata } from "../scripts/gamedata.ts";
+import { GameData as gamedata } from "./game/gamedata.ts";
 import QRCode from "qrcode";
 
 function error(error: any) {
@@ -29,7 +29,7 @@ function savegame(save_game: gamedata) {
     console.log("Game with id " + gameid + "already in recent games");
     return;
   }
-  recent_games.push(gamedata.toJsonObjectEnd(save_game));
+  recent_games.push(gamedata.toJsonObject(save_game));
   localStorage.setItem("recent_games", JSON.stringify(recent_games));
 }
 

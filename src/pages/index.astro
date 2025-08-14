@@ -152,7 +152,7 @@ import ImportGame from "../components/ImportGame.astro";
     }
   </style>
   <script>
-    import { gamedata } from "../scripts/gamedata";
+    import { gamedata } from "../scripts/game/gamedata";
 
     //* Function to validate game data stored in local storage */
     function validateGame(): boolean {
@@ -161,7 +161,7 @@ import ImportGame from "../components/ImportGame.astro";
       }
 
       try {
-        gamedata.fromJSONstring(localStorage.getItem("game"));
+        gamedata.fromJSONString(localStorage.getItem("game"));
       } catch (error) {
         console.log("Error validating game data: " + error);
         return false;

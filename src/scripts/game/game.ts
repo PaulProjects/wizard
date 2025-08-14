@@ -3,14 +3,14 @@
  * Coordinates between modules and manages game state
  */
 
-import type { DemoConfig, SaveGameResponse } from './game/types.js';
-import { GameStep, GameDisplay, ScoreView, RoundColor } from './game/types.js';
-import { GameData } from './game/gamedata.js';
-import { UIStateManager } from './game/ui-state-manager.js';
-import { InputHandler } from './game/input-handler.js';
-import { ColorManager } from './game/color-manager.js';
-import { scoreCalculator } from './game/score-calculator.js';
-import { updatescore, score_switch_view } from './score.js';
+import type { DemoConfig, SaveGameResponse } from './types.js';
+import { GameStep, GameDisplay, ScoreView, RoundColor } from './types.js';
+import { GameData } from './gamedata.js';
+import { UIStateManager } from './ui-state-manager.js';
+import { InputHandler } from './input-handler.js';
+import { ColorManager } from './color-manager.js';
+import { scoreCalculator } from './score-calculator.js';
+import { updatescore, score_switch_view } from '../score.js';
 
 export class GameController {
   private game: GameData;
@@ -569,7 +569,6 @@ export class GameController {
     }
   }
 
-  // Public methods for external access (gradual migration)
   public getGame(): GameData {
     return this.game;
   }
@@ -591,11 +590,8 @@ export class GameController {
 document.addEventListener('DOMContentLoaded', () => {
   try {
     const gameController = new GameController();
-
-    // TODO: Move away from globalThis
-    (globalThis as any).gameController = gameController;
     
-    console.log('Game controller initialized successfully');
+    (globalThis as any).gameController = gameController;
   } catch (error) {
     console.error('Failed to initialize game controller:', error);
     // Fallback to redirect if initialization fails

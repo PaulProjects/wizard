@@ -1,4 +1,4 @@
-import type { gamedata } from "./gamedata";
+import type { gamedata } from "./game/gamedata";
 import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 
@@ -35,8 +35,6 @@ export function score_switch_view(x: number): void {
 		);
 		$(`#${mapping.panelId}`).removeClass("hidden");
 		$(`#${mapping.tabId}`).addClass("active");
-	} else {
-		console.log(`No mapping found for view number: ${x}`);
 	}
 }
 
@@ -71,10 +69,6 @@ $(() => {
 			(globalThis as any).game.setScoreDisplay(viewNumber);
 			// Save to localStorage immediately
 			(globalThis as any).game.save();
-		} else {
-			console.log(
-				`Could not save score display - game not available or invalid view number: ${viewNumber}`
-			);
 		}
 	});
 
@@ -307,13 +301,12 @@ export function updatescore(players: any, game: gamedata) {
 	}
 
 	if (game.getRound() == 1 || game.getRound() == 2) {
-		$("#tab_chart").css("display", "none");
-		$("#tab_analytics").css("display", "none");
+		$("#tab_navigation").css("display", "none");
 	} else {
 		//Graph
 		let score_chart: Chart;
 
-		$("#tab_chart").css("display", "");
+		$("#tab_navigation").css("display", "");
 		$("#chart").remove();
 		$("#chart_container").append('<canvas id="chart"></canvas>');
 		let ctx: CanvasRenderingContext2D = (
