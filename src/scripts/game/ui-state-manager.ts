@@ -13,8 +13,6 @@ export class UIStateManager {
 	constructor() {
 		this.state = {
 			currentView: ScoreView.CHART,
-			editMode: false,
-			inputBlockReload: false,
 			isValidInput: true,
 		};
 
@@ -30,14 +28,6 @@ export class UIStateManager {
 		return this.state.currentView;
 	}
 
-	isEditMode(): boolean {
-		return this.state.editMode;
-	}
-
-	isInputBlocked(): boolean {
-		return this.state.inputBlockReload;
-	}
-
 	isValidInput(): boolean {
 		return this.state.isValidInput;
 	}
@@ -45,15 +35,6 @@ export class UIStateManager {
 	// State setters
 	setCurrentView(view: ScoreView): void {
 		this.state.currentView = view;
-	}
-
-	setEditMode(editMode: boolean): void {
-		this.state.editMode = editMode;
-		(globalThis as any).editmode = editMode;
-	}
-
-	setInputBlocked(blocked: boolean): void {
-		this.state.inputBlockReload = blocked;
 	}
 
 	setValidInput(valid: boolean): void {
@@ -264,6 +245,7 @@ export class UIStateManager {
 
 	// Game step specific UI updates
 	updateUIForStep(step: GameStep): void {
+		console.log(`Updating UI for step: ${step}`);
 		switch (step) {
 			case GameStep.PLACE_BETS:
 				this.setNavigationText("Place Bets");

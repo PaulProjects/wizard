@@ -458,7 +458,10 @@ function addPlayer(playername: string) {
 	$playerlist.append(
 		`<div class='appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box'>
         <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent player-name' aria-label="playername">
-        <input type='checkbox' class='checkbox h-2/4 dealer-checkbox' aria-label="toggle dealer">
+        <div class='flex items-center gap-2 px-2'>
+          <input type='checkbox' class='checkbox checkbox-sm dealer-checkbox' aria-label="select dealer">
+          <span class='text-xs font-medium text-gray-400 whitespace-nowrap'>Dealer</span>
+        </div>
         <img src='/icon/trash.svg' class='inv h-2/4 pl-2 remove-player' />
       </div>`
 	);

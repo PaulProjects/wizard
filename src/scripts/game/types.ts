@@ -88,8 +88,6 @@ export interface InputValidation {
 // UI state interfaces
 export interface UIState {
 	currentView: ScoreView;
-	editMode: boolean;
-	inputBlockReload: boolean;
 	isValidInput: boolean;
 }
 

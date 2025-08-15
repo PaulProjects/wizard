@@ -4,12 +4,7 @@ Chart.register(...registerables);
 
 import confetti from "canvas-confetti";
 
-declare var editmode: boolean;
-
 export function score_switch_view(x: number): void {
-	if (globalThis.editmode == null) globalThis.editmode = false;
-	if (globalThis.editmode == true) location.reload();
-
 	// Redirect removed table view (2) to top_players view (3)
 	if (x === 2) {
 		x = 3;

@@ -14,6 +14,7 @@ import type { gamedata } from "./gamedata.js";
 export class InputHandler {
 	private scores: number[] = [];
 	private lastPlayerIndex: number = 0;
+	private temporaryInputs: Map<string, number[]> = new Map();
 	private onTotalUpdateCallback?: (total: number, isValid: boolean) => void;
 	private onInputChangeCallback?: (
 		playerIndex: number,
@@ -272,7 +273,12 @@ export class InputHandler {
 
 		// Add players in dealer order
 		this.addPlayersInDealerOrder(maxValue);
-		this.updateTotal();
+		
+		// Try to restore previously entered values
+		const restored = this.restoreTemporaryInput();
+		if (!restored) {
+			this.updateTotal();
+		}
 	}
 
 	private addPlayersInDealerOrder(maxValue: number): void {
@@ -317,5 +323,53 @@ export class InputHandler {
 	getValidationMessage(): string {
 		const validation = this.validateInput();
 		return validation.message || "";
+	}
+
+	// Temporary input state management
+	saveTemporaryInput(): void {
+		const round = this.game.getRound();
+		const step = this.game.getStep();
+		const key = this.getTemporaryInputKey(round, step);
+		
+		// Only save if there are actually some non-zero values
+		if (this.scores.some(score => score > 0)) {
+			this.temporaryInputs.set(key, [...this.scores]);
+		}
+	}
+
+	restoreTemporaryInput(): boolean {
+		const round = this.game.getRound();
+		const step = this.game.getStep();
+		const key = this.getTemporaryInputKey(round, step);
+		
+		const savedInputs = this.temporaryInputs.get(key);
+		if (savedInputs && savedInputs.length === this.players.length) {
+			this.scores = [...savedInputs];
+			this.restoreInputFieldValues();
+			this.updateTotal();
+			return true;
+		}
+		return false;
+	}
+
+	clearTemporaryInput(): void {
+		const round = this.game.getRound();
+		const step = this.game.getStep();
+		const key = this.getTemporaryInputKey(round, step);
+		this.temporaryInputs.delete(key);
+	}
+
+	private getTemporaryInputKey(round: number, step: GameStep | undefined): string {
+		return `${round}_${step || 'unknown'}`;
+	}
+
+	private restoreInputFieldValues(): void {
+		this.scores.forEach((score, playerIndex) => {
+			const rangeInput = document.getElementById(`input_range_${playerIndex}`) as HTMLInputElement;
+			if (rangeInput) {
+				rangeInput.value = score.toString();
+				this.updateInsetHighlight(playerIndex, score);
+			}
+		});
 	}
 }

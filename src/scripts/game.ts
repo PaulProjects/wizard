@@ -99,7 +99,6 @@ export class GameController {
 
   private setupGlobalAccess(): void {
     (globalThis as any).game = this.game;
-    this.uiManager.setEditMode(false);
   }
 
   private initializeEventListeners(): void {
@@ -119,12 +118,9 @@ export class GameController {
     }
 
     // Chart navigation
-    const chartNav = document.getElementById('chart_nav');
-    if (chartNav) {
-      chartNav.addEventListener('click', () => {
-        this.handleChartNavClick();
-      });
-    }
+    document.getElementById('chart_nav')?.addEventListener('click', () => {
+      this.handleChartNavClick();
+    });
   }
 
   private setupGameActionListeners(): void {
@@ -264,11 +260,6 @@ export class GameController {
   // Event handlers
   private handleNavigationClick(): void {
     this.uiManager.freezeNavigationButton();
-    
-    if (this.uiManager.isEditMode()) {
-      location.reload();
-      return;
-    }
 
     const step = this.game.getStep();
     const display = this.game.getDisplay();
@@ -286,10 +277,12 @@ export class GameController {
 
   private handleChartNavClick(): void {
     this.uiManager.updateNavigationStyle(true);
-    this.uiManager.setInputBlocked(true);
     this.uiManager.freezeNavigationButton();
     
     if (this.game.getDisplay() === GameDisplay.INPUT) {
+      // Save current input values before switching to score view
+      this.inputHandler.saveTemporaryInput();
+      
       this.game.setDisplay(GameDisplay.SCORE_OVERVIEW);
       this.saveGame();
       this.update();
@@ -383,6 +376,9 @@ export class GameController {
 
     const scores = this.inputHandler.getScores();
     const step = this.game.getStep();
+
+    // Clear temporary input since we're confirming it
+    this.inputHandler.clearTemporaryInput();
 
     if (step === GameStep.PLACE_BETS) {
       this.processBets(scores);
@@ -525,6 +521,9 @@ export class GameController {
     this.uiManager.showInputView();
     this.updateRoundHeader();
     this.inputHandler.updateInputView();
+    
+    const step = this.game.getStep();
+    this.uiManager.updateUIForStep(step);
   }
 
   private updateRoundInfo(): void {
