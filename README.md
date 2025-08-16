@@ -28,9 +28,6 @@
             <a class="underline" href="https://daisyui.com">DaisyUI</a>
           </li>
           <li>
-            <a class="underline" href="https://jquery.com/">JQuery</a>
-          </li>
-          <li>
             <a class="underline" href="https://iconify.design/">Iconify</a>
           </li>
         </ul>

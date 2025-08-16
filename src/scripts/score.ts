@@ -19,8 +19,11 @@ export function score_switch_view(x: number): void {
 	};
 
 	// Hide all panels and remove active class from all tabs
-	$(".tab-panel").addClass("hidden");
-	$(".tab-btn").removeClass("active");
+	const tabPanels = document.querySelectorAll('.tab-panel');
+	const tabBtns = document.querySelectorAll('.tab-btn');
+	
+	tabPanels.forEach(panel => panel.classList.add('hidden'));
+	tabBtns.forEach(btn => btn.classList.remove('active'));
 
 	// Show the target panel and activate the target tab
 	const mapping = tabMapping[x];
@@ -28,43 +31,54 @@ export function score_switch_view(x: number): void {
 		console.log(
 			`Switching to tab: ${mapping.tabId}, panel: ${mapping.panelId}`
 		);
-		$(`#${mapping.panelId}`).removeClass("hidden");
-		$(`#${mapping.tabId}`).addClass("active");
+		const targetPanel = document.getElementById(mapping.panelId);
+		const targetTab = document.getElementById(mapping.tabId);
+		
+		if (targetPanel) targetPanel.classList.remove('hidden');
+		if (targetTab) targetTab.classList.add('active');
 	}
 }
 
 // Initialize tab click handlers
-$(() => {
-	$(".tab-btn").on("click", function () {
-		const panelId = $(this).data("tab");
+document.addEventListener('DOMContentLoaded', () => {
+	const tabBtns = document.querySelectorAll<HTMLElement>('.tab-btn');
+	
+	tabBtns.forEach(btn => {
+		btn.addEventListener('click', function() {
+			const panelId = this.dataset.tab;
 
-		// Create reverse mapping from panel ID to view number
-		const panelToViewMapping = {
-			graph: 1,
-			top_players: 3,
-			celebration: 4,
-			analytics: 5,
-		};
+			// Create reverse mapping from panel ID to view number
+			const panelToViewMapping = {
+				graph: 1,
+				top_players: 3,
+				celebration: 4,
+				analytics: 5,
+			};
 
-		// Hide all panels and remove active class from all tabs
-		$(".tab-panel").addClass("hidden");
-		$(".tab-btn").removeClass("active");
+			// Hide all panels and remove active class from all tabs
+			const tabPanels = document.querySelectorAll('.tab-panel');
+			const allTabBtns = document.querySelectorAll('.tab-btn');
+			
+			tabPanels.forEach(panel => panel.classList.add('hidden'));
+			allTabBtns.forEach(btn => btn.classList.remove('active'));
 
-		// Show the clicked panel and activate the clicked tab
-		$(`#${panelId}`).removeClass("hidden");
-		$(this).addClass("active");
+			// Show the clicked panel and activate the clicked tab
+			const targetPanel = document.getElementById(panelId);
+			if (targetPanel) targetPanel.classList.remove('hidden');
+			this.classList.add('active');
 
-		// Save the selected view to game data if available
-		const viewNumber = panelToViewMapping[panelId];
-		if (
-			viewNumber &&
-			typeof globalThis !== "undefined" &&
-			(globalThis as any).game
-		) {
-			(globalThis as any).game.setScoreDisplay(viewNumber);
-			// Save to localStorage immediately
-			(globalThis as any).game.save();
-		}
+			// Save the selected view to game data if available
+			const viewNumber = panelToViewMapping[panelId];
+			if (
+				viewNumber &&
+				typeof globalThis !== "undefined" &&
+				(globalThis as any).game
+			) {
+				(globalThis as any).game.setScoreDisplay(viewNumber);
+				// Save to localStorage immediately
+				(globalThis as any).game.save();
+			}
+		});
 	});
 
 	// Touch swipe functionality for tab switching
@@ -112,17 +126,19 @@ $(() => {
 			return;
 
 		// Get current active tab
-		const currentTab = $(".tab-btn.active");
-		if (currentTab.length === 0) return;
+		const currentTab = document.querySelector('.tab-btn.active') as HTMLElement;
+		if (!currentTab) return;
 
 		// Get only visible tabs (not hidden with display: none)
-		const visibleTabButtons = $(".tab-btn").filter(function () {
-			return $(this).css("display") !== "none";
+		const allTabBtns = document.querySelectorAll<HTMLElement>('.tab-btn');
+		const visibleTabButtons = Array.from(allTabBtns).filter(btn => {
+			const style = window.getComputedStyle(btn);
+			return style.display !== 'none';
 		});
 
 		if (visibleTabButtons.length <= 1) return; // No point swiping if only one tab
 
-		const currentIndex = visibleTabButtons.index(currentTab);
+		const currentIndex = visibleTabButtons.indexOf(currentTab);
 		if (currentIndex === -1) return; // Current tab not in visible list
 
 		let nextIndex = -1;
@@ -149,11 +165,11 @@ $(() => {
 			if (tabContainer) {
 				tabContainer.style.opacity = "0.7";
 				setTimeout(() => {
-					$(visibleTabButtons[nextIndex]).click();
+					visibleTabButtons[nextIndex].click();
 					tabContainer.style.opacity = "1";
 				}, 100);
 			} else {
-				$(visibleTabButtons[nextIndex]).click();
+				visibleTabButtons[nextIndex].click();
 			}
 		}
 	}
@@ -246,40 +262,49 @@ export function updatescore(players: any, game: gamedata) {
 	}
 
 	//Views
-	$("#top_players > div").empty();
+	const topPlayersContainer = document.querySelector("#top_players > div");
+	if (topPlayersContainer) {
+		topPlayersContainer.innerHTML = "";
+	}
 
 	//Top Players list
 	for (let i = 0; i < sorted_playerlist.length; i++) {
 		// Create the player card structure safely
-		const playerCard =
-			$(`<div class="min-w-72 w-11/12 sm:w-5/12 max-w-full bg-neutral rounded-md p-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary relative cursor-pointer group" id="top_players_${i}" data-player-index="${i}">
-                <div class="absolute top-2 right-2 text-base-content/60 transition-all duration-300 group-hover:text-secondary group-hover:scale-110">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="-7 -7 24 24"><path fill="currentColor" d="M8 2H1a1 1 0 1 1 0-2h8a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0z"/></svg>
-                </div>
-                <div class="w-full justify-between items-center gap-16 inline-flex">
-                    <h1 class="text-4xl font-medium ${sorted_playerlist[i][4] == 1 ? "text-secondary" : ""}" id="top_players_name_${i}"></h1>
-                </div>
-                <div class="w-full h-9 justify-between items-center inline-flex mb-2 mt-2">
-                    <div class="w-10 self-stretch">
-                            <h3 class="text-2xl">${sorted_playerlist[i][1]}</h3>
-                            <p class="font-light text-sm">Score<p>
-                    </div>
-                    ${
-						game.getStep() === 2
-							? /*html*/ `<div class="w-10 self-stretch">
-                        <h3 class="text-2xl">${sorted_playerlist[i][2]}</h3>
-                        <p class="font-light text-sm">Bet<p>
-                    </div>`
-							: ""
-					}  
-                </div>
-            </div>`);
+		const playerCard = document.createElement('div');
+		playerCard.className = "min-w-72 w-11/12 sm:w-5/12 max-w-full bg-neutral rounded-md p-4 transition-all border-2 border-neutral duration-300 hover:-translate-y-2 hover:border-secondary relative cursor-pointer group";
+		playerCard.id = `top_players_${i}`;
+		playerCard.dataset.playerIndex = i.toString();
+		
+		playerCard.innerHTML = `
+			<div class="absolute top-2 right-2 text-base-content/60 transition-all duration-300 group-hover:text-secondary group-hover:scale-110">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="-7 -7 24 24"><path fill="currentColor" d="M8 2H1a1 1 0 1 1 0-2h8a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0z"/></svg>
+			</div>
+			<div class="w-full justify-between items-center gap-16 inline-flex">
+				<h1 class="text-4xl font-medium ${sorted_playerlist[i][4] == 1 ? "text-secondary" : ""}" id="top_players_name_${i}"></h1>
+			</div>
+			<div class="w-full h-9 justify-between items-center inline-flex mb-2 mt-2">
+				<div class="w-10 self-stretch">
+						<h3 class="text-2xl">${sorted_playerlist[i][1]}</h3>
+						<p class="font-light text-sm">Score<p>
+				</div>
+				${
+					game.getStep() === 2
+						? /*html*/ `<div class="w-10 self-stretch">
+					<h3 class="text-2xl">${sorted_playerlist[i][2]}</h3>
+					<p class="font-light text-sm">Bet<p>
+				</div>`
+						: ""
+				}  
+			</div>`;
 
 		// Safely set the player name
-		playerCard.find(`#top_players_name_${i}`).text(sorted_playerlist[i][0]);
+		const playerNameElement = playerCard.querySelector(`#top_players_name_${i}`);
+		if (playerNameElement) {
+			playerNameElement.textContent = sorted_playerlist[i][0];
+		}
 
 		// Add click handler to show player stats modal
-		playerCard.on("click", function () {
+		playerCard.addEventListener('click', function() {
 			showPlayerStatsModal(
 				i,
 				sorted_playerlist,
@@ -292,18 +317,29 @@ export function updatescore(players: any, game: gamedata) {
 			);
 		});
 
-		$("#top_players > div").append(playerCard);
+		if (topPlayersContainer) {
+			topPlayersContainer.appendChild(playerCard);
+		}
 	}
 
+	const tabNavigation = document.getElementById("tab_navigation");
 	if (game.getRound() == 1 || game.getRound() == 2) {
-		$("#tab_navigation").css("display", "none");
+		if (tabNavigation) tabNavigation.style.display = "none";
 	} else {
 		//Graph
 		let score_chart: Chart;
 
-		$("#tab_navigation").css("display", "");
-		$("#chart").remove();
-		$("#chart_container").append('<canvas id="chart"></canvas>');
+		if (tabNavigation) tabNavigation.style.display = "";
+		
+		const existingChart = document.getElementById("chart");
+		if (existingChart) existingChart.remove();
+		
+		const chartContainer = document.getElementById("chart_container");
+		if (chartContainer) {
+			const canvas = document.createElement('canvas');
+			canvas.id = 'chart';
+			chartContainer.appendChild(canvas);
+		}
 		let ctx: CanvasRenderingContext2D = (
 			document.getElementById("chart") as HTMLCanvasElement
 		).getContext("2d");
@@ -364,7 +400,9 @@ export function updatescore(players: any, game: gamedata) {
 		});
 
 		//Analytics
-		$("#tab_analytics").css("display", "");
+		const tabAnalytics = document.getElementById("tab_analytics");
+		if (tabAnalytics) tabAnalytics.style.display = "";
+		
 		//analyze the score_change and save the highest and lowest score
 		let score_change_max_points = 0;
 		let score_change_max_round = 0;
@@ -408,8 +446,13 @@ export function updatescore(players: any, game: gamedata) {
 		score_change_min_points = score_change_min_points * -1;
 
 		//display the highest and lowest score in the analytics
-		$("#best_bet_name").text(players[score_change_max_index]);
-		$("#best_bet_desc").text(
+		const bestBetName = document.getElementById("best_bet_name");
+		const bestBetDesc = document.getElementById("best_bet_desc");
+		const worstBetName = document.getElementById("worst_bet_name");
+		const worstBetDesc = document.getElementById("worst_bet_desc");
+		
+		if (bestBetName) bestBetName.textContent = players[score_change_max_index];
+		if (bestBetDesc) bestBetDesc.textContent = 
 			"Made " +
 				score_change_max_points +
 				" points in round " +
@@ -418,10 +461,10 @@ export function updatescore(players: any, game: gamedata) {
 				score_change_max_bet +
 				" and " +
 				score_change_max_tricks +
-				" tricks"
-		);
-		$("#worst_bet_name").text(players[score_change_min_index]);
-		$("#worst_bet_desc").text(
+				" tricks";
+		
+		if (worstBetName) worstBetName.textContent = players[score_change_min_index];
+		if (worstBetDesc) worstBetDesc.textContent =
 			"Lost " +
 				score_change_min_points +
 				" points in round " +
@@ -430,11 +473,11 @@ export function updatescore(players: any, game: gamedata) {
 				score_change_min_bet +
 				" and " +
 				score_change_min_tricks +
-				" tricks"
-		);
+				" tricks";
 
 		//loop over players
-		$("#player_stats").empty();
+		const playerStatsContainer = document.getElementById("player_stats");
+		if (playerStatsContainer) playerStatsContainer.innerHTML = "";
 		for (let i = 0; i < playerlist.length; i++) {
 			//calculate the bet accuracy
 			let bet_accuracy = 0;
@@ -487,7 +530,8 @@ export function updatescore(players: any, game: gamedata) {
 			average_bet = Math.round(average_bet * 100) / 100;
 
 			// Create player stats section safely
-			const playerStatsHTML = $(`
+			const playerStatsDiv = document.createElement('div');
+			playerStatsDiv.innerHTML = `
       <div class="pb-5">
         <h2 class="pt-10 text-3xl player-stats-name"></h2>
       </div>
@@ -540,28 +584,37 @@ export function updatescore(players: any, game: gamedata) {
           <div class="stat-desc">Average Bet</div>
         </div>
         </div>
-        </div>`);
+        </div>`;
 
 			// Safely set the player name
-			playerStatsHTML.find(".player-stats-name").text(playerlist[i][0]);
+			const playerNameElement = playerStatsDiv.querySelector(".player-stats-name");
+			if (playerNameElement) {
+				playerNameElement.textContent = playerlist[i][0];
+			}
 
-			$("#player_stats").append(playerStatsHTML);
+			if (playerStatsContainer) {
+				playerStatsContainer.appendChild(playerStatsDiv);
+			}
 		}
 	}
 
 	if (game.getStep() == 3) {
-		$("#navtext").text("Save and Quit");
+		const navtext = document.getElementById("navtext");
+		if (navtext) navtext.textContent = "Save and Quit";
 
 		podium(sorted_playerlist);
 		confettilauncher();
 		//bind onclick to launch confetti
-		$("#questionbutton").on("click", () => {
-			confettilauncher();
-		});
-		//remove onclick attribute
-		$("#questionbutton").removeAttr("onclick");
-		//change ? to an confetti emoji
-		$("#questionbutton").text("🎉");
+		const questionButton = document.getElementById("questionbutton");
+		if (questionButton) {
+			questionButton.addEventListener("click", () => {
+				confettilauncher();
+			});
+			//remove onclick attribute
+			questionButton.removeAttribute("onclick");
+			//change ? to an confetti emoji
+			questionButton.textContent = "🎉";
+		}
 	}
 }
 
@@ -570,14 +623,17 @@ function podium(sorted_playerlist) {
 	add_podium(sorted_playerlist);
 
 	//animate podium
-	$(".js-podium").each(function () {
-		var t = $(this);
+	const podiumElements = document.querySelectorAll('.js-podium');
+	podiumElements.forEach(element => {
+		const podiumEl = element as HTMLElement;
 		setTimeout(function () {
-			t.addClass("is-visible");
-			var h = t.data("height");
-			t.find(".scoreboard__podium-base")
-				.css("height", h)
-				.addClass("is-expanding");
+			podiumEl.classList.add("is-visible");
+			const height = podiumEl.dataset.height;
+			const baseElement = podiumEl.querySelector(".scoreboard__podium-base") as HTMLElement;
+			if (baseElement && height) {
+				baseElement.style.height = height + "px";
+				baseElement.classList.add("is-expanding");
+			}
 		}, celebtime);
 		celebtime += 250;
 	});
@@ -585,36 +641,47 @@ function podium(sorted_playerlist) {
 }
 
 function add_bottomlist(sorted_playerlist) {
-	$("#scoreboard_items").empty();
+	const scoreboardItems = document.getElementById("scoreboard_items");
+	if (scoreboardItems) scoreboardItems.innerHTML = "";
+	
 	for (let i = 3; i < sorted_playerlist.length; i++) {
-		const listItem = $(`
-        <li class="scoreboard__item" id="item_${i}">
-            <div class="scoreboard__title bottom-player-name"></div>
-            <div class="scoreboard__numbers">
-              <span class="js-number bottom-player-score"></span>
-            </div>
-            <div class="scoreboard__bar js-bar">
-              <div class="scoreboard__bar-bar" id="bar_${i}"></div>
-            </div>
-        </li>`);
+		const listItem = document.createElement('li');
+		listItem.className = "scoreboard__item";
+		listItem.id = `item_${i}`;
+		listItem.innerHTML = `
+        <div class="scoreboard__title bottom-player-name"></div>
+        <div class="scoreboard__numbers">
+          <span class="js-number bottom-player-score"></span>
+        </div>
+        <div class="scoreboard__bar js-bar">
+          <div class="scoreboard__bar-bar" id="bar_${i}"></div>
+        </div>`;
 
 		// Safely set the player name and score
-		listItem.find(".bottom-player-name").text(sorted_playerlist[i][0]);
-		listItem.find(".bottom-player-score").text(sorted_playerlist[i][1]);
+		const playerNameElement = listItem.querySelector(".bottom-player-name");
+		const playerScoreElement = listItem.querySelector(".bottom-player-score");
+		
+		if (playerNameElement) playerNameElement.textContent = sorted_playerlist[i][0];
+		if (playerScoreElement) playerScoreElement.textContent = sorted_playerlist[i][1];
 
-		$("#scoreboard_items").append(listItem);
-		$("#bar_" + i).css(
-			"width",
-			(sorted_playerlist[i][1] / sorted_playerlist[2][1]) * 100 + "%"
-		);
+		if (scoreboardItems) scoreboardItems.appendChild(listItem);
+		
+		const barElement = document.getElementById(`bar_${i}`) as HTMLElement;
+		if (barElement) {
+			barElement.style.width = (sorted_playerlist[i][1] / sorted_playerlist[2][1]) * 100 + "%";
+		}
+		
 		setTimeout(function () {
-			$("#item_" + i).addClass("is-visible");
+			const itemElement = document.getElementById(`item_${i}`);
+			if (itemElement) itemElement.classList.add("is-visible");
 		}, celebtime);
 	}
 }
 
 function add_podium(sorted_playerlist) {
-	$("#scoreboard_podium").empty();
+	const scoreboardPodium = document.getElementById("scoreboard_podium");
+	if (scoreboardPodium) scoreboardPodium.innerHTML = "";
+	
 	append_graph(
 		sorted_playerlist[1][3],
 		sorted_playerlist[1][0],
@@ -635,52 +702,66 @@ function add_podium(sorted_playerlist) {
 }
 
 function append_graph(place, name, score) {
+	const scoreboardPodium = document.getElementById("scoreboard_podium");
+	if (!scoreboardPodium) return;
+
 	switch (place) {
 		case 1:
-			const podium1 = $(`
-                <div class="scoreboard__podium js-podium" data-height="250">
-                  <div class="scoreboard__podium-base scoreboard__podium-base--first">
-                    <div class="scoreboard__podium-rank">1</div>
-                  </div>
-                  <div class="scoreboard__podium-number">
-                    <p class="scoreboard__text podium-name"></p>
-                    <small><span class="js-podium-data podium-score"></span></small>
-                  </div>
-                </div>`);
-			podium1.find(".podium-name").text(name);
-			podium1.find(".podium-score").text(score);
-			$("#scoreboard_podium").append(podium1);
+			const podium1 = document.createElement('div');
+			podium1.className = "scoreboard__podium js-podium";
+			podium1.dataset.height = "250";
+			podium1.innerHTML = `
+                <div class="scoreboard__podium-base scoreboard__podium-base--first">
+                  <div class="scoreboard__podium-rank">1</div>
+                </div>
+                <div class="scoreboard__podium-number">
+                  <p class="scoreboard__text podium-name"></p>
+                  <small><span class="js-podium-data podium-score"></span></small>
+                </div>`;
+			
+			const podium1Name = podium1.querySelector(".podium-name");
+			const podium1Score = podium1.querySelector(".podium-score");
+			if (podium1Name) podium1Name.textContent = name;
+			if (podium1Score) podium1Score.textContent = score;
+			scoreboardPodium.appendChild(podium1);
 			break;
 		case 2:
-			const podium2 = $(`
-                <div class="scoreboard__podium js-podium" data-height="200">
-                  <div class="scoreboard__podium-base scoreboard__podium-base--second">
-                    <div class="scoreboard__podium-rank">2</div>
-                  </div>
-                  <div class="scoreboard__podium-number">
-                    <p class="scoreboard__text podium-name"></p>
-                    <small><span class="js-podium-data podium-score"></span></small>
-                  </div>
-                </div>`);
-			podium2.find(".podium-name").text(name);
-			podium2.find(".podium-score").text(score);
-			$("#scoreboard_podium").append(podium2);
+			const podium2 = document.createElement('div');
+			podium2.className = "scoreboard__podium js-podium";
+			podium2.dataset.height = "200";
+			podium2.innerHTML = `
+                <div class="scoreboard__podium-base scoreboard__podium-base--second">
+                  <div class="scoreboard__podium-rank">2</div>
+                </div>
+                <div class="scoreboard__podium-number">
+                  <p class="scoreboard__text podium-name"></p>
+                  <small><span class="js-podium-data podium-score"></span></small>
+                </div>`;
+			
+			const podium2Name = podium2.querySelector(".podium-name");
+			const podium2Score = podium2.querySelector(".podium-score");
+			if (podium2Name) podium2Name.textContent = name;
+			if (podium2Score) podium2Score.textContent = score;
+			scoreboardPodium.appendChild(podium2);
 			break;
 		case 3:
-			const podium3 = $(`
-                 <div class="scoreboard__podium js-podium" data-height="150">
-                   <div class="scoreboard__podium-base scoreboard__podium-base--third">
-                     <div class="scoreboard__podium-rank">3</div>
-                   </div>
-                   <div class="scoreboard__podium-number">
-                     <p class="scoreboard__text podium-name"></p>
-                     <small><span class="js-podium-data podium-score"></span></small>
-                   </div>
+			const podium3 = document.createElement('div');
+			podium3.className = "scoreboard__podium js-podium";
+			podium3.dataset.height = "150";
+			podium3.innerHTML = `
+                 <div class="scoreboard__podium-base scoreboard__podium-base--third">
+                   <div class="scoreboard__podium-rank">3</div>
                  </div>
-               </div>`);
-			podium3.find(".podium-name").text(name);
-			podium3.find(".podium-score").text(score);
-			$("#scoreboard_podium").append(podium3);
+                 <div class="scoreboard__podium-number">
+                   <p class="scoreboard__text podium-name"></p>
+                   <small><span class="js-podium-data podium-score"></span></small>
+                 </div>`;
+			
+			const podium3Name = podium3.querySelector(".podium-name");
+			const podium3Score = podium3.querySelector(".podium-score");
+			if (podium3Name) podium3Name.textContent = name;
+			if (podium3Score) podium3Score.textContent = score;
+			scoreboardPodium.appendChild(podium3);
 			break;
 	}
 }
@@ -755,28 +836,31 @@ function showPlayerStatsModal(
 	if (actualPlayerIndex === -1) return;
 
 	// Set player name and rank
-	$("#modal_player_name").text(sorted_playerlist[playerIndex][0]);
-	$("#modal_player_rank").text(`Rank #${sorted_playerlist[playerIndex][3]}`);
-
-	// Set total score
-	$("#modal_total_score").text(sorted_playerlist[playerIndex][1]);
+	const modalPlayerName = document.getElementById("modal_player_name");
+	const modalTotalScore = document.getElementById("modal_total_score");
+	
+	if (modalPlayerName) modalPlayerName.textContent = sorted_playerlist[playerIndex][0];
+	if (modalTotalScore) modalTotalScore.textContent = sorted_playerlist[playerIndex][1];
 
 	// Check if we have any game data yet
 	const hasGameData =
 		bets.length > 0 || tricks.length > 0 || gameScore.length > 0;
 
+	const modalRoundsTable = document.getElementById("modal_rounds_table");
+
 	if (!hasGameData) {
 		// hide modal content at the start of the game
-		$("#modal_rounds_table").empty();
-		const noDataRow = $(`
-      <tr>
-        <td colspan="4" class="text-center text-base-content/60 py-8">
-          No round data available yet. Start playing to see statistics!
-        </td>
-      </tr>
-    `);
-		$("#modal_rounds_table").append(noDataRow);
-		$(".modal_player_stat").hide();
+		if (modalRoundsTable) modalRoundsTable.innerHTML = "";
+		
+		const noDataRow = document.createElement('tr');
+		noDataRow.innerHTML = `
+			<td colspan="4" class="text-center text-base-content/60 py-8">
+				No round data available yet. Start playing to see statistics!
+			</td>`;
+		if (modalRoundsTable) modalRoundsTable.appendChild(noDataRow);
+		
+		const modalPlayerStats = document.querySelectorAll('.modal_player_stat');
+		modalPlayerStats.forEach(stat => (stat as HTMLElement).style.display = 'none');
 
 		// Show the modal
 		(
@@ -785,7 +869,8 @@ function showPlayerStatsModal(
 		return;
 	}
 
-	$(".modal_player_stat").show();
+	const modalPlayerStats = document.querySelectorAll('.modal_player_stat');
+	modalPlayerStats.forEach(stat => (stat as HTMLElement).style.display = 'block');
 
 	// Calculate and set bet accuracy
 	let betAccuracy = 0;
@@ -816,13 +901,14 @@ function showPlayerStatsModal(
 	const avgBet =
 		bets.length > 0 ? Math.round((totalBets / bets.length) * 100) / 100 : 0;
 
-	$("#modal_bet_accuracy").text(accuracy + "%");
-	$("#modal_avg_bet").text(avgBet);
+	const modalBetAccuracy = document.getElementById("modal_bet_accuracy");
+	const modalAvgBet = document.getElementById("modal_avg_bet");
+	
+	if (modalBetAccuracy) modalBetAccuracy.textContent = accuracy + "%";
+	if (modalAvgBet) modalAvgBet.textContent = avgBet.toString();
 
 	// Populate round-by-round table
-	$("#modal_rounds_table").empty();
-	let bestRound = { round: 0, points: -1000, data: "" };
-	let worstRound = { round: 0, points: 1000, data: "" };
+	if (modalRoundsTable) modalRoundsTable.innerHTML = "";
 
 	const roundsToShow = Math.max(
 		game.getRound(),
@@ -844,24 +930,6 @@ function showPlayerStatsModal(
 				? score_change[round][actualPlayerIndex]
 				: 0;
 
-		// Track best and worst rounds only if we have score change data
-		if (score_change.length > round) {
-			if (pointChange > bestRound.points) {
-				bestRound = {
-					round: round + 1,
-					points: pointChange,
-					data: `+${pointChange} points (Bet: ${bet}, Got: ${trick})`,
-				};
-			}
-			if (pointChange < worstRound.points) {
-				worstRound = {
-					round: round + 1,
-					points: pointChange,
-					data: `${pointChange} points (Bet: ${bet}, Got: ${trick})`,
-				};
-			}
-		}
-
 		// Determine if bet was accurate (only if we have both bet and trick data)
 		const isAccurate = bet !== "-" && trick !== "-" ? bet === trick : false;
 		const rowClass =
@@ -871,31 +939,15 @@ function showPlayerStatsModal(
 					: "bg-error/20"
 				: "";
 
-		const row = $(`
-      <tr class="${rowClass}">
-        <td class="font-semibold">${round + 1}</td>
-        <td>${bet}</td>
-        <td>${trick}</td>
-        <td>${points}</td>
-      </tr>
-    `);
+		const row = document.createElement('tr');
+		row.className = rowClass;
+		row.innerHTML = `
+			<td class="font-semibold">${round + 1}</td>
+			<td>${bet}</td>
+			<td>${trick}</td>
+			<td>${points}</td>`;
 
-		$("#modal_rounds_table").append(row);
-	}
-
-	// Set best and worst round info
-	if (score_change.length > 0) {
-		$("#modal_best_round").text(
-			`Round ${bestRound.round}: ${bestRound.data}`
-		);
-		$("#modal_worst_round").text(
-			`Round ${worstRound.round}: ${worstRound.data}`
-		);
-	} else {
-		$("#modal_best_round").text("Complete a round to see best performance");
-		$("#modal_worst_round").text(
-			"Complete a round to see worst performance"
-		);
+		if (modalRoundsTable) modalRoundsTable.appendChild(row);
 	}
 
 	// Show the modal
@@ -922,17 +974,22 @@ let currentEditPlayerData: any = null;
 
 // Function to open the edit player modal
 function openEditPlayerModal() {
+	console.log("Opening edit player modal");
 	const data = (globalThis as any).currentEditPlayerData;
 	if (!data) return;
 
 	const playerName = data.sorted_playerlist[data.playerIndex][5];
 
 	// Set player name in display and input
-	$("#edit_player_name_display").text(playerName);
-	$("#edit_player_name_input").val(playerName);
+	const editPlayerNameDisplay = document.getElementById("edit_player_name_display");
+	const editPlayerNameInput = document.getElementById("edit_player_name_input") as HTMLInputElement;
+	
+	if (editPlayerNameDisplay) editPlayerNameDisplay.textContent = playerName;
+	if (editPlayerNameInput) editPlayerNameInput.value = playerName;
 
 	// Populate the rounds table for editing
-	$("#edit_rounds_table").empty();
+	const editRoundsTable = document.getElementById("edit_rounds_table");
+	if (editRoundsTable) editRoundsTable.innerHTML = "";
 
 	const roundsToShow = Math.max(
 		data.game.getRound(),
@@ -945,14 +1002,14 @@ function openEditPlayerModal() {
 		// Check if data exists for this round
 		const hasBetData = data.bets.length > round;
 		const hasTrickData = data.tricks.length > round;
-		const hasScoreData = data.gameScore.length > round;
+		const hasScoreChangeData = data.score_change.length > round;
 
 		const bet = hasBetData ? data.bets[round][data.actualPlayerIndex] : "-";
 		const trick = hasTrickData
 			? data.tricks[round][data.actualPlayerIndex]
 			: "-";
-		const points = hasScoreData
-			? data.gameScore[round][data.actualPlayerIndex]
+		const scoreChange = hasScoreChangeData
+			? data.score_change[round][data.actualPlayerIndex]
 			: "-";
 
 		// Create input fields or display values based on data availability
@@ -968,21 +1025,21 @@ function openEditPlayerModal() {
                data-round="${round}" data-type="trick" />`
 			: `<span class="text-base-content/60">-</span>`;
 
-		const row = $(`
-      <tr>
-        <td class="font-semibold">${round + 1}</td>
-        <td>${betField}</td>
-        <td>${trickField}</td>
-        <td class="text-center font-semibold" data-round="${round}" data-type="points">${points}</td>
-      </tr>
-    `);
+		const row = document.createElement('tr');
+		row.innerHTML = `
+			<td class="font-semibold">${round + 1}</td>
+			<td>${betField}</td>
+			<td>${trickField}</td>
+			<td class="text-center font-semibold" data-round="${round}" data-type="points">${scoreChange}</td>`;
 
-		$("#edit_rounds_table").append(row);
+		if (editRoundsTable) editRoundsTable.appendChild(row);
 	}
 
 	// Add event listeners for real-time score calculation (only for editable inputs)
-	$("#edit_rounds_table input").on("input change", function () {
-		recalculatePointsForEdit();
+	const editInputs = document.querySelectorAll<HTMLInputElement>("#edit_rounds_table input");
+	editInputs.forEach(input => {
+		input.addEventListener('input', recalculatePointsForEdit);
+		input.addEventListener('change', recalculatePointsForEdit);
 	});
 
 	// Close the player stats modal and open edit modal
@@ -999,42 +1056,46 @@ function recalculatePointsForEdit() {
 	const data = (globalThis as any).currentEditPlayerData;
 	if (!data) return;
 
-	$("#edit_rounds_table tr").each(function (index) {
-		const round = index;
-		const betInput = $(this).find(
-			`input[data-round="${round}"][data-type="bet"]`
-		);
-		const trickInput = $(this).find(
-			`input[data-round="${round}"][data-type="trick"]`
-		);
-		const pointsCell = $(this).find(
-			`td[data-round="${round}"][data-type="points"]`
-		);
+	const editRoundsTable = document.getElementById("edit_rounds_table");
+	if (editRoundsTable) {
+		const tableRows = editRoundsTable.querySelectorAll("tr");
+		tableRows.forEach((row, index) => {
+			const round = index;
+			const betInput = row.querySelector<HTMLInputElement>(
+				`input[data-round="${round}"][data-type="bet"]`
+			);
+			const trickInput = row.querySelector<HTMLInputElement>(
+				`input[data-round="${round}"][data-type="trick"]`
+			);
+			const pointsCell = row.querySelector<HTMLElement>(
+				`td[data-round="${round}"][data-type="points"]`
+			);
 
-		// Only recalculate if both inputs exist and are editable
-		if (betInput.length && trickInput.length && pointsCell.length) {
-			const bet = parseInt(betInput.val() as string) || 0;
-			const trick = parseInt(trickInput.val() as string) || 0;
+			// Only recalculate if both inputs exist and are editable
+			if (betInput && trickInput && pointsCell) {
+				const bet = parseInt(betInput.value) || 0;
+				const trick = parseInt(trickInput.value) || 0;
 
-			let points = 0;
-			if (data.game.getRuleAltcount()) {
-				// Use alternative scoring
-				points = altscorecalc(bet, trick, round + 1);
-			} else {
-				// Use classic scoring
-				points = scorecalc(bet, trick);
+				let scoreChange = 0;
+				if (data.game.getRuleAltcount()) {
+					// Use alternative scoring
+					scoreChange = altscorecalc(bet, trick, round + 1);
+				} else {
+					// Use classic scoring
+					scoreChange = scorecalc(bet, trick);
+				}
+
+				pointsCell.textContent = scoreChange.toString();
+			} else if (pointsCell) {
+				// If inputs don't exist but we have score change data, keep the original score change
+				const hasScoreChangeData = data.score_change.length > round;
+				if (!hasScoreChangeData) {
+					pointsCell.textContent = "-";
+				}
+				// If hasScoreChangeData is true, the original score change is already displayed
 			}
-
-			pointsCell.text(points);
-		} else if (pointsCell.length) {
-			// If inputs don't exist but we have score data, keep the original score
-			const hasScoreData = data.gameScore.length > round;
-			if (!hasScoreData) {
-				pointsCell.text("-");
-			}
-			// If hasScoreData is true, the original score is already displayed
-		}
-	});
+		});
+	}
 }
 
 // Function to save the edited player data
@@ -1042,7 +1103,8 @@ function saveEditedPlayerData() {
 	const data = (globalThis as any).currentEditPlayerData;
 	if (!data) return;
 
-	const newPlayerName = $("#edit_player_name_input").val() as string;
+	const editPlayerNameInput = document.getElementById("edit_player_name_input") as HTMLInputElement;
+	const newPlayerName = editPlayerNameInput ? editPlayerNameInput.value : "";
 	const originalName = data.sorted_playerlist[data.playerIndex][5];
 
 	// Update player name if changed
@@ -1056,34 +1118,38 @@ function saveEditedPlayerData() {
 	const newBets = [...data.game.getBets()];
 	const newTricks = [...data.game.getTricks()];
 
-	$("#edit_rounds_table tr").each(function (index) {
-		const round = index;
-		const betInput = $(this).find(
-			`input[data-round="${round}"][data-type="bet"]`
-		);
-		const trickInput = $(this).find(
-			`input[data-round="${round}"][data-type="trick"]`
-		);
+	const editRoundsTable = document.getElementById("edit_rounds_table");
+	if (editRoundsTable) {
+		const tableRows = editRoundsTable.querySelectorAll("tr");
+		tableRows.forEach((row, index) => {
+			const round = index;
+			const betInput = row.querySelector<HTMLInputElement>(
+				`input[data-round="${round}"][data-type="bet"]`
+			);
+			const trickInput = row.querySelector<HTMLInputElement>(
+				`input[data-round="${round}"][data-type="trick"]`
+			);
 
-		// Only update values that have editable input fields
-		if (betInput.length) {
-			const bet = parseInt(betInput.val() as string) || 0;
+			// Only update values that have editable input fields
+			if (betInput) {
+				const bet = parseInt(betInput.value) || 0;
 
-			// Ensure the arrays exist for this round
-			if (!newBets[round])
-				newBets[round] = new Array(data.players.length).fill(0);
-			newBets[round][data.actualPlayerIndex] = bet;
-		}
+				// Ensure the arrays exist for this round
+				if (!newBets[round])
+					newBets[round] = new Array(data.players.length).fill(0);
+				newBets[round][data.actualPlayerIndex] = bet;
+			}
 
-		if (trickInput.length) {
-			const trick = parseInt(trickInput.val() as string) || 0;
+			if (trickInput) {
+				const trick = parseInt(trickInput.value) || 0;
 
-			// Ensure the arrays exist for this round
-			if (!newTricks[round])
-				newTricks[round] = new Array(data.players.length).fill(0);
-			newTricks[round][data.actualPlayerIndex] = trick;
-		}
-	});
+				// Ensure the arrays exist for this round
+				if (!newTricks[round])
+					newTricks[round] = new Array(data.players.length).fill(0);
+				newTricks[round][data.actualPlayerIndex] = trick;
+			}
+		});
+	}
 
 	// Update the game data
 	data.game.setBets(newBets);
@@ -1245,30 +1311,45 @@ function recalculateAllScores(game: gamedata, players: string[]) {
 	game.setAltScoreChange(newAltScoreChange);
 }
 
-// Initialize edit button click handler when DOM is ready
-$(() => {
-	$("#edit_player_button").on("click", function (e) {
-		e.preventDefault();
-		e.stopPropagation();
-		openEditPlayerModal();
-	});
+// Initialize edit button click handlers when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+	const editPlayerButton = document.getElementById("edit_player_button");
+	if (editPlayerButton) {
+		editPlayerButton.addEventListener("click", function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			openEditPlayerModal();
+		});
+	}
 
-	$("#edit_player_save").on("click", function (e) {
-		e.preventDefault();
-		e.stopPropagation();
-		saveEditedPlayerData();
-	});
+	const editPlayerSave = document.getElementById("edit_player_save");
+	if (editPlayerSave) {
+		editPlayerSave.addEventListener("click", function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			saveEditedPlayerData();
+		});
+	}
 
-	$("#edit_player_cancel").on("click", function (e) {
-		e.preventDefault();
-		e.stopPropagation();
-		cancelEditPlayerData();
-	});
+	const editPlayerCancel = document.getElementById("edit_player_cancel");
+	if (editPlayerCancel) {
+		editPlayerCancel.addEventListener("click", function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			cancelEditPlayerData();
+		});
+	}
 
 	// Also handle the close button (X) as cancel
-	$("#modal_edit_player .btn-circle").on("click", function (e) {
-		cancelEditPlayerData();
-	});
+	const modalEditPlayer = document.getElementById("modal_edit_player");
+	if (modalEditPlayer) {
+		const closeButton = modalEditPlayer.querySelector(".btn-circle");
+		if (closeButton) {
+			closeButton.addEventListener("click", function (e) {
+				cancelEditPlayerData();
+			});
+		}
+	}
 });
 
 // Add the scoring functions directly here to avoid dependency issues

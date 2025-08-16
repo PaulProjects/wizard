@@ -44,7 +44,10 @@ if (recent_games === null) {
 if (gameId === null) {
   error("Not a valid link");
 } else {
-  $("#import_id").text("Game id: " + gameId);
+  const importIdElement = document.getElementById("import_id");
+  if (importIdElement) {
+    importIdElement.textContent = "Game id: " + gameId;
+  }
 
   //import the game from this url: https://s.paulbertram.de/wizardshare.php?id=[gameid]
   const url = `https://s.paulbertram.de/wizardshare.php?id=${gameId}`;
@@ -90,8 +93,10 @@ if (gameId === null) {
         }
         success("All games have been imported successfully");
       } else if (xhr.status === 200) {
-        $("#loading").addClass("hidden");
-        $("#start").removeClass("hidden");
+        const loadingElement = document.getElementById("loading");
+        const startElement = document.getElementById("start");
+        if (loadingElement) loadingElement.classList.add("hidden");
+        if (startElement) startElement.classList.remove("hidden");
         try {
           let gamejson = JSON.parse(xhr.responseText);
           gamejson.id = gameId;
@@ -118,8 +123,10 @@ if (gameId === null) {
           let year = date.getFullYear();
           let date_string = `${day}.${month}.${year}`;
 
-          $("#date").text(date_string);
-          $("#duration").text(time_diff_minutes + " Minutes");
+          const dateElement = document.getElementById("date");
+          const durationElement = document.getElementById("duration");
+          if (dateElement) dateElement.textContent = date_string;
+          if (durationElement) durationElement.textContent = time_diff_minutes + " Minutes";
 
           let score = game.getScore();
           //extract last row of score
@@ -152,23 +159,41 @@ if (gameId === null) {
           }
 
           // loop through players and add them to the table
+          const importTable = document.getElementById("import_table");
           for (let j = 0; j < p_s.length; j++) {
-            const row = $("<tr>");
-            row.append($("<th>").text(p_s[j].position));
-            row.append($("<td>").text(p_s[j].name));
-            row.append($("<td>").text(p_s[j].points));
-            $("#import_table").append(row);
+            const row = document.createElement("tr");
+            
+            const positionCell = document.createElement("th");
+            positionCell.textContent = p_s[j].position.toString();
+            row.appendChild(positionCell);
+            
+            const nameCell = document.createElement("td");
+            nameCell.textContent = p_s[j].name;
+            row.appendChild(nameCell);
+            
+            const pointsCell = document.createElement("td");
+            pointsCell.textContent = p_s[j].points.toString();
+            row.appendChild(pointsCell);
+            
+            if (importTable) importTable.appendChild(row);
           }
 
-          //add class="bg-base-200 to the first row"
-          $("#import_table tr:first-child").addClass("bg-info");
+          //add class="bg-info" to the first row
+          if (importTable) {
+            const firstRow = importTable.querySelector("tr:first-child");
+            if (firstRow) firstRow.classList.add("bg-info");
+          }
 
-          $("#import-game").on("click", function () {
-            savegame(game);
+          const importGameButton = document.getElementById("import-game");
+          if (importGameButton) {
+            importGameButton.addEventListener("click", function () {
+              savegame(game);
 
-            $("#view_game").attr("href", "/history?id=" + gameId);
-            success("The game has been imported successfully");
-          });
+              const viewGameLink = document.getElementById("view_game") as HTMLAnchorElement;
+              if (viewGameLink) viewGameLink.href = "/history?id=" + gameId;
+              success("The game has been imported successfully");
+            });
+          }
         } catch (e) {
           error("Invalid game data" + e);
         }

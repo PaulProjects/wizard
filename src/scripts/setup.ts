@@ -5,16 +5,16 @@ let crowd_chaos = false;
 let valid_1 = false;
 let valid_2 = true;
 
-// Cached jQuery selectors
-const $playerlist = $("#playerlist");
-const $showmodal = $("#showmodal");
-const $startButton = $("#start_button");
-const $alertPlayers = $("#alert_players");
-const $alertInvalidPlayers = $("#alert_invalidplayers");
-const $rangeContainer = $("#range_container");
+// Cached DOM selectors
+const playerlist = document.getElementById("playerlist") as HTMLElement;
+const showmodal = document.getElementById("showmodal") as HTMLButtonElement;
+const startButton = document.getElementById("start_button") as HTMLButtonElement;
+const alertPlayers = document.getElementById("alert_players") as HTMLElement;
+const alertInvalidPlayers = document.getElementById("alert_invalidplayers") as HTMLElement;
+const rangeContainer = document.getElementById("range_container") as HTMLElement;
 
 // Initialize
-$alertInvalidPlayers.hide();
+alertInvalidPlayers.style.display = "none";
 Sortable.create(document.getElementById("playerlist"));
 
 if (!localStorage.getItem("playerlist")) {
@@ -22,8 +22,10 @@ if (!localStorage.getItem("playerlist")) {
 }
 
 // Initialize range container visibility
-if ($("#rounds_auto").prop("checked")) {
-	$rangeContainer.hide().addClass("opacity-0");
+const roundsAuto = document.getElementById("rounds_auto") as HTMLInputElement;
+if (roundsAuto?.checked) {
+	rangeContainer.style.display = "none";
+	rangeContainer.classList.add("opacity-0");
 }
 
 // Event handlers
@@ -34,170 +36,208 @@ document.getElementById("showmodal").addEventListener("click", function () {
 
 function populateRecentPlayers() {
 	const recent_players = JSON.parse(localStorage.getItem("playerlist")) || [];
-	const $recentPlayers = $("#recent_players").empty();
+	const recentPlayersContainer = document.getElementById("recent_players");
+	recentPlayersContainer.innerHTML = "";
 
 	recent_players.slice(0, 10).forEach((player, i) => {
-		const playerExists = $playerlist
-			.children()
-			.toArray()
-			.some((e) => $(e).find(".player-name").val() === player);
+		const playerInputs = Array.from(playerlist.querySelectorAll<HTMLInputElement>(".player-name"));
+		const playerExists = playerInputs.some(input => input.value === player);
 
 		if (!playerExists) {
-			$("<button>")
-				.addClass("btn btn-sm btn-secondary m-1")
-				.text(player)
-				.on("click", () => addPlayer(player))
-				.appendTo($recentPlayers);
+			const button = document.createElement("button");
+			button.className = "btn btn-sm btn-secondary m-1";
+			button.textContent = player;
+			button.addEventListener("click", () => addPlayer(player));
+			recentPlayersContainer.appendChild(button);
 		}
 	});
 }
 
-$("#rule_crowdchaos").on("click", function () {
-	crowd_chaos = $(this).prop("checked");
-	$("#alert_players_text").text(
-		`Please add at least ${crowd_chaos ? 2 : 3} players`
-	);
+const ruleCrowdChaos = document.getElementById("rule_crowdchaos") as HTMLInputElement;
+ruleCrowdChaos.addEventListener("click", function () {
+	crowd_chaos = this.checked;
+	const alertPlayersText = document.getElementById("alert_players_text");
+	alertPlayersText.textContent = `Please add at least ${crowd_chaos ? 2 : 3} players`;
 
 	if (crowd_chaos) {
-		$showmodal.prop("disabled", false).text("New Player");
+		showmodal.disabled = false;
+		showmodal.textContent = "New Player";
 	}
 	checkPlayers();
 });
 
 //function user presses enter
-$(document).on("keyup", function (event) {
+document.addEventListener("keyup", function (event) {
 	if (event.which === 13) {
-		addPlayer($("#input_playername").val().toString());
+		const inputPlayername = document.getElementById("input_playername") as HTMLInputElement;
+		addPlayer(inputPlayername.value);
 		//open the modal again and focus the input field
 		(
 			document.getElementById("modal_addplayer") as HTMLDialogElement
 		).showModal();
-		$("#input_playername").trigger("focus");
+		inputPlayername.focus();
 	}
 });
 
 //method to add a new player
 document.getElementById("addPlayer").addEventListener("click", function () {
-	addPlayer($("#input_playername").val().toString());
+	const inputPlayername = document.getElementById("input_playername") as HTMLInputElement;
+	addPlayer(inputPlayername.value);
 });
 
-$(document).on("click", "#ok_invalidplayer", function () {
-	(
-		document.getElementById("modal_addplayer") as HTMLDialogElement
-	).showModal();
+document.addEventListener("click", function(event) {
+	if ((event.target as HTMLElement).id === "ok_invalidplayer") {
+		(
+			document.getElementById("modal_addplayer") as HTMLDialogElement
+		).showModal();
+	}
 });
 
 //validate the playername on edit of the input field with the class player-name
-$(document).on("input", ".player-name", function () {
-	const playerInput = this as HTMLInputElement;
-	const playerName = playerInput.value.trim();
-	const $parentDiv = $(this).parent();
-	const isValid = validatename(playerName);
+document.addEventListener("input", function(event) {
+	const target = event.target as HTMLInputElement;
+	if (target.classList.contains("player-name")) {
+		const playerName = target.value.trim();
+		const parentDiv = target.parentElement;
+		const isValid = validatename(playerName);
 
-	$alertInvalidPlayers.toggle(!isValid);
-	valid_2 = isValid;
-	checkValid();
+		alertInvalidPlayers.style.display = isValid ? "none" : "block";
+		valid_2 = isValid;
+		checkValid();
 
-	// Apply styling based on validation
-	$parentDiv
-		.toggleClass("input-error", !isValid)
-		.toggleClass("input-secondary", isValid);
+		// Apply styling based on validation
+		if (isValid) {
+			parentDiv.classList.remove("input-error");
+			parentDiv.classList.add("input-secondary");
+		} else {
+			parentDiv.classList.add("input-error");
+			parentDiv.classList.remove("input-secondary");
+		}
+	}
 });
 
 //method when player clicks any checkbox with the class dealer-checkbox
-$(document).on("click", ".dealer-checkbox", function () {
-	//uncheck all other checkboxes
-	$(".dealer-checkbox").not(this).prop("checked", false);
-	//check if the checkbox itself got unchecked and if so prevent that
-	if (!$(this).prop("checked")) {
-		$(this).prop("checked", true);
+document.addEventListener("click", function(event) {
+	const target = event.target as HTMLInputElement;
+	if (target.classList.contains("dealer-checkbox")) {
+		//uncheck all other checkboxes
+		const allDealerCheckboxes = document.querySelectorAll<HTMLInputElement>(".dealer-checkbox");
+		allDealerCheckboxes.forEach(checkbox => {
+			if (checkbox !== target) {
+				checkbox.checked = false;
+			}
+		});
+		//check if the checkbox itself got unchecked and if so prevent that
+		if (!target.checked) {
+			target.checked = true;
+		}
 	}
 });
 
 //when user clicks on the remove button
-$(document).on("click", ".remove-player", function () {
-	const $parent = $(this).parent();
-	const wasDealer = $parent.find(".dealer-checkbox").prop("checked");
+document.addEventListener("click", function(event) {
+	const target = event.target as HTMLElement;
+	if (target.classList.contains("remove-player")) {
+		const parent = target.parentElement;
+		const dealerCheckbox = parent.querySelector<HTMLInputElement>(".dealer-checkbox");
+		const wasDealer = dealerCheckbox?.checked || false;
 
-	$parent.remove();
+		parent.remove();
 
-	// If removed player was dealer, make first remaining player dealer
-	if (wasDealer && $playerlist.children().length > 0) {
-		$playerlist
-			.children()
-			.first()
-			.find(".dealer-checkbox")
-			.prop("checked", true);
+		// If removed player was dealer, make first remaining player dealer
+		const remainingPlayers = playerlist.children;
+		if (wasDealer && remainingPlayers.length > 0) {
+			const firstPlayerDealer = remainingPlayers[0].querySelector<HTMLInputElement>(".dealer-checkbox");
+			if (firstPlayerDealer) {
+				firstPlayerDealer.checked = true;
+			}
+		}
+
+		// Re-enable add button if under limit
+		if (remainingPlayers.length < 6) {
+			showmodal.disabled = false;
+			showmodal.textContent = "New Player";
+		}
+		checkPlayers();
 	}
-
-	// Re-enable add button if under limit
-	if ($playerlist.children().length < 6) {
-		$showmodal.prop("disabled", false).text("New Player");
-	}
-	checkPlayers();
 });
 //if Checkbox with id Random_Dealer is active hide all checkboxes with the class dealer-checkbox
-$("#rule_random_dealer").on("click", function () {
-	$(".dealer-checkbox").toggle(!$(this).prop("checked"));
+const ruleRandomDealer = document.getElementById("rule_random_dealer") as HTMLInputElement;
+ruleRandomDealer.addEventListener("click", function () {
+	const dealerCheckboxes = document.querySelectorAll<HTMLInputElement>(".dealer-checkbox");
+	dealerCheckboxes.forEach(checkbox => {
+		checkbox.style.display = this.checked ? "none" : "";
+	});
 });
 
 //listen for click on all divs with the class optionbox
-$(".optionbox").on("click", function () {
-	//check if the user clicked on the checkbox itself
-	if ($(event.target).is("input[type='checkbox']")) {
-		return;
+document.addEventListener("click", function(event) {
+	const target = event.target as HTMLElement;
+	if (target.classList.contains("optionbox")) {
+		//check if the user clicked on the checkbox itself
+		if ((event.target as HTMLElement).tagName === "INPUT" && (event.target as HTMLInputElement).type === "checkbox") {
+			return;
+		}
+		//get the checkbox inside the div
+		let checkbox = target.querySelector<HTMLInputElement>("input[type='checkbox']");
+		//trigger a click on the checkbox
+		checkbox?.click();
 	}
-	//get the checkbox inside the div
-	let checkbox = $(this).find("input[type='checkbox']");
-	//trigger a click on the checkbox
-	checkbox.trigger("click");
 });
 
 //start button with id start_button
-$("#start_button").on("click", function () {
-	$("#start_button").addClass("loading");
-	$("#start_button").addClass("loading-spinner");
+startButton.addEventListener("click", function () {
+	startButton.classList.add("loading");
+	startButton.classList.add("loading-spinner");
 
 	let players = [];
-	$playerlist.children().each(function () {
-		players.push($(this).find(".player-name").val());
-	});
+	const playerElements = playerlist.children;
+	for (let i = 0; i < playerElements.length; i++) {
+		const playerNameInput = playerElements[i].querySelector<HTMLInputElement>(".player-name");
+		if (playerNameInput) {
+			players.push(playerNameInput.value);
+		}
+	}
 
 	//push the playerlist to localstorage
-	let playerlist = JSON.parse(localStorage.getItem("playerlist"));
-	playerlist.push(...players);
+	let playerlistStorage = JSON.parse(localStorage.getItem("playerlist"));
+	playerlistStorage.push(...players);
 	//remove any duplicates
-	playerlist = [...new Set(playerlist)];
-	localStorage.setItem("playerlist", JSON.stringify(playerlist));
+	playerlistStorage = [...new Set(playerlistStorage)];
+	localStorage.setItem("playerlist", JSON.stringify(playerlistStorage));
 
 	let dealer = 0;
 	//find out which player is the dealer
-	if ($("#rule_random_dealer").prop("checked")) {
+	const ruleRandomDealerEl = document.getElementById("rule_random_dealer") as HTMLInputElement;
+	if (ruleRandomDealerEl.checked) {
 		dealer = Math.floor(Math.random() * players.length);
 	} else {
-		$playerlist.children().each(function () {
-			if ($(this).find(".dealer-checkbox").prop("checked")) {
-				return false;
+		for (let i = 0; i < playerElements.length; i++) {
+			const dealerCheckbox = playerElements[i].querySelector<HTMLInputElement>(".dealer-checkbox");
+			if (dealerCheckbox?.checked) {
+				break;
 			}
 			dealer++;
-		});
+		}
 	}
 
 	let round_amount: number;
-	if ($("#rounds_custom").prop("checked")) {
-		round_amount = parseInt($("#rounds_custom_range").val() as string);
+	const roundsCustom = document.getElementById("rounds_custom") as HTMLInputElement;
+	if (roundsCustom.checked) {
+		const roundsCustomRange = document.getElementById("rounds_custom_range") as HTMLInputElement;
+		round_amount = parseInt(roundsCustomRange.value);
 	} else {
 		round_amount = amountofrounds(players.length);
 	}
 	//create a json array with the game settings
 	let game = {
 		dealer: dealer,
-		rule_1: $("#rule_1").prop("checked"),
-		rule_random_dealer: $("#rule_random_dealer").prop("checked"),
-		rule_expansion: $("#rule_expansion").prop("checked"),
-		rule_custom_rounds: $("#rounds_custom").prop("checked"),
-		rule_crowdchaos: $("#rule_crowdchaos").prop("checked"),
-		rule_altcount: $("#calc_alt").prop("checked"),
+		rule_1: (document.getElementById("rule_1") as HTMLInputElement).checked,
+		rule_random_dealer: (document.getElementById("rule_random_dealer") as HTMLInputElement).checked,
+		rule_expansion: (document.getElementById("rule_expansion") as HTMLInputElement).checked,
+		rule_custom_rounds: (document.getElementById("rounds_custom") as HTMLInputElement).checked,
+		rule_crowdchaos: (document.getElementById("rule_crowdchaos") as HTMLInputElement).checked,
+		rule_altcount: (document.getElementById("calc_alt") as HTMLInputElement).checked,
 		round: 1,
 		max_rounds: round_amount,
 		players: players,
@@ -222,7 +262,8 @@ $("#start_button").on("click", function () {
 	location.href = "/game/";
 });
 
-$("#tlbtn").on("click", function () {
+const tlBtn = document.getElementById("tlbtn");
+tlBtn.addEventListener("click", function () {
 	location.href = "/";
 });
 
@@ -233,9 +274,8 @@ let past_games = JSON.parse(localStorage.getItem("recent_games"));
 //check if presets is null or the array is empty
 if (past_games == null || past_games.length == 0) {
 	//add a disabled "no presets yet" button to the presets div
-	$("#presets").append(
-		`<button class='btn btn-block btn-disabled m-2' id='preset0'>no past games found</button>`
-	);
+	const presetsContainer = document.getElementById("presets");
+	presetsContainer.innerHTML = `<button class='btn btn-block btn-disabled m-2' id='preset0'>no past games found</button>`;
 } else {
 	//reverse the array so the newest games are on top
 	past_games.reverse();
@@ -252,8 +292,10 @@ if (past_games == null || past_games.length == 0) {
 			let max_rounds = game.max_rounds;
 
 			//add a div containing the date and underneath the list of players and the rules
-			const presetDiv =
-				$(`<div id='preset${i}' class='flex flex-col p-5 border-2 rounded border-white w-full hover:bg-sky-700'>
+			const presetDiv = document.createElement("div");
+			presetDiv.id = `preset${i}`;
+			presetDiv.className = "flex flex-col p-5 border-2 rounded border-white w-full hover:bg-sky-700";
+			presetDiv.innerHTML = `
           <span></span>
           <div class='flex flex-col w-full'>
             <div class='flex flex-row w-full'>
@@ -261,33 +303,31 @@ if (past_games == null || past_games.length == 0) {
                 <div class='flex flex-row w-full overflow-auto' style='white-space: nowrap;'></div>
               </div>
             </div>
-          </div>
-        </div>`);
+          </div>`;
 
 			// Safely set the date
-			presetDiv
-				.find("span")
-				.first()
-				.text(new Date(game.time_started).toLocaleString());
+			const spanElement = presetDiv.querySelector("span");
+			spanElement.textContent = new Date(game.time_started).toLocaleString();
 
 			// Safely add player names
-			const playerContainer = presetDiv.find(".overflow-auto");
+			const playerContainer = presetDiv.querySelector(".overflow-auto");
 			players.forEach((player: string, index: number) => {
-				const playerSpan = $("<span>")
-					.addClass("mr-1 ml-1")
-					.text(player);
-				playerContainer.append(playerSpan);
+				const playerSpan = document.createElement("span");
+				playerSpan.className = "mr-1 ml-1";
+				playerSpan.textContent = player;
+				playerContainer.appendChild(playerSpan);
 				if (index < players.length - 1) {
-					playerContainer.append("&");
+					playerContainer.appendChild(document.createTextNode("&"));
 				}
 			});
 
-			$("#presets").append(presetDiv);
+			const presetsContainer = document.getElementById("presets");
+			presetsContainer.appendChild(presetDiv);
 
 			//add a click event to the button that loads the preset
-			$("#preset" + i).on("click", function () {
+			presetDiv.addEventListener("click", function () {
 				//clear playerlist and add the preset players
-				$("#playerlist").empty();
+				playerlist.innerHTML = "";
 
 				//loop over players and add them
 				players.forEach((player) => addPlayer(player));
@@ -308,23 +348,34 @@ if (past_games == null || past_games.length == 0) {
 				];
 
 				ruleSettings.forEach(({ selector, value }) => {
-					$(selector).prop("checked", value);
+					const element = document.querySelector(selector) as HTMLInputElement;
+					if (element) element.checked = value;
 				});
 
 				if (!rule_altcount) {
-					$("#calc_classic").prop("checked", true);
+					const calcClassic = document.getElementById("calc_classic") as HTMLInputElement;
+					calcClassic.checked = true;
 				}
 
 				if (rule_custom_rounds) {
-					$("#rounds_custom").prop("checked", true);
-					$("#rounds_auto").prop("checked", false);
-					$rangeContainer.show().removeClass("opacity-0");
-					$("#rounds_custom_range").val(max_rounds);
-					$("#range_val").text(max_rounds);
+					const roundsCustom = document.getElementById("rounds_custom") as HTMLInputElement;
+					const roundsAuto = document.getElementById("rounds_auto") as HTMLInputElement;
+					const roundsCustomRange = document.getElementById("rounds_custom_range") as HTMLInputElement;
+					const rangeVal = document.getElementById("range_val") as HTMLInputElement;
+					
+					roundsCustom.checked = true;
+					roundsAuto.checked = false;
+					rangeContainer.style.display = "block";
+					rangeContainer.classList.remove("opacity-0");
+					roundsCustomRange.value = max_rounds.toString();
+					rangeVal.textContent = max_rounds.toString();
 				} else {
-					$("#rounds_custom").prop("checked", false);
-					$("#rounds_auto").prop("checked", true);
-					$rangeContainer.hide();
+					const roundsCustom = document.getElementById("rounds_custom") as HTMLInputElement;
+					const roundsAuto = document.getElementById("rounds_auto") as HTMLInputElement;
+					
+					roundsCustom.checked = false;
+					roundsAuto.checked = true;
+					rangeContainer.style.display = "none";
 				}
 				//close modal
 				modal_edit.close();
@@ -336,7 +387,7 @@ if (past_games == null || past_games.length == 0) {
 }
 
 document.getElementById("test-preset").addEventListener("click", function () {
-	$playerlist.empty();
+	playerlist.innerHTML = "";
 	["Anakin", "Obi-Wan", "Yoda", "Mace Windu"].forEach((name) =>
 		addPlayer(name)
 	);
@@ -349,48 +400,63 @@ document.getElementById("test-preset").addEventListener("click", function () {
 	];
 
 	testSettings.forEach(({ selector, value }) => {
-		$(selector).prop("checked", value);
+		const element = document.querySelector(selector) as HTMLInputElement;
+		if (element) element.checked = value;
 	});
 });
 
-$("#title").on("click", function () {
+const titleElement = document.getElementById("title");
+titleElement.addEventListener("click", function () {
 	//show modal_edit modal
 	modal_edit.showModal();
 });
 
 //if the playlist is empty, hide the button
-if ($("#playerlist").children().length == 0) {
-	$("#clearrecent").hide();
+const clearRecentBtn = document.getElementById("clearrecent");
+if (playerlist.children.length == 0) {
+	clearRecentBtn.style.display = "none";
 }
 
-$("#clearrecent").on("click", function () {
+clearRecentBtn.addEventListener("click", function () {
 	localStorage.setItem("playerlist", JSON.stringify([]));
 	location.reload();
 });
 
 // Range container handlers
 const toggleRangeContainer = (show: boolean) => {
-	$rangeContainer
-		.toggle(show)
-		.toggleClass("opacity-0", !show)
-		.toggleClass("opacity-100", show);
+	rangeContainer.style.display = show ? "block" : "none";
+	if (show) {
+		rangeContainer.classList.remove("opacity-0");
+		rangeContainer.classList.add("opacity-100");
+	} else {
+		rangeContainer.classList.add("opacity-0");
+		rangeContainer.classList.remove("opacity-100");
+	}
 };
 
-$("#rounds_auto_box").on("click", function () {
+const roundsAutoBox = document.getElementById("rounds_auto_box");
+roundsAutoBox.addEventListener("click", function () {
 	toggleRangeContainer(false);
-	const val = amountofrounds($playerlist.children().length);
-	$("#range_val").val(val);
-	$("#rounds_custom_range").val(val);
-	$("#rounds_auto").prop("checked", true);
+	const val = amountofrounds(playerlist.children.length);
+	const rangeVal = document.getElementById("range_val") as HTMLInputElement;
+	const roundsCustomRange = document.getElementById("rounds_custom_range") as HTMLInputElement;
+	const roundsAuto = document.getElementById("rounds_auto") as HTMLInputElement;
+	rangeVal.value = val.toString();
+	roundsCustomRange.value = val.toString();
+	roundsAuto.checked = true;
 });
 
-$("#rounds_custom_box").on("click", function () {
+const roundsCustomBox = document.getElementById("rounds_custom_box");
+roundsCustomBox.addEventListener("click", function () {
 	toggleRangeContainer(true);
-	$("#rounds_custom").prop("checked", true);
+	const roundsCustom = document.getElementById("rounds_custom") as HTMLInputElement;
+	roundsCustom.checked = true;
 });
 
-$("#rounds_custom_range").on("input", function () {
-	$("#range_val").val($(this).val());
+const roundsCustomRange = document.getElementById("rounds_custom_range") as HTMLInputElement;
+roundsCustomRange.addEventListener("input", function () {
+	const rangeVal = document.getElementById("range_val") as HTMLInputElement;
+	rangeVal.value = this.value;
 });
 
 document.onreadystatechange = function () {
@@ -401,28 +467,37 @@ document.onreadystatechange = function () {
 
 //toggles radio for rule_altcount if user clicks anywhere in div
 const handleCalcBoxClick = (targetId: string) => (event) => {
-	if (!$(event.target).is(targetId)) {
-		$(targetId).trigger("click");
+	const target = event.target as HTMLElement;
+	if (target.id !== targetId.replace("#", "")) {
+		const targetElement = document.querySelector(targetId) as HTMLInputElement;
+		targetElement?.click();
 	}
 };
 
-$("#calc_classic_box").on("click", handleCalcBoxClick("#calc_classic"));
-$("#calc_alt_box").on("click", handleCalcBoxClick("#calc_alt"));
+const calcClassicBox = document.getElementById("calc_classic_box");
+const calcAltBox = document.getElementById("calc_alt_box");
+calcClassicBox.addEventListener("click", handleCalcBoxClick("#calc_classic"));
+calcAltBox.addEventListener("click", handleCalcBoxClick("#calc_alt"));
 
 //function that checks if valid 1 and 2 are both true and if so enables the button with id start_button
 function checkValid() {
-	$startButton
-		.toggleClass("btn-disabled", !(valid_1 && valid_2))
-		.toggleClass("btn-secondary", valid_1 && valid_2);
+	const isValid = valid_1 && valid_2;
+	if (isValid) {
+		startButton.classList.remove("btn-disabled");
+		startButton.classList.add("btn-secondary");
+	} else {
+		startButton.classList.add("btn-disabled");
+		startButton.classList.remove("btn-secondary");
+	}
 }
 
 //function that checks if the playerlist has at least 3 players and if not hide the div with the id alter_players and its children
 function checkPlayers() {
-	const playerCount = $playerlist.children().length;
+	const playerCount = playerlist.children.length;
 	const minPlayers = crowd_chaos ? 2 : 3;
 	const hasEnoughPlayers = playerCount >= minPlayers;
 
-	$alertPlayers.toggle(!hasEnoughPlayers);
+	alertPlayers.style.display = hasEnoughPlayers ? "none" : "block";
 	valid_1 = hasEnoughPlayers;
 	checkValid();
 }
@@ -448,38 +523,48 @@ function addPlayer(playername: string) {
 		return;
 	}
 
-	const playerCount = $playerlist.children().length;
+	const playerCount = playerlist.children.length;
 	if (playerCount > 5 && !crowd_chaos) return;
 
 	if (playerCount === 5 && !crowd_chaos) {
-		$showmodal.prop("disabled", true).text("Max amount of players reached");
+		showmodal.disabled = true;
+		showmodal.textContent = "Max amount of players reached";
 	}
 
-	$playerlist.append(
-		`<div class='appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box'>
+	const playerDiv = document.createElement("div");
+	playerDiv.className = "appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box";
+	playerDiv.innerHTML = `
         <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent player-name' aria-label="playername">
         <div class='flex items-center gap-2 px-2'>
           <input type='checkbox' class='checkbox checkbox-sm dealer-checkbox' aria-label="select dealer">
           <span class='text-xs font-medium text-gray-400 whitespace-nowrap'>Dealer</span>
         </div>
-        <img src='/icon/trash.svg' class='inv h-2/4 pl-2 remove-player' />
-      </div>`
-	);
+        <img src='/icon/trash.svg' class='inv h-2/4 pl-2 remove-player' />`;
+	
+	playerlist.appendChild(playerDiv);
 
-	$("#input_playername").val("");
-	$playerlist.children().last().find(".player-name").val(playername);
-
-	// Check if random dealer is enabled and hide the checkbox if it is
-	if ($("#rule_random_dealer").prop("checked")) {
-		$playerlist.children().last().find(".dealer-checkbox").hide();
+	const inputPlayername = document.getElementById("input_playername") as HTMLInputElement;
+	inputPlayername.value = "";
+	
+	const lastPlayerInput = playerDiv.querySelector<HTMLInputElement>(".player-name");
+	if (lastPlayerInput) {
+		lastPlayerInput.value = playername;
 	}
 
-	if ($playerlist.children().length === 1) {
-		$playerlist
-			.children()
-			.first()
-			.find(".dealer-checkbox")
-			.prop("checked", true);
+	// Check if random dealer is enabled and hide the checkbox if it is
+	const ruleRandomDealerEl = document.getElementById("rule_random_dealer") as HTMLInputElement;
+	if (ruleRandomDealerEl.checked) {
+		const dealerCheckbox = playerDiv.querySelector<HTMLInputElement>(".dealer-checkbox");
+		if (dealerCheckbox) {
+			dealerCheckbox.style.display = "none";
+		}
+	}
+
+	if (playerlist.children.length === 1) {
+		const firstPlayerDealer = playerlist.children[0].querySelector<HTMLInputElement>(".dealer-checkbox");
+		if (firstPlayerDealer) {
+			firstPlayerDealer.checked = true;
+		}
 	}
 	checkPlayers();
 }

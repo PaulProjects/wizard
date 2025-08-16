@@ -167,12 +167,29 @@ export class GameController {
   }
 
   private setupRuleListeners(): void {
-    // Rule 1 checkbox
-    this.setupRuleCheckbox('rule_1', 'box_1Rule', (checked: boolean) => {
-      this.game.setRule_1(checked);
-      this.saveGame();
-      this.updateInputValidation();
-    });
+    // Rule 1 checkbox - find the parent optionbox container
+    const rule1Checkbox = document.getElementById('rule_1') as HTMLInputElement;
+    if (rule1Checkbox) {
+      const optionboxContainer = rule1Checkbox.closest('.optionbox');
+      
+      if (optionboxContainer) {
+        // Add click handler to the container
+        optionboxContainer.addEventListener('click', (event) => {
+          if ((event.target as HTMLElement).id !== 'rule_1') {
+            rule1Checkbox.click();
+          }
+        });
+      }
+
+      // Add direct click handler to checkbox
+      rule1Checkbox.addEventListener('click', () => {
+        this.game.setRule_1(rule1Checkbox.checked);
+        this.saveGame();
+        this.updateInputValidation();
+        // Update scores live when rule changes
+        updatescore(this.players, this.game as any);
+      });
+    }
 
     // Alternative counting radio buttons
     this.setupRuleRadio('calc_classic', 'calc_classic_box', () => {
@@ -203,6 +220,7 @@ export class GameController {
       });
 
       checkbox.addEventListener('click', () => {
+        console.log(`Checkbox ${checkboxId} is now ${checkbox.checked ? 'checked' : 'unchecked'}`);
         callback(checkbox.checked);
       });
     }
@@ -455,20 +473,28 @@ export class GameController {
   }
 
   private async saveGameToServer(): Promise<SaveGameResponse> {
-    return new Promise((resolve, reject) => {
-      const gameData = GameData.toJsonString(this.game);
-      
-      // Using jQuery for compatibility (can be replaced with fetch later)
-      ($ as any).post(
-        "https://s.paulbertram.de/wizardshare.php",
-        { game: gameData },
-        (data: string) => {
-          resolve({ success: true, gameId: data });
-        }
-      ).fail((jqXHR: any, textStatus: string, errorThrown: string) => {
-        reject(new Error(`Server error: ${textStatus} - ${errorThrown}`));
+    const gameData = GameData.toJsonString(this.game);
+    
+    try {
+      const response = await fetch("https://s.paulbertram.de/wizardshare.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          game: gameData
+        })
       });
-    });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.text();
+      return { success: true, gameId: data };
+    } catch (error) {
+      throw new Error(`Server error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private saveToRecentGames(): void {
@@ -591,10 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const gameController = new GameController();
 
-    // TODO: Move away from globalThis
     (globalThis as any).gameController = gameController;
-    
-    console.log('Game controller initialized successfully');
   } catch (error) {
     console.error('Failed to initialize game controller:', error);
     // Fallback to redirect if initialization fails

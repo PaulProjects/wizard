@@ -61,51 +61,126 @@ import ImportGame from "../components/ImportGame.astro";
   </div>
   <!-- About Modal -->
   <dialog id="about" class="modal">
-    <form method="dialog" class="modal-box">
+    <form method="dialog" class="modal-box max-w-2xl">
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
         >✕</button
       >
-      <h1 class="font-bold text-xl">About</h1>
-      <p class="pt-2 pb-4">
-        This site is a score counter for the popular card game Wizard. It is
-        still work in progress and I will add more features from time to time.
-        If you have any suggestions or feedback, <a
-          class="underline"
-          href="mailto:hi@paulbertram.de">let me know</a
-        >.
-      </p>
-      <h1 class="font-bold text-xl">Credits</h1>
-      <div class="pt-2 pb-4">
-        <a
-          class="underline"
-          href="https://codepen.io/jackrugile/pen/kQwPRO"
-          target="_blank"><span>Lightning Background</span></a
-        >
-        &
-        <a
-          class="underline"
-          href="https://codepen.io/jmolund/pen/jBqyqK"
-          target="_blank"><span>ScoreBoard</span></a
-        >
+      
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <Icon name="mdi:information-outline" class="w-8 h-8 text-primary" />
+        <h1 class="font-bold text-3xl">About Wizard</h1>
       </div>
-      <h1 class="font-bold text-xl">Disclaimer</h1>
-      <p class="pt-2 pb-4">
-        This site is not affiliated with Amigo Spiele or any other company. The
-        game Wizard is a registered trademark of Amigo Spiele. This site is for
-        private use only.
-      </p>
-      <h1 class="font-bold text-xl">Data actions</h1>
-      <p class="pt-2 pb-4">You can delete, import and export the games.</p>
 
-      <button class="btn btn-info btn-block mt-2 import_data">
-        Import Data
-      </button>
-      <button id="export_data" class="btn btn-info btn-block mt-2">
-        Export Data</button
-      >
-      <button id="delete_data" class="btn btn-primary btn-block mt-2">
-        Delete all Data</button
-      >
+      <!-- About Section -->
+      <div class="space-y-6">
+        <div class="p-4 bg-base-200 rounded-lg">
+          <div class="flex items-start gap-3 mb-3">
+            <Icon name="mdi:gamepad-variant-outline" class="w-6 h-6 text-primary flex-shrink-0 mt-1" />
+            <div>
+              <h2 class="font-semibold text-lg mb-2">What is this?</h2>
+              <p class="text-base-content/80 leading-relaxed">
+                This is a digital score counter for the popular card game Wizard. 
+                Track scores, analyze performance, and never lose track of your game progress again.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Development Status -->
+        <div class="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+          <div class="flex items-start gap-3">
+            <Icon name="mdi:hammer-wrench" class="w-6 h-6 text-primary flex-shrink-0 mt-1" />
+            <div>
+              <h2 class="font-semibold text-lg mb-2">Development</h2>
+              <p class="text-base-content/80 leading-relaxed mb-3">
+                This project is actively being developed with new features added regularly. 
+                Have suggestions or feedback?
+              </p>
+              <a
+                class="btn btn-sm btn-secondary"
+                href="mailto:hi@paulbertram.de"
+              >
+                <Icon name="mdi:email-outline" class="w-4 h-4 mr-2" />
+                Contact Developer
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credits Section -->
+        <div class="p-4 bg-base-200 rounded-lg">
+          <div class="flex items-start gap-3 mb-3">
+            <Icon name="mdi:account-heart-outline" class="w-6 h-6 text-secondary flex-shrink-0 mt-1" />
+            <div class="w-full">
+              <h2 class="font-semibold text-lg mb-3">Credits & Inspiration</h2>
+              <div class="space-y-2">
+                <a
+                  class="flex items-center gap-2 p-2 bg-base-100 rounded hover:bg-base-300 transition-colors"
+                  href="https://codepen.io/jackrugile/pen/kQwPRO"
+                  target="_blank"
+                >
+                  <Icon name="mdi:lightning-bolt" class="w-4 h-4" />
+                  Lightning Background Effect
+                  <Icon name="mdi:open-in-new" class="w-3 h-3 ml-auto opacity-60" />
+                </a>
+                <a
+                  class="flex items-center gap-2 p-2 bg-base-100 rounded hover:bg-base-300 transition-colors"
+                  href="https://codepen.io/jmolund/pen/jBqyqK"
+                  target="_blank"
+                >
+                  <Icon name="mdi:view-dashboard-outline" class="w-4 h-4" />
+                  ScoreBoard Design
+                  <Icon name="mdi:open-in-new" class="w-3 h-3 ml-auto opacity-60" />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legal Disclaimer -->
+        <div class="p-4 bg-warning/10 border border-warning/30 rounded-lg">
+          <div class="flex items-start gap-3">
+            <Icon name="mdi:scale-balance" class="w-6 h-6 text-warning flex-shrink-0 mt-1" />
+            <div>
+              <h2 class="font-semibold text-lg mb-2">Legal Notice</h2>
+              <p class="text-sm text-base-content/70 leading-relaxed">
+                This application is not affiliated with Amigo Spiele or any other company. 
+                Wizard® is a registered trademark of Amigo Spiele. This tool is designed 
+                for personal, non-commercial use only.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="p-4 bg-base-200 rounded-lg">
+          <div class="flex items-start gap-3 mb-4">
+            <Icon name="mdi:database-outline" class="w-6 h-6 text-accent flex-shrink-0 mt-1" />
+            <div>
+              <h2 class="font-semibold text-lg mb-2">Data Management</h2>
+              <p class="text-base-content/80 text-sm mb-4">
+                Manage your game data
+              </p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button class="btn btn-outline btn-sm import_data">
+              <Icon name="mdi:import" class="w-4 h-4" />
+              Import
+            </button>
+            <button id="export_data" class="btn btn-outline btn-sm">
+              <Icon name="mdi:export" class="w-4 h-4" />
+              Export
+            </button>
+            <button id="delete_data" class="btn btn-error btn-outline btn-sm">
+              <Icon name="mdi:delete-outline" class="w-4 h-4" />
+              Delete All
+            </button>
+          </div>
+        </div>
+      </div>
     </form>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>

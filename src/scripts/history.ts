@@ -27,19 +27,26 @@ for (let i = 0; i < past_games.length; i++) {
     if (!game.hasID()) {
       console.log("No id found, trying to upload");
       console.log(game);
-      $.post(
-        "https://s.paulbertram.de/wizardshare.php",
-        { game: JSON.stringify(game) },
-        function (data: string) {
-          //add id info to the game
-          game.setId(data);
-          past_games[i] = game;
-          localStorage.setItem("recent_games", JSON.stringify(past_games));
-          console.log("Success uploading");
-        }
-      ).fail(function (jqXHR, textStatus, errorThrown) {
-        // Fehlerbehandlung hier
-        console.error("Error: " + textStatus, errorThrown);
+      
+      fetch("https://s.paulbertram.de/wizardshare.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          game: JSON.stringify(game)
+        })
+      })
+      .then(response => response.text())
+      .then((data: string) => {
+        //add id info to the game
+        game.setId(data);
+        past_games[i] = game;
+        localStorage.setItem("recent_games", JSON.stringify(past_games));
+        console.log("Success uploading");
+      })
+      .catch((error) => {
+        console.error("Error uploading game:", error);
       });
     }
 
@@ -64,11 +71,14 @@ for (let i = 0; i < past_games.length; i++) {
     // Use the game index in the games array (not the original past_games index)
     const gameIndex = games.length - 1;
 
-    // Create game card using safe DOM manipulation
-    const card = $(`<div class="card mt-10 bg-base-200 w-full" id="card${gameIndex}">
+    // Create game card using native DOM manipulation
+    const card = document.createElement('div');
+    card.className = "card mt-10 bg-base-200 w-full";
+    card.id = `card${gameIndex}`;
+    card.innerHTML = `
             <div class="w-full h-full">
-              <span class="inline-block pl-3 pt-3"></span>
-              <span class="float-right pr-3 pt-3"></span>
+              <span class="inline-block pl-3 pt-3">${date_string}</span>
+              <span class="float-right pr-3 pt-3">${time_diff_minutes} Minutes</span>
               <div class="card-body">
                 <div class="overflow-x-auto">
                   <table class="table">
@@ -80,7 +90,7 @@ for (let i = 0; i < past_games.length; i++) {
                         <th>Points</th>
                       </tr>
                     </thead>
-                    <tbody  id="table${gameIndex}">
+                    <tbody id="table${gameIndex}">
                     </tbody>
                   </table>
                 </div>
@@ -88,23 +98,25 @@ for (let i = 0; i < past_games.length; i++) {
             </div>
             <div class="card--hover">
                 <a id="more${gameIndex}">Find out more</a>
-            </div>
-          </div>`);
+            </div>`;
     
-    // Safely set the text content
-    card.find('.inline-block').text(date_string);
-    card.find('.float-right').text(time_diff_minutes + ' Minutes');
-    
-    $("#past_games").append(card);
+    const pastGamesElement = document.getElementById("past_games");
+    if (pastGamesElement) pastGamesElement.appendChild(card);
 
     //add event listener to the more button
-    $(`#more${gameIndex}`).on("click", function () {
-      clicked_more(gameIndex);
-    });
+    const moreButton = document.getElementById(`more${gameIndex}`);
+    if (moreButton) {
+      moreButton.addEventListener("click", function () {
+        clicked_more(gameIndex);
+      });
+    }
 
-    $(`#card${gameIndex}`).on("click", function () {
-      clicked_more(gameIndex);
-    });
+    const cardElement = document.getElementById(`card${gameIndex}`);
+    if (cardElement) {
+      cardElement.addEventListener("click", function () {
+        clicked_more(gameIndex);
+      });
+    }
 
     let score = game.getScore();
       //extract last row of score
@@ -132,16 +144,30 @@ for (let i = 0; i < past_games.length; i++) {
     }
 
     // loop through players and add them to the table
+    const tableElement = document.getElementById(`table${gameIndex}`);
     for (let j = 0; j < p_s.length; j++) {
-      const row = $("<tr>");
-      row.append($("<th>").text(p_s[j].position));
-      row.append($("<td>").text(p_s[j].name));
-      row.append($("<td>").text(p_s[j].points));
-      $(`#table${gameIndex}`).append(row);
+      const row = document.createElement("tr");
+      
+      const positionCell = document.createElement("th");
+      positionCell.textContent = p_s[j].position.toString();
+      row.appendChild(positionCell);
+      
+      const nameCell = document.createElement("td");
+      nameCell.textContent = p_s[j].name;
+      row.appendChild(nameCell);
+      
+      const pointsCell = document.createElement("td");
+      pointsCell.textContent = p_s[j].points.toString();
+      row.appendChild(pointsCell);
+      
+      if (tableElement) tableElement.appendChild(row);
     }
 
-    //add class="bg-base-200 to the first row"
-    $(`#table${gameIndex} tr:first-child`).addClass("bg-info");
+    //add class="bg-info" to the first row
+    if (tableElement) {
+      const firstRow = tableElement.querySelector("tr:first-child");
+      if (firstRow) firstRow.classList.add("bg-info");
+    }
     
   } catch (error) {
     console.error(`Failed to load game at index ${i}:`, {
@@ -173,15 +199,15 @@ if (skippedGames.length > 0) {
   console.warn(`Skipped ${skippedGames.length} corrupted games:`, skippedGames);
   
   // Optional: Show user notification about skipped games
-  const notification = $(`
-    <div class="alert alert-warning mt-4">
+  const notification = document.createElement('div');
+  notification.className = "alert alert-warning mt-4";
+  notification.innerHTML = `
       <div>
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-2.186-.833-2.956 0L3.858 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
         <span>Warning: ${skippedGames.length} corrupted game(s) were skipped and not displayed. Check the console for details.</span>
-      </div>
-    </div>
-  `);
-  $("#past_games").prepend(notification);
+      </div>`;
+  const pastGamesElement = document.getElementById("past_games");
+  if (pastGamesElement) pastGamesElement.prepend(notification);
 }
 
 let Lgame: gamedata;
@@ -190,12 +216,18 @@ function clicked_more(i: number) {
   score_switch_view(4);
   view = 1;
   //hide past_games and remove hidden from score
-  $("#past_games").addClass("hidden");
-  $("#score").removeClass("hidden");
-  //remove hidden from del_game
-  $("#del_game").removeClass("hidden");
-  $("#share_game").removeClass("hidden");
-  $("#s_round").addClass("hidden");
+  const pastGamesElement = document.getElementById("past_games");
+  const scoreElement = document.getElementById("score");
+  const delGameElement = document.getElementById("del_game");
+  const shareGameElement = document.getElementById("share_game");
+  const sRoundElement = document.getElementById("s_round");
+  
+  if (pastGamesElement) pastGamesElement.classList.add("hidden");
+  if (scoreElement) scoreElement.classList.remove("hidden");
+  if (delGameElement) delGameElement.classList.remove("hidden");
+  if (shareGameElement) shareGameElement.classList.remove("hidden");
+  if (sRoundElement) sRoundElement.classList.add("hidden");
+  
   //get the game and store it in Lgame
   Lgame = games[i];
   Lgame.setStep(3);
@@ -203,85 +235,129 @@ function clicked_more(i: number) {
   history.replaceState({}, "", `?id=${Lgame.getID()}`);
   let players = Lgame.getPlayers();
   updatescore(players, Lgame as any);
-  $("#share_game").attr("href", `${location.origin}/share?id=${Lgame.getID()}`);
+  
+  const shareGameLink = document.getElementById("share_game") as HTMLAnchorElement;
+  if (shareGameLink) shareGameLink.href = `${location.origin}/share?id=${Lgame.getID()}`;
 }
 
 // Tab switching is now handled in score.ts
 
 //#endregion
 
-$("#tlbtn").on("click", () => {
-  if (view == 1) {
-    document.getElementById("nav_container").classList.add("hidden");
-    $("#score").addClass("hidden");
-    $("#past_games").removeClass("hidden");
-    $("#del_game").addClass("hidden");
-    view = 0;
+const tlBtn = document.getElementById("tlbtn");
+if (tlBtn) {
+  tlBtn.addEventListener("click", () => {
+    if (view == 1) {
+      document.getElementById("nav_container").classList.add("hidden");
+      const scoreElement = document.getElementById("score");
+      const pastGamesElement = document.getElementById("past_games");
+      const delGameElement = document.getElementById("del_game");
+      
+      if (scoreElement) scoreElement.classList.add("hidden");
+      if (pastGamesElement) pastGamesElement.classList.remove("hidden");
+      if (delGameElement) delGameElement.classList.add("hidden");
+      
+      view = 0;
 
-    confetti.reset();
-    //remove the id from the url
-    history.pushState({}, "", "/history/");
-  } else {
-    location.href = "/";
-  }
-});
+      confetti.reset();
+      //remove the id from the url
+      history.pushState({}, "", "/history/");
+    } else {
+      location.href = "/";
+    }
+  });
+}
 
 //advances modal
-$("#title").on("click", () => {
-  (document.getElementById("modal_settings") as HTMLDialogElement).open = true;
-});
+const titleElement = document.getElementById("title");
+if (titleElement) {
+  titleElement.addEventListener("click", () => {
+    (document.getElementById("modal_settings") as HTMLDialogElement).open = true;
+  });
+}
 
-$("#del_game").on("click", () => {
-  let id = Lgame.getID();
-  //remove all onclick attributes
-  $("#rremovedata").removeAttr("onclick");
-  //show modal_delete
-  (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
-  //change text
-  document.getElementById("modal_del_text").textContent =
-    "Do you really want to delete this game?";
-  document.getElementById("modal_del_infotext").textContent =
-    "This will remove all stored data about this game permanently!";
-  //add onclick to the button
-  $("#rremovedata").on("click", () => {
-    //delete the game from the local storage
-    let index = past_games.findIndex((game) => game.id === id);
-    past_games.splice(index, 1);
-    localStorage.setItem("recent_games", JSON.stringify(past_games));
-    //delete the game on the server
-    $.ajax({
-      url: `https://s.paulbertram.de/wizardshare.php?id=${Lgame.getID()}`,
-      type: "DELETE",
-      success: function () {
-        console.log("Success deleting");
-      },
-    })
-      .fail(function (jqXHR, textStatus, errorThrown) {
-        // Fehlerbehandlung hier
-        console.error("Error: " + textStatus, errorThrown);
-      })
-      .always(function () {
+const delGameButton = document.getElementById("del_game");
+if (delGameButton) {
+  delGameButton.addEventListener("click", () => {
+    let id = Lgame.getID();
+    const rremoveDataButton = document.getElementById("rremovedata");
+    
+    //remove all onclick attributes
+    if (rremoveDataButton) {
+      rremoveDataButton.removeAttribute("onclick");
+      // Remove any existing event listeners by cloning and replacing the element
+      const newButton = rremoveDataButton.cloneNode(true);
+      rremoveDataButton.parentNode?.replaceChild(newButton, rremoveDataButton);
+    }
+    
+    //show modal_delete
+    (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
+    //change text
+    const modalDelText = document.getElementById("modal_del_text");
+    const modalDelInfoText = document.getElementById("modal_del_infotext");
+    
+    if (modalDelText) modalDelText.textContent = "Do you really want to delete this game?";
+    if (modalDelInfoText) modalDelInfoText.textContent = "This will remove all stored data about this game permanently!";
+    
+    //add click event to the button
+    const newRremoveDataButton = document.getElementById("rremovedata");
+    if (newRremoveDataButton) {
+      newRremoveDataButton.addEventListener("click", () => {
+        //delete the game from the local storage
+        let index = past_games.findIndex((game) => game.id === id);
+        past_games.splice(index, 1);
+        localStorage.setItem("recent_games", JSON.stringify(past_games));
+        
+        //delete the game on the server
+        fetch(`https://s.paulbertram.de/wizardshare.php?id=${Lgame.getID()}`, {
+          method: "DELETE"
+        })
+        .then(() => {
+          console.log("Success deleting");
+        })
+        .catch((error) => {
+          console.error("Error deleting:", error);
+        })
+        .finally(() => {
+          location.reload();
+        });
+      });
+    }
+  });
+}
+
+const delAllButton = document.getElementById("del_all");
+if (delAllButton) {
+  delAllButton.addEventListener("click", () => {
+    const rremoveDataButton = document.getElementById("rremovedata");
+    
+    //remove all onclick attributes
+    if (rremoveDataButton) {
+      rremoveDataButton.removeAttribute("onclick");
+      // Remove any existing event listeners by cloning and replacing the element
+      const newButton = rremoveDataButton.cloneNode(true);
+      rremoveDataButton.parentNode?.replaceChild(newButton, rremoveDataButton);
+    }
+    
+    //show modal_delete
+    (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
+    //change text
+    const modalDelText = document.getElementById("modal_del_text");
+    const modalDelInfoText = document.getElementById("modal_del_infotext");
+    
+    if (modalDelText) modalDelText.textContent = "Do you really want to delete all data?";
+    if (modalDelInfoText) modalDelInfoText.textContent = "This will remove all locally stored data about current and past games permanently!";
+    
+    //add click event to the button
+    const newRremoveDataButton = document.getElementById("rremovedata");
+    if (newRremoveDataButton) {
+      newRremoveDataButton.addEventListener("click", () => {
+        localStorage.clear();
         location.reload();
       });
+    }
   });
-});
-
-$("#del_all").on("click", () => {
-  //remove all onclick attributes
-  $("#rremovedata").removeAttr("onclick");
-  //show modal_delete
-  (document.getElementById("modal_delete") as HTMLDialogElement).open = true;
-  //change text
-  document.getElementById("modal_del_text").textContent =
-    "Do you really want to delete all data?";
-  document.getElementById("modal_del_infotext").textContent =
-    "This will remove all locally stored data about current and past games permanently!";
-  //add onclick to the button
-  $("#rremovedata").on("click", () => {
-    localStorage.clear();
-    location.reload();
-  });
-});
+}
 
 //get url params
 const urlParams = new URLSearchParams(window.location.search);

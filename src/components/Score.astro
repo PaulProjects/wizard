@@ -195,59 +195,78 @@ import Celebration from "./Celebration.astro";
 <div class="pb-20"></div>
 <!-- Info modal -->
 <dialog id="modal_info" class="modal modal-top sm:modal-middle">
-	<form method="dialog" class="modal-box">
+	<form method="dialog" class="modal-box max-w-2xl">
 		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
 			>✕</button
 		>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Guide</h2>
-			<div class="prose">
-				<p class="mb-1 mt-5">
-					The Score Page offers various options to determine the best
-					player. Simply click on the icon to choose your preferred
-					method.
+			<div class="flex items-center gap-3 mb-6">
+				<Icon name="mdi:information-outline" class="w-8 h-8 text-primary" />
+				<h2 class="font-bold text-3xl">Score Page Guide</h2>
+			</div>
+			
+			<div class="w-full max-w-lg">
+				<p class="text-center text-base-content/80 mb-6">
+					The Score Page offers multiple ways to analyze game performance. 
+					Switch between different views using the tabs below.
 				</p>
-				<div class="mt-2">
-					<span>
-						<div class="w-10">
-							<Icon
-								name="mdi:format-list-numbered"
-								class="w-6 h-6"
-							/>
+
+				<!-- Tab Explanations -->
+				<div class="space-y-4">
+					<!-- Overview Tab -->
+					<div class="flex items-start gap-4 p-4 bg-base-200 rounded-lg">
+						<div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+							<Icon name="mdi:format-list-numbered" class="w-6 h-6 text-primary" />
 						</div>
-						Displays the players sorted by their score
-					</span>
+						<div class="flex-1">
+							<h3 class="font-semibold text-lg mb-1">Overview</h3>
+							<p class="text-sm text-base-content/70">
+								View all players ranked by their current scores. Click on any player card to see detailed statistics.
+							</p>
+						</div>
+					</div>
+
+					<!-- Chart Tab -->
+					<div class="flex items-start gap-4 p-4 bg-base-200 rounded-lg">
+						<div class="flex-shrink-0 w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+							<Icon name="mdi:chart-timeline-variant" class="w-6 h-6 text-secondary" />
+						</div>
+						<div class="flex-1">
+							<h3 class="font-semibold text-lg mb-1">Score Chart</h3>
+							<p class="text-sm text-base-content/70 mb-2">
+								Track score progression throughout the game with an interactive line chart.
+							</p>
+						</div>
+					</div>
+
+					<!-- Analytics Tab -->
+					<div class="flex items-start gap-4 p-4 bg-base-200 rounded-lg">
+						<div class="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+							<Icon name="mdi:magnify-scan" class="w-6 h-6 text-accent" />
+						</div>
+						<div class="flex-1">
+							<h3 class="font-semibold text-lg mb-1">Game Analytics</h3>
+							<p class="text-sm text-base-content/70">
+								Deep dive into game statistics including best/worst rounds and individual player performance metrics.
+							</p>
+						</div>
+					</div>
 				</div>
 
-				<div class="mt-2">
-					<div class="flex flex-row">
-						<div class="w-10">
-							<Icon name="mdi:poll" class="w-6 h-6" />
-						</div>
-						<p>+</p>
-						<div class="w-10">
-							<Icon
-								name="mdi:chart-timeline-variant"
-								class="w-6 h-6"
-							/>
-						</div>
-					</div><p>
-						Displays a bar chart and a line chart of the score over
-						the rounds
-						<br /><span class="text-secondary text-xs"
-							>(both charts looks better in panorama mode and are
-							disabled for the first two rounds)</span
-						>
-					</p>
+				<!-- Additional Tips -->
+				<div class="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+					<h4 class="font-medium text-sm mb-2 flex items-center gap-2">
+						<Icon name="mdi:lightbulb-outline" class="w-4 h-4" />
+						Tips
+					</h4>
+					<ul class="text-xs text-base-content/70 space-y-1">
+						<li>• The <span class="badge badge-secondary badge-xs">blue highlight</span> indicates the current dealer</li>
+						<li>• Tap player cards in Overview to see detailed stats</li>
+						<li>• The Chart and Analytics tabs are Available after the second round</li>
+						<li>• Chart view works best in landscape mode</li>
+						<li>• The bet indicators to see over/under predictions</li>
+					</ul>
 				</div>
-				<div class="mt-2">
-					<div class="w-10">
-						<Icon name="mdi:magnify-scan" class="w-6 h-6" />
-					</div><p>Displays a detailed analysis of the game</p>
-				</div>
-				<span class="badge badge-secondary mt-5"
-					>And this blue color highlights who the dealer is</span
-				>
 			</div>
 		</div>
 	</form>
@@ -279,12 +298,6 @@ import Celebration from "./Celebration.astro";
 			<h2 class="font-bold text-3xl mt-2" id="modal_player_name">
 				Player Name
 			</h2>
-			<div
-				class="badge badge-secondary text-lg px-4 py-2 mt-2"
-				id="modal_player_rank"
-			>
-				Rank #1
-			</div>
 		</div>
 
 		<!-- Player Summary Stats -->
@@ -329,21 +342,7 @@ import Celebration from "./Celebration.astro";
 			</div>
 		</div>
 
-		<!-- Performance Indicators -->
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4 modal_player_stat">
-			<div class="bg-success/10 rounded-lg p-4">
-				<h4 class="font-semibold text-success mb-2">Best Round</h4>
-				<p class="text-sm" id="modal_best_round">
-					Round data will appear here
-				</p>
-			</div>
-			<div class="bg-error/10 rounded-lg p-4">
-				<h4 class="font-semibold text-error mb-2">Worst Round</h4>
-				<p class="text-sm" id="modal_worst_round">
-					Round data will appear here
-				</p>
-			</div>
-		</div>
+
 	</form>
 	<form method="dialog" class="modal-backdrop">
 		<button>close</button>
@@ -394,7 +393,7 @@ import Celebration from "./Celebration.astro";
 							<th>Round</th>
 							<th>Bet</th>
 							<th>Tricks</th>
-							<th class="text-center">Points</th>
+							<th class="text-center">Score Change</th>
 						</tr>
 					</thead>
 					<tbody id="edit_rounds_table">
