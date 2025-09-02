@@ -99,7 +99,7 @@
                                     JSON.stringify(past_games),
                                 );
                             } catch (e) {
-                                console.log(e);
+                                try { (window as any)['wizardLogger']?.warn?.('Failed to merge past games', { error: String(e) }); } catch {}
                             }
                         } else if (k == "game") {
                             if (

@@ -1,4 +1,5 @@
 import Sortable from "sortablejs";
+import { Logger } from "./logger";
 
 // Global state
 let crowd_chaos = false;
@@ -8,10 +9,16 @@ let valid_2 = true;
 // Cached DOM selectors
 const playerlist = document.getElementById("playerlist") as HTMLElement;
 const showmodal = document.getElementById("showmodal") as HTMLButtonElement;
-const startButton = document.getElementById("start_button") as HTMLButtonElement;
+const startButton = document.getElementById(
+	"start_button"
+) as HTMLButtonElement;
 const alertPlayers = document.getElementById("alert_players") as HTMLElement;
-const alertInvalidPlayers = document.getElementById("alert_invalidplayers") as HTMLElement;
-const rangeContainer = document.getElementById("range_container") as HTMLElement;
+const alertInvalidPlayers = document.getElementById(
+	"alert_invalidplayers"
+) as HTMLElement;
+const rangeContainer = document.getElementById(
+	"range_container"
+) as HTMLElement;
 
 // Initialize
 alertInvalidPlayers.style.display = "none";
@@ -32,6 +39,7 @@ if (roundsAuto?.checked) {
 document.getElementById("showmodal").addEventListener("click", function () {
 	document.getElementById("input_playername").focus();
 	populateRecentPlayers();
+	Logger.event("player.add.modal.open");
 });
 
 function populateRecentPlayers() {
@@ -40,8 +48,12 @@ function populateRecentPlayers() {
 	recentPlayersContainer.innerHTML = "";
 
 	recent_players.slice(0, 10).forEach((player, i) => {
-		const playerInputs = Array.from(playerlist.querySelectorAll<HTMLInputElement>(".player-name"));
-		const playerExists = playerInputs.some(input => input.value === player);
+		const playerInputs = Array.from(
+			playerlist.querySelectorAll<HTMLInputElement>(".player-name")
+		);
+		const playerExists = playerInputs.some(
+			(input) => input.value === player
+		);
 
 		if (!playerExists) {
 			const button = document.createElement("button");
@@ -53,7 +65,9 @@ function populateRecentPlayers() {
 	});
 }
 
-const ruleCrowdChaos = document.getElementById("rule_crowdchaos") as HTMLInputElement;
+const ruleCrowdChaos = document.getElementById(
+	"rule_crowdchaos"
+) as HTMLInputElement;
 ruleCrowdChaos.addEventListener("click", function () {
 	crowd_chaos = this.checked;
 	const alertPlayersText = document.getElementById("alert_players_text");
@@ -64,28 +78,37 @@ ruleCrowdChaos.addEventListener("click", function () {
 		showmodal.textContent = "New Player";
 	}
 	checkPlayers();
+	Logger.event("settings.change", {
+		setting: "rule_crowdchaos",
+		value: this.checked,
+	});
 });
 
 //function user presses enter
 document.addEventListener("keyup", function (event) {
 	if (event.which === 13) {
-		const inputPlayername = document.getElementById("input_playername") as HTMLInputElement;
+		const inputPlayername = document.getElementById(
+			"input_playername"
+		) as HTMLInputElement;
 		addPlayer(inputPlayername.value);
 		//open the modal again and focus the input field
 		(
 			document.getElementById("modal_addplayer") as HTMLDialogElement
 		).showModal();
 		inputPlayername.focus();
+		Logger.event("player.add.quick");
 	}
 });
 
 //method to add a new player
 document.getElementById("addPlayer").addEventListener("click", function () {
-	const inputPlayername = document.getElementById("input_playername") as HTMLInputElement;
+	const inputPlayername = document.getElementById(
+		"input_playername"
+	) as HTMLInputElement;
 	addPlayer(inputPlayername.value);
 });
 
-document.addEventListener("click", function(event) {
+document.addEventListener("click", function (event) {
 	if ((event.target as HTMLElement).id === "ok_invalidplayer") {
 		(
 			document.getElementById("modal_addplayer") as HTMLDialogElement
@@ -94,7 +117,7 @@ document.addEventListener("click", function(event) {
 });
 
 //validate the playername on edit of the input field with the class player-name
-document.addEventListener("input", function(event) {
+document.addEventListener("input", function (event) {
 	const target = event.target as HTMLInputElement;
 	if (target.classList.contains("player-name")) {
 		const playerName = target.value.trim();
@@ -117,12 +140,13 @@ document.addEventListener("input", function(event) {
 });
 
 //method when player clicks any checkbox with the class dealer-checkbox
-document.addEventListener("click", function(event) {
+document.addEventListener("click", function (event) {
 	const target = event.target as HTMLInputElement;
 	if (target.classList.contains("dealer-checkbox")) {
 		//uncheck all other checkboxes
-		const allDealerCheckboxes = document.querySelectorAll<HTMLInputElement>(".dealer-checkbox");
-		allDealerCheckboxes.forEach(checkbox => {
+		const allDealerCheckboxes =
+			document.querySelectorAll<HTMLInputElement>(".dealer-checkbox");
+		allDealerCheckboxes.forEach((checkbox) => {
 			if (checkbox !== target) {
 				checkbox.checked = false;
 			}
@@ -135,11 +159,12 @@ document.addEventListener("click", function(event) {
 });
 
 //when user clicks on the remove button
-document.addEventListener("click", function(event) {
+document.addEventListener("click", function (event) {
 	const target = event.target as HTMLElement;
 	if (target.classList.contains("remove-player")) {
 		const parent = target.parentElement;
-		const dealerCheckbox = parent.querySelector<HTMLInputElement>(".dealer-checkbox");
+		const dealerCheckbox =
+			parent.querySelector<HTMLInputElement>(".dealer-checkbox");
 		const wasDealer = dealerCheckbox?.checked || false;
 
 		parent.remove();
@@ -147,7 +172,10 @@ document.addEventListener("click", function(event) {
 		// If removed player was dealer, make first remaining player dealer
 		const remainingPlayers = playerlist.children;
 		if (wasDealer && remainingPlayers.length > 0) {
-			const firstPlayerDealer = remainingPlayers[0].querySelector<HTMLInputElement>(".dealer-checkbox");
+			const firstPlayerDealer =
+				remainingPlayers[0].querySelector<HTMLInputElement>(
+					".dealer-checkbox"
+				);
 			if (firstPlayerDealer) {
 				firstPlayerDealer.checked = true;
 			}
@@ -162,24 +190,36 @@ document.addEventListener("click", function(event) {
 	}
 });
 //if Checkbox with id Random_Dealer is active hide all checkboxes with the class dealer-checkbox
-const ruleRandomDealer = document.getElementById("rule_random_dealer") as HTMLInputElement;
+const ruleRandomDealer = document.getElementById(
+	"rule_random_dealer"
+) as HTMLInputElement;
 ruleRandomDealer.addEventListener("click", function () {
-	const dealerCheckboxes = document.querySelectorAll<HTMLInputElement>(".dealer-checkbox");
-	dealerCheckboxes.forEach(checkbox => {
+	const dealerCheckboxes =
+		document.querySelectorAll<HTMLInputElement>(".dealer-checkbox");
+	dealerCheckboxes.forEach((checkbox) => {
 		checkbox.style.display = this.checked ? "none" : "";
+	});
+	Logger.event("settings.change", {
+		setting: "rule_random_dealer",
+		value: this.checked,
 	});
 });
 
 //listen for click on all divs with the class optionbox
-document.addEventListener("click", function(event) {
+document.addEventListener("click", function (event) {
 	const target = event.target as HTMLElement;
 	if (target.classList.contains("optionbox")) {
 		//check if the user clicked on the checkbox itself
-		if ((event.target as HTMLElement).tagName === "INPUT" && (event.target as HTMLInputElement).type === "checkbox") {
+		if (
+			(event.target as HTMLElement).tagName === "INPUT" &&
+			(event.target as HTMLInputElement).type === "checkbox"
+		) {
 			return;
 		}
 		//get the checkbox inside the div
-		let checkbox = target.querySelector<HTMLInputElement>("input[type='checkbox']");
+		let checkbox = target.querySelector<HTMLInputElement>(
+			"input[type='checkbox']"
+		);
 		//trigger a click on the checkbox
 		checkbox?.click();
 	}
@@ -193,7 +233,8 @@ startButton.addEventListener("click", function () {
 	let players = [];
 	const playerElements = playerlist.children;
 	for (let i = 0; i < playerElements.length; i++) {
-		const playerNameInput = playerElements[i].querySelector<HTMLInputElement>(".player-name");
+		const playerNameInput =
+			playerElements[i].querySelector<HTMLInputElement>(".player-name");
 		if (playerNameInput) {
 			players.push(playerNameInput.value);
 		}
@@ -208,12 +249,17 @@ startButton.addEventListener("click", function () {
 
 	let dealer = 0;
 	//find out which player is the dealer
-	const ruleRandomDealerEl = document.getElementById("rule_random_dealer") as HTMLInputElement;
+	const ruleRandomDealerEl = document.getElementById(
+		"rule_random_dealer"
+	) as HTMLInputElement;
 	if (ruleRandomDealerEl.checked) {
 		dealer = Math.floor(Math.random() * players.length);
 	} else {
 		for (let i = 0; i < playerElements.length; i++) {
-			const dealerCheckbox = playerElements[i].querySelector<HTMLInputElement>(".dealer-checkbox");
+			const dealerCheckbox =
+				playerElements[i].querySelector<HTMLInputElement>(
+					".dealer-checkbox"
+				);
 			if (dealerCheckbox?.checked) {
 				break;
 			}
@@ -222,9 +268,13 @@ startButton.addEventListener("click", function () {
 	}
 
 	let round_amount: number;
-	const roundsCustom = document.getElementById("rounds_custom") as HTMLInputElement;
+	const roundsCustom = document.getElementById(
+		"rounds_custom"
+	) as HTMLInputElement;
 	if (roundsCustom.checked) {
-		const roundsCustomRange = document.getElementById("rounds_custom_range") as HTMLInputElement;
+		const roundsCustomRange = document.getElementById(
+			"rounds_custom_range"
+		) as HTMLInputElement;
 		round_amount = parseInt(roundsCustomRange.value);
 	} else {
 		round_amount = amountofrounds(players.length);
@@ -233,11 +283,20 @@ startButton.addEventListener("click", function () {
 	let game = {
 		dealer: dealer,
 		rule_1: (document.getElementById("rule_1") as HTMLInputElement).checked,
-		rule_random_dealer: (document.getElementById("rule_random_dealer") as HTMLInputElement).checked,
-		rule_expansion: (document.getElementById("rule_expansion") as HTMLInputElement).checked,
-		rule_custom_rounds: (document.getElementById("rounds_custom") as HTMLInputElement).checked,
-		rule_crowdchaos: (document.getElementById("rule_crowdchaos") as HTMLInputElement).checked,
-		rule_altcount: (document.getElementById("calc_alt") as HTMLInputElement).checked,
+		rule_random_dealer: (
+			document.getElementById("rule_random_dealer") as HTMLInputElement
+		).checked,
+		rule_expansion: (
+			document.getElementById("rule_expansion") as HTMLInputElement
+		).checked,
+		rule_custom_rounds: (
+			document.getElementById("rounds_custom") as HTMLInputElement
+		).checked,
+		rule_crowdchaos: (
+			document.getElementById("rule_crowdchaos") as HTMLInputElement
+		).checked,
+		rule_altcount: (document.getElementById("calc_alt") as HTMLInputElement)
+			.checked,
 		round: 1,
 		max_rounds: round_amount,
 		players: players,
@@ -259,6 +318,11 @@ startButton.addEventListener("click", function () {
 	}
 
 	localStorage.setItem("game", JSON.stringify(game));
+	Logger.event("game.start", {
+		players: players.length,
+		maxRounds: round_amount,
+		dealer,
+	});
 	location.href = "/game/";
 });
 
@@ -294,7 +358,8 @@ if (past_games == null || past_games.length == 0) {
 			//add a div containing the date and underneath the list of players and the rules
 			const presetDiv = document.createElement("div");
 			presetDiv.id = `preset${i}`;
-			presetDiv.className = "flex flex-col p-5 border-2 rounded border-white w-full hover:bg-sky-700";
+			presetDiv.className =
+				"flex flex-col p-5 border-2 rounded border-white w-full hover:bg-sky-700";
 			presetDiv.innerHTML = `
           <span></span>
           <div class='flex flex-col w-full'>
@@ -307,7 +372,9 @@ if (past_games == null || past_games.length == 0) {
 
 			// Safely set the date
 			const spanElement = presetDiv.querySelector("span");
-			spanElement.textContent = new Date(game.time_started).toLocaleString();
+			spanElement.textContent = new Date(
+				game.time_started
+			).toLocaleString();
 
 			// Safely add player names
 			const playerContainer = presetDiv.querySelector(".overflow-auto");
@@ -348,21 +415,33 @@ if (past_games == null || past_games.length == 0) {
 				];
 
 				ruleSettings.forEach(({ selector, value }) => {
-					const element = document.querySelector(selector) as HTMLInputElement;
+					const element = document.querySelector(
+						selector
+					) as HTMLInputElement;
 					if (element) element.checked = value;
 				});
 
 				if (!rule_altcount) {
-					const calcClassic = document.getElementById("calc_classic") as HTMLInputElement;
+					const calcClassic = document.getElementById(
+						"calc_classic"
+					) as HTMLInputElement;
 					calcClassic.checked = true;
 				}
 
 				if (rule_custom_rounds) {
-					const roundsCustom = document.getElementById("rounds_custom") as HTMLInputElement;
-					const roundsAuto = document.getElementById("rounds_auto") as HTMLInputElement;
-					const roundsCustomRange = document.getElementById("rounds_custom_range") as HTMLInputElement;
-					const rangeVal = document.getElementById("range_val") as HTMLInputElement;
-					
+					const roundsCustom = document.getElementById(
+						"rounds_custom"
+					) as HTMLInputElement;
+					const roundsAuto = document.getElementById(
+						"rounds_auto"
+					) as HTMLInputElement;
+					const roundsCustomRange = document.getElementById(
+						"rounds_custom_range"
+					) as HTMLInputElement;
+					const rangeVal = document.getElementById(
+						"range_val"
+					) as HTMLInputElement;
+
 					roundsCustom.checked = true;
 					roundsAuto.checked = false;
 					rangeContainer.style.display = "block";
@@ -370,9 +449,13 @@ if (past_games == null || past_games.length == 0) {
 					roundsCustomRange.value = max_rounds.toString();
 					rangeVal.textContent = max_rounds.toString();
 				} else {
-					const roundsCustom = document.getElementById("rounds_custom") as HTMLInputElement;
-					const roundsAuto = document.getElementById("rounds_auto") as HTMLInputElement;
-					
+					const roundsCustom = document.getElementById(
+						"rounds_custom"
+					) as HTMLInputElement;
+					const roundsAuto = document.getElementById(
+						"rounds_auto"
+					) as HTMLInputElement;
+
 					roundsCustom.checked = false;
 					roundsAuto.checked = true;
 					rangeContainer.style.display = "none";
@@ -381,7 +464,9 @@ if (past_games == null || past_games.length == 0) {
 				modal_edit.close();
 			});
 		} catch (e) {
-			console.log(e);
+			Logger.warn("Failed loading preset", {
+				error: (e as Error)?.message,
+			});
 		}
 	}
 }
@@ -409,6 +494,7 @@ const titleElement = document.getElementById("title");
 titleElement.addEventListener("click", function () {
 	//show modal_edit modal
 	modal_edit.showModal();
+	Logger.event("settings.open");
 });
 
 //if the playlist is empty, hide the button
@@ -439,8 +525,12 @@ roundsAutoBox.addEventListener("click", function () {
 	toggleRangeContainer(false);
 	const val = amountofrounds(playerlist.children.length);
 	const rangeVal = document.getElementById("range_val") as HTMLInputElement;
-	const roundsCustomRange = document.getElementById("rounds_custom_range") as HTMLInputElement;
-	const roundsAuto = document.getElementById("rounds_auto") as HTMLInputElement;
+	const roundsCustomRange = document.getElementById(
+		"rounds_custom_range"
+	) as HTMLInputElement;
+	const roundsAuto = document.getElementById(
+		"rounds_auto"
+	) as HTMLInputElement;
 	rangeVal.value = val.toString();
 	roundsCustomRange.value = val.toString();
 	roundsAuto.checked = true;
@@ -449,11 +539,15 @@ roundsAutoBox.addEventListener("click", function () {
 const roundsCustomBox = document.getElementById("rounds_custom_box");
 roundsCustomBox.addEventListener("click", function () {
 	toggleRangeContainer(true);
-	const roundsCustom = document.getElementById("rounds_custom") as HTMLInputElement;
+	const roundsCustom = document.getElementById(
+		"rounds_custom"
+	) as HTMLInputElement;
 	roundsCustom.checked = true;
 });
 
-const roundsCustomRange = document.getElementById("rounds_custom_range") as HTMLInputElement;
+const roundsCustomRange = document.getElementById(
+	"rounds_custom_range"
+) as HTMLInputElement;
 roundsCustomRange.addEventListener("input", function () {
 	const rangeVal = document.getElementById("range_val") as HTMLInputElement;
 	rangeVal.value = this.value;
@@ -469,7 +563,9 @@ document.onreadystatechange = function () {
 const handleCalcBoxClick = (targetId: string) => (event) => {
 	const target = event.target as HTMLElement;
 	if (target.id !== targetId.replace("#", "")) {
-		const targetElement = document.querySelector(targetId) as HTMLInputElement;
+		const targetElement = document.querySelector(
+			targetId
+		) as HTMLInputElement;
 		targetElement?.click();
 	}
 };
@@ -519,7 +615,7 @@ function addPlayer(playername: string) {
 		(
 			document.getElementById("alert_invalidplayer") as HTMLDialogElement
 		).showModal();
-		console.log("invalid playername" + playername);
+		Logger.warn("invalid playername", { playername });
 		return;
 	}
 
@@ -532,7 +628,8 @@ function addPlayer(playername: string) {
 	}
 
 	const playerDiv = document.createElement("div");
-	playerDiv.className = "appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box";
+	playerDiv.className =
+		"appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box";
 	playerDiv.innerHTML = `
         <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent player-name' aria-label="playername">
         <div class='flex items-center gap-2 px-2'>
@@ -540,28 +637,37 @@ function addPlayer(playername: string) {
           <span class='text-xs font-medium text-gray-400 whitespace-nowrap'>Dealer</span>
         </div>
         <img src='/icon/trash.svg' class='inv h-2/4 pl-2 remove-player' />`;
-	
+
 	playerlist.appendChild(playerDiv);
 
-	const inputPlayername = document.getElementById("input_playername") as HTMLInputElement;
+	const inputPlayername = document.getElementById(
+		"input_playername"
+	) as HTMLInputElement;
 	inputPlayername.value = "";
-	
-	const lastPlayerInput = playerDiv.querySelector<HTMLInputElement>(".player-name");
+
+	const lastPlayerInput =
+		playerDiv.querySelector<HTMLInputElement>(".player-name");
 	if (lastPlayerInput) {
 		lastPlayerInput.value = playername;
 	}
 
 	// Check if random dealer is enabled and hide the checkbox if it is
-	const ruleRandomDealerEl = document.getElementById("rule_random_dealer") as HTMLInputElement;
+	const ruleRandomDealerEl = document.getElementById(
+		"rule_random_dealer"
+	) as HTMLInputElement;
 	if (ruleRandomDealerEl.checked) {
-		const dealerCheckbox = playerDiv.querySelector<HTMLInputElement>(".dealer-checkbox");
+		const dealerCheckbox =
+			playerDiv.querySelector<HTMLInputElement>(".dealer-checkbox");
 		if (dealerCheckbox) {
 			dealerCheckbox.style.display = "none";
 		}
 	}
 
 	if (playerlist.children.length === 1) {
-		const firstPlayerDealer = playerlist.children[0].querySelector<HTMLInputElement>(".dealer-checkbox");
+		const firstPlayerDealer =
+			playerlist.children[0].querySelector<HTMLInputElement>(
+				".dealer-checkbox"
+			);
 		if (firstPlayerDealer) {
 			firstPlayerDealer.checked = true;
 		}

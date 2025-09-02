@@ -119,7 +119,7 @@ import Celebration from "./Celebration.astro";
 					<div class="flex justify-end flex-shrink-0">
 						<button
 							class="btn h-10 px-3"
-							onclick="modal_settings.showModal();"
+							onclick="modal_settings.showModal(); try { window.wizardLogger && window.wizardLogger.event && window.wizardLogger.event('settings.open'); } catch (e) {}"
 						>
 							<Icon name="mdi:cog" class="w-5 h-5" />
 						</button>

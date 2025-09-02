@@ -238,7 +238,7 @@ import ImportGame from "../components/ImportGame.astro";
       try {
         gamedata.fromJSONString(localStorage.getItem("game"));
       } catch (error) {
-        console.log("Error validating game data: " + error);
+        try { (window as any)['wizardLogger'] && (window as any)['wizardLogger'].warn && (window as any)['wizardLogger'].warn('Error validating game data', { error: String(error) }); } catch (e) {}
         return false;
       }
       return true;

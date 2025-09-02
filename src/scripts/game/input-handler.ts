@@ -273,7 +273,7 @@ export class InputHandler {
 
 		// Add players in dealer order
 		this.addPlayersInDealerOrder(maxValue);
-		
+
 		// Try to restore previously entered values
 		const restored = this.restoreTemporaryInput();
 		if (!restored) {
@@ -330,9 +330,9 @@ export class InputHandler {
 		const round = this.game.getRound();
 		const step = this.game.getStep();
 		const key = this.getTemporaryInputKey(round, step);
-		
+
 		// Only save if there are actually some non-zero values
-		if (this.scores.some(score => score > 0)) {
+		if (this.scores.some((score) => score > 0)) {
 			this.temporaryInputs.set(key, [...this.scores]);
 		}
 	}
@@ -341,7 +341,7 @@ export class InputHandler {
 		const round = this.game.getRound();
 		const step = this.game.getStep();
 		const key = this.getTemporaryInputKey(round, step);
-		
+
 		const savedInputs = this.temporaryInputs.get(key);
 		if (savedInputs && savedInputs.length === this.players.length) {
 			this.scores = [...savedInputs];
@@ -359,13 +359,18 @@ export class InputHandler {
 		this.temporaryInputs.delete(key);
 	}
 
-	private getTemporaryInputKey(round: number, step: GameStep | undefined): string {
-		return `${round}_${step || 'unknown'}`;
+	private getTemporaryInputKey(
+		round: number,
+		step: GameStep | undefined
+	): string {
+		return `${round}_${step || "unknown"}`;
 	}
 
 	private restoreInputFieldValues(): void {
 		this.scores.forEach((score, playerIndex) => {
-			const rangeInput = document.getElementById(`input_range_${playerIndex}`) as HTMLInputElement;
+			const rangeInput = document.getElementById(
+				`input_range_${playerIndex}`
+			) as HTMLInputElement;
 			if (rangeInput) {
 				rangeInput.value = score.toString();
 				this.updateInsetHighlight(playerIndex, score);

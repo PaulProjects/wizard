@@ -5,6 +5,7 @@
 
 import type { UIState, NavigationState, ClickHandler } from "./types.js";
 import { ScoreView, GameDisplay, GameStep } from "./types.js";
+import { Logger } from "../logger.js";
 
 export class UIStateManager {
 	private state: UIState;
@@ -245,7 +246,7 @@ export class UIStateManager {
 
 	// Game step specific UI updates
 	updateUIForStep(step: GameStep): void {
-		console.log(`Updating UI for step: ${step}`);
+		Logger.debug(`Updating UI for step`, { step });
 		switch (step) {
 			case GameStep.PLACE_BETS:
 				this.setNavigationText("Place Bets");

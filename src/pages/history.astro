@@ -27,15 +27,65 @@ import ImportGame from "../components/ImportGame.astro";
           </button>
         </div>
         <div id="title" class="prose prose-sm md:prose-base w-full flex-grow">
-          <h1 class="text-center text-6xl">Past Games</h1>
+          <h1 class="text-center text-6xl">Game History</h1>
         </div>
       </div>
 
-      <!--  -->
+      <!-- Tab Navigation -->
+      <div class="flex justify-center mb-6" id="tab_navigation_container">
+        <div class="bg-base-200 rounded-lg flex gap-1 p-1 w-full max-w-md">
+          <button class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10 active" id="past-games-tab">
+            <Icon name="mdi:history" class="w-5 h-5 flex-shrink-0" />
+            <span class="tab-label text-sm pl-2 whitespace-nowrap">Past Games</span>
+          </button>
+          <button class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10" id="player-analytics-tab">
+            <Icon name="mdi:account-group" class="w-5 h-5 flex-shrink-0" />
+            <span class="tab-label text-sm pl-2 whitespace-nowrap">Player Analytics</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Past Games View -->
       <div
         id="past_games"
         class="flex flex-col flex-wrap items-center justify-center"
       >
+      </div>
+
+      <!-- Player Analytics View -->
+      <div
+        id="player_analytics"
+        class="hidden"
+      >
+        <div class="mb-4 flex flex-col sm:flex-row gap-4 justify-center items-end">
+          <div class="form-control w-full md:max-w-xs">
+            <label class="label">
+              <span class="label-text">Search players:</span>
+            </label>
+            <input 
+              type="text" 
+              placeholder="Enter player name..." 
+              class="input input-bordered w-full" 
+              id="player-search"
+            />
+          </div>
+          <div class="form-control w-full md:max-w-xs">
+            <label class="label">
+              <span class="label-text">Sort by:</span>
+            </label>
+            <select class="select select-bordered" id="sort-select">
+              <!-- Options will be populated by JavaScript -->
+            </select>
+          </div>
+        </div>
+        
+        <div id="player-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Player cards will be populated by JavaScript -->
+        </div>
+        
+        <div id="analytics-summary" class="mt-6 text-center text-sm opacity-70">
+          <!-- Summary will be populated by JavaScript -->
+        </div>
       </div>
     </div>
   </div>
@@ -96,6 +146,22 @@ import ImportGame from "../components/ImportGame.astro";
       <button>close</button>
     </form>
   </dialog>
+  <!-- End of Delete modal -->
+  
+  <!-- Player Details Modal -->
+  <dialog id="player_details_modal" class="modal">
+    <form method="dialog" class="modal-box max-w-2xl">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+      <div id="player-details-content">
+        <!-- Player details will be populated by JavaScript -->
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  <!-- End of Player Details Modal -->
+  
   <ImportGame />
 </Layout>
 <script>
@@ -131,7 +197,7 @@ import ImportGame from "../components/ImportGame.astro";
     opacity: 1;
   }
   .card--hover {
-    padding: 60px 0;
+    padding: 10px 0;
     text-align: center;
     opacity: 0.6;
     transition: 0.25s ease;
@@ -159,5 +225,31 @@ import ImportGame from "../components/ImportGame.astro";
     bottom: 0;
     opacity: 0;
     transition: 0.25s ease;
+  }
+
+  /* Custom tab styling to match Score.astro */
+  .tab-btn {
+    color: hsl(var(--bc) / 0.6);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .tab-btn:hover {
+    color: hsl(var(--bc));
+    background-color: hsl(var(--p) / 0.1);
+    box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.15);
+  }
+
+  .tab-btn.active {
+    @apply bg-white text-neutral;
+  }
+
+  /* Tab label visibility for mobile */
+  @media screen and (max-width: 640px) {
+    .tab-label {
+      display: none;
+    }
   }
 </style>
