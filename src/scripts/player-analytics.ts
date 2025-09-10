@@ -17,6 +17,8 @@ export interface PlayerStatistics {
 	lowestScore: number;
 	bestGameId?: string;
 	worstGameId?: string;
+	averageBet?: number; // average bet across all completed rounds
+	averageBetDeviation?: number; // average of (bet - tricks), positive => overbet, negative => underbet
 }
 
 export interface SortOption {
@@ -50,6 +52,9 @@ export class PlayerAnalytics {
 				totalRounds: number;
 				scores: number[];
 				gameIds: string[];
+				betsSum: number; // cumulative sum of bets
+				betDeviationSum: number; // cumulative sum of (bet - tricks)
+				betRounds: number; // number of rounds with both bet & trick
 			}
 		>();
 
@@ -107,6 +112,9 @@ export class PlayerAnalytics {
 			}
 
 			// Update statistics for each player in this game
+			const bets = game.getBets();
+			const tricks = game.getTricks();
+
 			for (let i = 0; i < players.length; i++) {
 				const playerName = players[i];
 				const playerKey = playerName.toLowerCase(); // Use lowercase for grouping
@@ -124,6 +132,9 @@ export class PlayerAnalytics {
 						totalRounds: 0,
 						scores: [],
 						gameIds: [],
+						betsSum: 0,
+						betDeviationSum: 0,
+						betRounds: 0,
 					});
 				}
 
@@ -135,6 +146,19 @@ export class PlayerAnalytics {
 				stats.gameIds.push(game.getID() || "");
 				stats.totalRounds += gameRounds;
 				if (isWinner) stats.wins++;
+
+				// Aggregate bet performance: iterate rounds where both bet & trick exist
+				for (let r = 0; r < bets.length; r++) {
+					if (tricks.length > r && bets[r] && tricks[r]) {
+						const betVal = bets[r][i];
+						const trickVal = tricks[r][i];
+						if (typeof betVal === "number" && typeof trickVal === "number") {
+							stats.betsSum += betVal;
+							stats.betDeviationSum += betVal - trickVal; // positive => overestimation
+							stats.betRounds++;
+						}
+					}
+				}
 			}
 		}
 
@@ -199,6 +223,18 @@ export class PlayerAnalytics {
 				lowestScore,
 				bestGameId,
 				worstGameId,
+				averageBet:
+					rawStats.betRounds > 0
+						? Number((rawStats.betsSum / rawStats.betRounds).toFixed(2))
+						: undefined,
+				averageBetDeviation:
+					rawStats.betRounds > 0
+						? Number(
+							(
+								rawStats.betDeviationSum / rawStats.betRounds
+							).toFixed(2)
+						  )
+						: undefined,
 			});
 		}
 	}

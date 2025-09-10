@@ -222,6 +222,11 @@ function clicked_more(i: number) {
 	document.getElementById("nav_container").classList.remove("hidden");
 	score_switch_view(4);
 	view = 1;
+	// Indicate that we are viewing a finished game from the history page.
+	// This flag is used by score/confetti logic to shorten celebration.
+	(globalThis as any).historyPageViewing = true;
+	// Allow a fresh (single) short confetti burst each time a card is opened.
+	(globalThis as any).historyConfettiShown = false;
 	//hide past_games and remove hidden from score
 	const pastGamesElement = document.getElementById("past_games");
 	const scoreElement = document.getElementById("score");
@@ -271,6 +276,16 @@ if (tlBtn) {
 			const tabNavigationElement = document.getElementById(
 				"tab_navigation_container"
 			);
+
+				// Leaving detailed view: clear history confetti flags
+				(globalThis as any).historyPageViewing = false;
+				(globalThis as any).historyConfettiShown = false;
+
+				// Restore tab navigation active state to Past Games tab
+				const pastGamesTab = document.getElementById("past-games-tab");
+				const playerAnalyticsTab = document.getElementById("player-analytics-tab");
+				if (pastGamesTab) pastGamesTab.classList.add("active");
+				if (playerAnalyticsTab) playerAnalyticsTab.classList.remove("active");
 
 			if (scoreElement) scoreElement.classList.add("hidden");
 			if (pastGamesElement) pastGamesElement.classList.remove("hidden");

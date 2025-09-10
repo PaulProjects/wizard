@@ -637,6 +637,23 @@ export function updatescore(players: any, game: gamedata) {
 		const navtext = document.getElementById("navtext");
 		if (navtext) navtext.textContent = "Save and Quit";
 
+		// Ensure celebration tab button is visible (hidden by default in markup)
+		const celebTab = document.getElementById("tab_celeb");
+		if (celebTab && celebTab.classList.contains("hidden")) {
+			celebTab.classList.remove("hidden");
+		}
+		// If we are in history page context, we might want to auto-activate celebration view (view 4)
+		// but only if no other tab is active yet.
+		if ((globalThis as any).historyPageViewing) {
+			const anyActive = document.querySelector(".tab-btn.active");
+			if (!anyActive) {
+				// mimic score_switch_view without duplicate logging
+				celebTab?.classList.add("active");
+				const celebPanel = document.getElementById("celebration");
+				if (celebPanel) celebPanel.classList.remove("hidden");
+			}
+		}
+
 		podium(sorted_playerlist);
 		confettilauncher();
 		//bind onclick to launch confetti
@@ -653,13 +670,17 @@ export function updatescore(players: any, game: gamedata) {
 	}
 }
 
+// Base delay for podium animation segments
 let celebtime = 250;
 function podium(sorted_playerlist) {
-	add_podium(sorted_playerlist);
+    // Reset timing each time podium is rendered (prevents long delays on history page revisits)
+    celebtime = 250;
 
-	//animate podium
+    add_podium(sorted_playerlist);
+
+	// Animate podium columns with stagger
 	const podiumElements = document.querySelectorAll(".js-podium");
-	podiumElements.forEach((element) => {
+	podiumElements.forEach((element, idx) => {
 		const podiumEl = element as HTMLElement;
 		setTimeout(function () {
 			podiumEl.classList.add("is-visible");
@@ -671,9 +692,9 @@ function podium(sorted_playerlist) {
 				baseElement.style.height = height + "px";
 				baseElement.classList.add("is-expanding");
 			}
-		}, celebtime);
-		celebtime += 250;
+		}, celebtime + idx * 250);
 	});
+
 	add_bottomlist(sorted_playerlist);
 }
 
@@ -681,6 +702,8 @@ function add_bottomlist(sorted_playerlist) {
 	const scoreboardItems = document.getElementById("scoreboard_items");
 	if (scoreboardItems) scoreboardItems.innerHTML = "";
 
+	const baseDelay = celebtime + 3 * 250; // start after podium columns
+	let itemIdx = 0;
 	for (let i = 3; i < sorted_playerlist.length; i++) {
 		const listItem = document.createElement("li");
 		listItem.className = "scoreboard__item";
@@ -708,7 +731,7 @@ function add_bottomlist(sorted_playerlist) {
 		if (scoreboardItems) scoreboardItems.appendChild(listItem);
 
 		const barElement = document.getElementById(`bar_${i}`) as HTMLElement;
-		if (barElement) {
+		if (barElement && sorted_playerlist[2] && sorted_playerlist[2][1] !== 0) {
 			barElement.style.width =
 				(sorted_playerlist[i][1] / sorted_playerlist[2][1]) * 100 + "%";
 		}
@@ -716,7 +739,8 @@ function add_bottomlist(sorted_playerlist) {
 		setTimeout(function () {
 			const itemElement = document.getElementById(`item_${i}`);
 			if (itemElement) itemElement.classList.add("is-visible");
-		}, celebtime);
+		}, baseDelay + itemIdx * 150);
+		itemIdx++;
 	}
 }
 
@@ -808,16 +832,41 @@ function append_graph(place, name, score) {
 	}
 }
 
-var duration;
-var end;
+// Confetti timing variables (standard game celebration)
+let duration: number | undefined;
+let end: number | undefined;
 
+// Internal helper to detect if we are in history short mode
+function isHistoryShortConfettiMode(): boolean {
+  return !!(globalThis as any).historyPageViewing;
+}
+
+// Launch a (possibly shortened) confetti celebration.
+// In normal game context: continuous stream for 20s (existing behavior).
+// In history detail context: single short burst (or very brief stream) only once per open.
 function confettilauncher() {
-	//if confetti is already running then set end to now
-	if (Date.now() < end) {
+	// History page short mode handling
+	if (isHistoryShortConfettiMode()) {
+		// prevent multiple bursts per details view
+		if ((globalThis as any).historyConfettiShown) return;
+		(globalThis as any).historyConfettiShown = true;
+		// Single celebratory burst (slightly more particles on desktop)
+		const particleBase = window.innerWidth < 768 ? 60 : 120;
+		confetti({
+			particleCount: particleBase,
+			spread: 70,
+			origin: { y: 0.7 },
+			scalar: 1.1,
+		});
+		return;
+	}
+
+	// Normal mode: if confetti is already running then stop it (toggle behaviour)
+	if (end && Date.now() < end) {
 		end = Date.now();
 		return;
 	}
-	duration = 20 * 1000;
+	duration = 20 * 1000; // unchanged for normal game
 	end = Date.now() + duration;
 	confetticannon();
 }

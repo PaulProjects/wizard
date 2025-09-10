@@ -306,6 +306,45 @@ export class HistoryAnalyticsUI {
           </div>
         </div>
 
+		<!-- Bet Performance -->
+		<div class="p-3 sm:p-4 bg-base-200 rounded-lg">
+		  <div class="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+			<svg class="w-5 h-5 sm:w-6 sm:h-6 text-info flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7 7h10M7 11h10M7 15h6" />
+			</svg>
+			<div class="flex-1">
+			  <h2 class="font-semibold text-base sm:text-lg mb-2 sm:mb-3">Bet Performance</h2>
+			  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+				<div class="flex items-center gap-2 p-2 bg-info/10 rounded text-sm sm:text-base">
+				  <span class="text-lg sm:text-2xl">🎯</span>
+				  <div class="flex-1 min-w-0">
+					<div class="font-semibold truncate">Avg Bet</div>
+					<div class="text-base sm:text-lg">${
+						stats.averageBet !== undefined
+							? stats.averageBet.toFixed(2)
+							: "N/A"
+					}</div>
+				  </div>
+				</div>
+				<div class="flex items-center gap-2 p-2 bg-warning/10 rounded text-sm sm:text-base">
+				  <span class="text-lg sm:text-2xl">📏</span>
+				  <div class="flex-1 min-w-0">
+					<div class="font-semibold truncate">Avg Deviation</div>
+					<div class="text-base sm:text-lg">${
+						stats.averageBetDeviation !== undefined
+							? (stats.averageBetDeviation > 0
+								? "+" + stats.averageBetDeviation.toFixed(2)
+								: stats.averageBetDeviation.toFixed(2))
+							: "N/A"
+					}</div>
+					<div class="text-xs opacity-70">Positive = overbet, negative = underbet</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		</div>
+
         <!-- Score Range -->
         <div class="p-3 sm:p-4 bg-base-200 rounded-lg">
           <div class="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
@@ -361,37 +400,6 @@ export class HistoryAnalyticsUI {
             </div>
           </div>
         </div>
-
-        <!-- Additional Details (Collapsible on mobile) -->
-        <details class="p-3 sm:p-4 bg-base-200 rounded-lg">
-          <summary class="cursor-pointer font-semibold text-base sm:text-lg mb-2 flex items-center gap-2">
-            <span class="text-lg sm:text-2xl">📊</span>
-            Additional Statistics
-          </summary>
-          <div class="mt-3 space-y-2 text-sm">
-            <div class="flex justify-between items-center p-2 bg-base-100 rounded">
-              <span class="flex items-center gap-2">
-                <span>�</span>
-                <span class="truncate">Total Rounds Played</span>
-              </span>
-              <span class="font-semibold flex-shrink-0">${stats.totalRounds}</span>
-            </div>
-            <div class="flex justify-between items-center p-2 bg-base-100 rounded">
-              <span class="flex items-center gap-2">
-                <span>⏱️</span>
-                <span class="truncate">Avg Rounds per Game</span>
-              </span>
-              <span class="font-semibold flex-shrink-0">${stats.averageRoundsPerGame.toFixed(1)}</span>
-            </div>
-            <div class="flex justify-between items-center p-2 bg-base-100 rounded">
-              <span class="flex items-center gap-2">
-                <span>🎯</span>
-                <span class="truncate">Average Points per Game</span>
-              </span>
-              <span class="font-semibold flex-shrink-0">${stats.averagePoints.toFixed(1)}</span>
-            </div>
-          </div>
-        </details>
       </div>
     `;
 
