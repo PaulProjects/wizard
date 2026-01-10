@@ -205,24 +205,22 @@ ruleRandomDealer.addEventListener("click", function () {
 	});
 });
 
-//listen for click on all divs with the class optionbox
-document.addEventListener("click", function (event) {
-	const target = event.target as HTMLElement;
-	if (target.classList.contains("optionbox")) {
-		//check if the user clicked on the checkbox itself
-		if (
-			(event.target as HTMLElement).tagName === "INPUT" &&
-			(event.target as HTMLInputElement).type === "checkbox"
-		) {
+// Allow click on optionbox to toggle checkbox
+document.querySelectorAll<HTMLElement>(".optionbox").forEach((box) => {
+	box.addEventListener("click", (event) => {
+		const target = event.target as HTMLElement;
+
+		// Check if the user clicked on the checkbox itself to prevent double toggling
+		if (target instanceof HTMLInputElement && target.type === "checkbox") {
 			return;
 		}
-		//get the checkbox inside the div
-		let checkbox = target.querySelector<HTMLInputElement>(
+
+		// Find and toggle the checkbox within this option box
+		const checkbox = box.querySelector<HTMLInputElement>(
 			"input[type='checkbox']"
 		);
-		//trigger a click on the checkbox
 		checkbox?.click();
-	}
+	});
 });
 
 //start button with id start_button

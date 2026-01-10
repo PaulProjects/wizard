@@ -43,11 +43,8 @@ import Rule from "../components/Rule.astro";
 				<div>
 					<button
 						class="btn btn-secondary btn-block mt-2"
-						id="questionbutton"
-						onclick="
-          modal_info.showModal();
-          "
-						>Help</button
+						id="replay_tour_button"
+						>Replay Tour</button
 					>
 					<button
 						class="btn btn-secondary btn-block mt-5"
@@ -559,6 +556,80 @@ import Rule from "../components/Rule.astro";
 			color: black;
 			border-radius: 5px;
 			padding: 5px;
+		}
+
+		/* Driver.js Theme Customization */
+		.driver-popover.driverjs-theme {
+			background-color: #191e24; /* base-200 in many dark themes */
+			color: #a6adbb; /* base-content */
+			border-radius: 1rem;
+		}
+		
+		.driver-popover.driverjs-theme .driver-popover-title {
+			font-size: 1.1rem;
+			font-weight: bold;
+			color: #ffffff;
+		}
+		
+		.driver-popover.driverjs-theme .driver-popover-description {
+			font-size: 0.9rem;
+			line-height: 1.5;
+		}
+
+		.driver-popover.driverjs-theme button {
+			flex: 1;
+			text-align: center;
+			background-color: #3d4451; /* neutral */
+			color: #ffffff;
+			border: none;
+			border-radius: 0.5rem;
+			text-shadow: none;
+			font-size: 0.8rem;
+			padding: 0.5rem;
+			cursor: pointer;
+		}
+
+		.driver-popover.driverjs-theme button:focus:not(.driver-popover-close-btn) {
+			background-color: #3d4451; /* neutral */
+			color: #ffffff;
+		}
+
+		.driver-popover.driverjs-theme button:hover {
+			background-color: #2a323c;
+		}
+
+		.driver-popover.driverjs-theme .driver-popover-navigation-btns {
+			justify-content: space-between;
+			gap: 0.5rem;
+			padding-left: 16px;
+		}
+
+		.driver-popover.driverjs-theme .driver-popover-close-btn{
+			background-color: transparent;
+		}
+
+		/* Mobile adjustments for Driver.js */
+		@media (max-width: 640px) {
+			.driver-popover.driverjs-theme {
+				width: 90vw !important;
+				max-width: none !important;
+				padding: 1.5rem;
+			}
+			
+			.driver-popover.driverjs-theme .driver-popover-title {
+				font-size: 1.3rem; 
+				margin-bottom: 0.5rem;
+			}
+
+			.driver-popover.driverjs-theme .driver-popover-description {
+				font-size: 1rem;
+				margin-bottom: 1rem;
+			}
+
+			.driver-popover.driverjs-theme button {
+				font-size: 1rem;
+				padding: 0.8rem;
+			}
 		}
 	</style>
 	<script>

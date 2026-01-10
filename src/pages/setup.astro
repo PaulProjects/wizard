@@ -44,7 +44,7 @@ import {} from "../scripts/setup.ts";
         <button
           class="input input-bordered input-primary w-full"
           id="showmodal"
-          onclick="modal_addplayer.showModal();"><p>New Player</p></button
+          onclick="modal_addplayer.showModal();"><p>add a player</p></button
         >
         <!-- Add Player modal -->
         <dialog id="modal_addplayer" class="modal modal-top sm:modal-middle">
@@ -54,7 +54,7 @@ import {} from "../scripts/setup.ts";
               >✕</button
             >
             <div class="flex flex-col justify-center items-center">
-              <h1 class="font-bold text-3xl mt-5">Add a Player!</h1>
+              <h1 class="font-bold text-3xl mt-5">add a new player!</h1>
               <input
                 type="text"
                 placeholder="Player Name"
@@ -64,7 +64,7 @@ import {} from "../scripts/setup.ts";
               />
               <button
                 class="input input-bordered input-primary w-2/3"
-                id="addPlayer"><p>Add Player</p></button
+                id="addPlayer"><p>add the player</p></button
               >
               <div id="recent_players" class="mt-3"></div>
             </div>
@@ -99,13 +99,13 @@ import {} from "../scripts/setup.ts";
         <div class="pt-5"></div>
         <Rule
           title="Expansion"
-          description="Does not check if the amount of tricks fit (needed if you play with the bomb card)"
+          description="Disable the check if the amount of tricks fit (needed if you play with the bomb card)"
           js_id="rule_expansion"
         />
         <div class="pt-5"></div>
         <Rule
           title="Crowd Chaos"
-          description="Less limitations on the amount of players (just need at least 2 players)"
+          description="Less limitations on the amount of players (still need at least 2 players)"
           js_id="rule_crowdchaos"
         />
         <div class="pt-5"></div>
@@ -237,7 +237,7 @@ import {} from "../scripts/setup.ts";
               <input
                 type="number"
                 id="range_val"
-                class="input input-secondary w-14 text-center"
+                class="input input-secondary w-14 text-center mb-3"
                 min="1"
                 max="20"
                 value="10"
@@ -248,7 +248,7 @@ import {} from "../scripts/setup.ts";
                 min="1"
                 max="20"
                 value="10"
-                class="range ml-2"
+                class="range ml-2 w-4/5"
                 id="rounds_custom_range"
               />
             </div>

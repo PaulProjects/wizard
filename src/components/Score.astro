@@ -119,6 +119,7 @@ import Celebration from "./Celebration.astro";
 					<div class="flex justify-end flex-shrink-0">
 						<button
 							class="btn h-10 px-3"
+							id="settings_btn"
 							onclick="modal_settings.showModal(); try { window.wizardLogger && window.wizardLogger.event && window.wizardLogger.event('settings.open'); } catch (e) {}"
 						>
 							<Icon name="mdi:cog" class="w-5 h-5" />
@@ -194,86 +195,7 @@ import Celebration from "./Celebration.astro";
 </div>
 <div class="pb-20"></div>
 <!-- Info modal -->
-<dialog id="modal_info" class="modal modal-top sm:modal-middle">
-	<form method="dialog" class="modal-box max-w-2xl">
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-			>✕</button
-		>
-		<div class="flex flex-col justify-center items-center">
-			<div class="flex items-center gap-3 mb-6">
-				<Icon name="mdi:information-outline" class="w-8 h-8 text-primary" />
-				<h2 class="font-bold text-3xl">Score Page Guide</h2>
-			</div>
-			
-			<div class="w-full max-w-lg">
-				<p class="text-center text-base-content/80 mb-6">
-					The Score Page offers multiple ways to analyze game performance. 
-					Switch between different views using the tabs below.
-				</p>
 
-				<!-- Tab Explanations -->
-				<div class="space-y-4">
-					<!-- Overview Tab -->
-					<div class="flex items-start gap-4 p-4 bg-base-200 rounded-lg">
-						<div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-							<Icon name="mdi:format-list-numbered" class="w-6 h-6 text-primary" />
-						</div>
-						<div class="flex-1">
-							<h3 class="font-semibold text-lg mb-1">Overview</h3>
-							<p class="text-sm text-base-content/70">
-								View all players ranked by their current scores. Click on any player card to see detailed statistics.
-							</p>
-						</div>
-					</div>
-
-					<!-- Chart Tab -->
-					<div class="flex items-start gap-4 p-4 bg-base-200 rounded-lg">
-						<div class="flex-shrink-0 w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
-							<Icon name="mdi:chart-timeline-variant" class="w-6 h-6 text-secondary" />
-						</div>
-						<div class="flex-1">
-							<h3 class="font-semibold text-lg mb-1">Score Chart</h3>
-							<p class="text-sm text-base-content/70 mb-2">
-								Track score progression throughout the game with an interactive line chart.
-							</p>
-						</div>
-					</div>
-
-					<!-- Analytics Tab -->
-					<div class="flex items-start gap-4 p-4 bg-base-200 rounded-lg">
-						<div class="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
-							<Icon name="mdi:magnify-scan" class="w-6 h-6 text-accent" />
-						</div>
-						<div class="flex-1">
-							<h3 class="font-semibold text-lg mb-1">Game Analytics</h3>
-							<p class="text-sm text-base-content/70">
-								Deep dive into game statistics including best/worst rounds and individual player performance metrics.
-							</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Additional Tips -->
-				<div class="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
-					<h4 class="font-medium text-sm mb-2 flex items-center gap-2">
-						<Icon name="mdi:lightbulb-outline" class="w-4 h-4" />
-						Tips
-					</h4>
-					<ul class="text-xs text-base-content/70 space-y-1">
-						<li>• The <span class="badge badge-secondary badge-xs">blue highlight</span> indicates the current dealer</li>
-						<li>• Tap player cards in Overview to see detailed stats</li>
-						<li>• The Chart and Analytics tabs are Available after the second round</li>
-						<li>• Chart view works best in landscape mode</li>
-						<li>• The bet indicators to see over/under predictions</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</form>
-	<form method="dialog" class="modal-backdrop">
-		<button>close</button>
-	</form>
-</dialog>
 
 <!-- Player Stats Modal -->
 <dialog id="modal_player_stats" class="modal modal-bottom sm:modal-middle">
@@ -302,6 +224,7 @@ import Celebration from "./Celebration.astro";
 
 		<!-- Player Summary Stats -->
 		<div
+			id="modal_player_summary_stats"
 			class="modal_player_stat grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
 		>
 			<div class="stat bg-base-200 rounded-lg p-4 text-center">

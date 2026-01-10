@@ -12,12 +12,14 @@ import { ColorManager } from "./game/color-manager.js";
 import { scoreCalculator } from "./game/score-calculator.js";
 import { updatescore, score_switch_view } from "./score.js";
 import { Logger } from "./logger.js";
+import { TutorialManager } from "./tutorial.js";
 
 export class GameController {
 	private game: GameData;
 	private uiManager: UIStateManager;
 	private inputHandler: InputHandler;
 	private colorManager: ColorManager;
+	private tutorialManager: TutorialManager;
 	private players: string[];
 	private isDemoMode: boolean;
 
@@ -31,6 +33,7 @@ export class GameController {
 		this.uiManager = new UIStateManager();
 		this.inputHandler = new InputHandler(this.game as any, this.players);
 		this.colorManager = new ColorManager(this.game as any, this.isDemoMode);
+		this.tutorialManager = new TutorialManager();
 
 		// Setup callbacks
 		this.setupCallbacks();
@@ -42,6 +45,13 @@ export class GameController {
 
 		// Initial update
 		this.update();
+
+		// Trigger initial game tour
+		setTimeout(() => {
+			if (this.game.getDisplay() === GameDisplay.SCORE_OVERVIEW) {
+				this.tutorialManager.runGameTour();
+			}
+		}, 1000);
 	}
 
 	private checkDemoMode(): boolean {
@@ -115,6 +125,16 @@ export class GameController {
 		this.setupGameActionListeners();
 		this.setupRuleListeners();
 		this.setupModalListeners();
+		this.setupTabListeners();
+	}
+
+	private setupTabListeners(): void {
+		const chartTab = document.getElementById("tab_chart");
+		if (chartTab) {
+			chartTab.addEventListener("click", () => {
+				this.tutorialManager.runGraphTour();
+			});
+		}
 	}
 
 	private setupNavigationListeners(): void {
@@ -133,6 +153,16 @@ export class GameController {
 	}
 
 	private setupGameActionListeners(): void {
+		// Replay tutorial
+		const replayTourButton = document.getElementById("replay_tour_button");
+		if (replayTourButton) {
+			replayTourButton.addEventListener("click", () => {
+				this.uiManager.closeModal("modal_settings");
+				this.tutorialManager.reset();
+				this.tutorialManager.runGameTour(true);
+			});
+		}
+
 		// Continue game after celebration
 		const continueButton = document.getElementById("continuegame");
 		if (continueButton) {
@@ -366,6 +396,7 @@ export class GameController {
 			this.game.setDisplay(GameDisplay.SCORE_OVERVIEW);
 			this.saveGame();
 			this.update();
+			// this.tutorialManager.runGraphTour(); // Removed to avoid potential conflict/redundancy with automatic Trigger
 			Logger.event("tab.switch", { from: "input", to: "score_overview" });
 		}
 	}
@@ -635,6 +666,7 @@ export class GameController {
 
 		if (step === GameStep.ENTER_TRICKS) {
 			this.updateBetDisplay();
+			this.tutorialManager.runBetDisplayTour();
 		}
 
 		if (step === GameStep.CELEBRATION) {
@@ -644,6 +676,12 @@ export class GameController {
 		}
 
 		updatescore(this.players, this.game as any);
+
+		// Check if advanced tabs are unlocked (Round > 2) and trigger tour
+		const currentRound = this.game.getRound();
+		if (currentRound > 2 || step === GameStep.CELEBRATION) {
+			this.tutorialManager.runGraphTour();
+		}
 	}
 
 	private updateInputView(): void {
@@ -653,6 +691,12 @@ export class GameController {
 
 		const step = this.game.getStep();
 		this.uiManager.updateUIForStep(step);
+
+		if (step === GameStep.PLACE_BETS) {
+			this.tutorialManager.runInputBetsTour();
+		} else if (step === GameStep.ENTER_TRICKS) {
+			this.tutorialManager.runInputTricksTour();
+		}
 	}
 
 	private updateRoundInfo(): void {
