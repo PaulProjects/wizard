@@ -54,6 +54,8 @@ export interface GameState {
 	time_started: number;
 	time_ended?: number;
 	id?: string;
+	isActive?: boolean;
+	isSynced?: boolean;
 }
 
 // Player-related interfaces

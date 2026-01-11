@@ -2,12 +2,23 @@ import { updatescore, score_switch_view } from "./score.ts";
 import { GameData as gamedata } from "./game/gamedata.ts";
 import { HistoryAnalyticsUI } from "./history-analytics-ui.ts";
 import { Logger } from "./logger.ts";
+import { SyncManager } from "./sync.ts";
 
 import confetti from "canvas-confetti";
 
 let view = 0; //0 = overview ; 1 = details
 // check if past_games exists in local storage if not return
-let past_games = JSON.parse(localStorage.getItem("recent_games"));
+let past_games: GameState[] = [];
+try {
+	const stored = localStorage.getItem("wizard.games");
+	if (stored) {
+		const all_games = JSON.parse(stored);
+		past_games = all_games.filter((g: any) => !g.isActive);
+	}
+} catch (e) {
+	console.error("Failed to load games", e);
+}
+
 if (past_games === null || past_games.length === 0) {
 	location.href = "/";
 }
@@ -29,25 +40,9 @@ for (let i = 0; i < past_games.length; i++) {
 		if (!game.hasID()) {
 			Logger.info("No id found, trying to upload", { game });
 
-			fetch("https://s.paulbertram.de/wizardshare.php", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/x-www-form-urlencoded",
-				},
-				body: new URLSearchParams({
-					game: JSON.stringify(game),
-				}),
-			})
-				.then((response) => response.text())
-				.then((data: string) => {
-					//add id info to the game
-					game.setId(data);
-					past_games[i] = game;
-					localStorage.setItem(
-						"recent_games",
-						JSON.stringify(past_games)
-					);
-					Logger.info("Success uploading", { id: data });
+			SyncManager.sync(game)
+				.then(() => {
+					Logger.info("Success uploading", { id: game.getID() });
 				})
 				.catch((error) => {
 					Logger.error("Error uploading game", {
@@ -350,20 +345,22 @@ if (delGameButton) {
 		if (newRremoveDataButton) {
 			newRremoveDataButton.addEventListener("click", () => {
 				//delete the game from the local storage
-				let index = past_games.findIndex((game) => game.id === id);
-				past_games.splice(index, 1);
-				localStorage.setItem(
-					"recent_games",
-					JSON.stringify(past_games)
-				);
+				try {
+					const stored = localStorage.getItem("wizard.games");
+					if (stored) {
+						const all = JSON.parse(stored);
+						const newAll = all.filter((g: any) => g.id !== id);
+						localStorage.setItem(
+							"wizard.games",
+							JSON.stringify(newAll)
+						);
+					}
+				} catch (e) {
+					console.error("Failed to delete local game", e);
+				}
 
 				//delete the game on the server
-				fetch(
-					`https://s.paulbertram.de/wizardshare.php?id=${Lgame.getID()}`,
-					{
-						method: "DELETE",
-					}
-				)
+				SyncManager.delete(id)
 					.then(() => {
 						Logger.info("Success deleting", { id });
 					})

@@ -1,5 +1,6 @@
-import { GameData as gamedata } from "./game/gamedata.ts";
+import { GameData } from "./game/gamedata.ts";
 import QRCode from "qrcode";
+import { SyncManager } from "./sync.ts";
 import { Logger } from "./logger.ts";
 
 function error(error: any) {
@@ -16,31 +17,19 @@ function success(msg: string) {
 	document.getElementById("success").classList.remove("hidden");
 }
 
-function savegame(save_game: gamedata) {
-	let gameid = save_game.getID();
-	let found = false;
-	//check if the game is already in the recent games
-	for (let i = 0; i < recent_games.length; i++) {
-		if (recent_games[i].id === gameid) {
-			found = true;
-			break;
-		}
+function gameExists(id: string): boolean {
+	try {
+		const stored = localStorage.getItem("wizard.games");
+		if (!stored) return false;
+		const games = JSON.parse(stored);
+		return games.some((g: any) => g.id === id);
+	} catch {
+		return false;
 	}
-	if (found) {
-		Logger.info("Game already in recent games", { id: gameid });
-		return;
-	}
-	recent_games.push(gamedata.toJsonObject(save_game));
-	localStorage.setItem("recent_games", JSON.stringify(recent_games));
 }
 
 //read the game id from the url
 const gameId = new URLSearchParams(window.location.search).get("id");
-
-let recent_games = JSON.parse(localStorage.getItem("recent_games"));
-if (recent_games === null) {
-	recent_games = [];
-}
 
 if (gameId === null) {
 	error("Not a valid link");
@@ -50,61 +39,47 @@ if (gameId === null) {
 		importIdElement.textContent = "Game id: " + gameId;
 	}
 
-	//import the game from this url: https://s.paulbertram.de/wizardshare.php?id=[gameid]
-	const url = `https://s.paulbertram.de/wizardshare.php?id=${gameId}`;
-	//use xml http request to import the game
-	const xhr = new XMLHttpRequest();
-	xhr.open("GET", url, true);
-	xhr.onreadystatechange = function () {
-		if (xhr.readyState === 4) {
-			if (xhr.status === 210) {
-				//loop over the response array and request the games and then add them to the recent games if they are not already in there
-				let games = JSON.parse(xhr.responseText);
+	SyncManager.load(gameId)
+		.then(async (result) => {
+			if (Array.isArray(result)) {
+				// Status 210: List of games
 				Logger.info("Importing multiple games", {
-					count: games.length,
+					count: result.length,
 				});
-				for (let i = 0; i < games.length; i++) {
-					let gameid = games[i];
-					const url = `https://s.paulbertram.de/wizardshare.php?id=${gameid}`;
-					const xhr = new XMLHttpRequest();
-					xhr.open("GET", url, true);
-					xhr.onreadystatechange = function () {
-						if (xhr.readyState === 4) {
-							if (xhr.status === 200) {
-								Logger.info("Importing game", { id: gameid });
-								//get the game from localstorage
-								try {
-									let imported_game = gamedata.fromJson(
-										JSON.parse(xhr.responseText)
-									);
-									imported_game.setId(gameid);
-									savegame(imported_game);
-								} catch (error) {
-									Logger.error("Failed to import game", {
-										id: gameid,
-										error: (error as Error)?.message,
-										response: xhr.responseText,
-									});
-									//window.location.href = "/";
-								}
-							} else {
-								error(xhr.status);
-							}
+				let importedCount = 0;
+
+				for (const id of result) {
+					if (gameExists(id)) {
+						Logger.info("Game already exists, skipping", { id });
+						continue;
+					}
+					try {
+						const game = await SyncManager.load(id);
+						if (game instanceof GameData) {
+							game.isActive = false;
+							game.save();
+							importedCount++;
+							Logger.info("Imported game", { id });
 						}
-					};
-					xhr.send();
+					} catch (e) {
+						Logger.error("Failed to import individual game", {
+							id,
+							error: e,
+						});
+					}
 				}
-				success("All games have been imported successfully");
-			} else if (xhr.status === 200) {
+				success(
+					`${importedCount} games have been imported successfully.`
+				);
+			} else {
+				// Single game
+				const game = result as GameData;
 				const loadingElement = document.getElementById("loading");
 				const startElement = document.getElementById("start");
 				if (loadingElement) loadingElement.classList.add("hidden");
 				if (startElement) startElement.classList.remove("hidden");
-				try {
-					let gamejson = JSON.parse(xhr.responseText);
-					gamejson.id = gameId;
-					let game = gamedata.fromJson(gamejson);
 
+				try {
 					Logger.debug("Imported game json", { game });
 
 					let players = game.getPlayers();
@@ -165,36 +140,43 @@ if (gameId === null) {
 
 					// loop through players and add them to the table
 					const importTable = document.getElementById("import_table");
-					for (let j = 0; j < p_s.length; j++) {
-						const row = document.createElement("tr");
-
-						const positionCell = document.createElement("th");
-						positionCell.textContent = p_s[j].position.toString();
-						row.appendChild(positionCell);
-
-						const nameCell = document.createElement("td");
-						nameCell.textContent = p_s[j].name;
-						row.appendChild(nameCell);
-
-						const pointsCell = document.createElement("td");
-						pointsCell.textContent = p_s[j].points.toString();
-						row.appendChild(pointsCell);
-
-						if (importTable) importTable.appendChild(row);
-					}
-
-					//add class="bg-info" to the first row
 					if (importTable) {
-						const firstRow =
-							importTable.querySelector("tr:first-child");
-						if (firstRow) firstRow.classList.add("bg-info");
+						// clear existing if any
+						importTable.innerHTML = "";
+						for (let j = 0; j < p_s.length; j++) {
+							const row = document.createElement("tr");
+
+							const positionCell = document.createElement("th");
+							positionCell.textContent =
+								p_s[j].position.toString();
+							row.appendChild(positionCell);
+
+							const nameCell = document.createElement("td");
+							nameCell.textContent = p_s[j].name;
+							row.appendChild(nameCell);
+
+							const pointsCell = document.createElement("td");
+							pointsCell.textContent = p_s[j].points.toString();
+							row.appendChild(pointsCell);
+
+							if (importTable) importTable.appendChild(row);
+
+							if (j === 0) row.classList.add("bg-info");
+						}
 					}
 
 					const importGameButton =
 						document.getElementById("import-game");
 					if (importGameButton) {
 						importGameButton.addEventListener("click", function () {
-							savegame(game);
+							if (!gameExists(game.id!)) {
+								game.isActive = false;
+								game.save();
+							} else {
+								Logger.info("Game already exists", {
+									id: game.id,
+								});
+							}
 
 							const viewGameLink = document.getElementById(
 								"view_game"
@@ -207,12 +189,11 @@ if (gameId === null) {
 				} catch (e) {
 					error("Invalid game data" + e);
 				}
-			} else {
-				error(xhr.status);
 			}
-		}
-	};
-	xhr.send();
+		})
+		.catch((err) => {
+			error(err.message);
+		});
 
 	QRCode.toCanvas(document.getElementById("qr_canvas"), window.location.href)
 		.then((url) => {

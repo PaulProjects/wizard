@@ -57,6 +57,10 @@ export class GameData implements GameState {
 	public time_ended?: number;
 	/** game id on the server*/
 	public id?: string;
+	/** if the game is currently active */
+	public isActive: boolean;
+	/** if the game is currently synced */
+	public isSynced: boolean;
 
 	constructor(config: GameState) {
 		this.dealer = config.dealer;
@@ -84,15 +88,109 @@ export class GameData implements GameState {
 		this.time_started = config.time_started;
 		this.time_ended = config.time_ended;
 		this.id = config.id;
+		this.isActive = config.isActive ?? true;
+		this.isSynced = config.isSynced ?? false;
 	}
 
 	// Factory methods
-	static load(): GameData {
-		const json = localStorage.getItem("game");
-		if (!json) {
-			throw new StorageError("No game found in localStorage");
+	public static generateUUID(): string {
+		if (typeof crypto !== "undefined" && crypto.randomUUID) {
+			return crypto.randomUUID();
 		}
-		return this.fromJSONString(json);
+		return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+			/[xy]/g,
+			function (c) {
+				var r = (Math.random() * 16) | 0,
+					v = c == "x" ? r : (r & 0x3) | 0x8;
+				return v.toString(16);
+			}
+		);
+	}
+
+	static migrate(): void {
+		if (localStorage.getItem("wizard.migrated")) return;
+
+		const games: GameState[] = [];
+		let activeGameId: string | null = null;
+
+		// 1. Handle 'game' (Current Active Game)
+		const oldGameStr = localStorage.getItem("game");
+		if (oldGameStr) {
+			try {
+				const gameObj = JSON.parse(oldGameStr);
+				const game = this.validateAndSanitizeJson(gameObj);
+				if (!game.id) game.id = this.generateUUID();
+				game.isActive = true;
+				games.push(game);
+				activeGameId = game.id;
+			} catch (e) {
+				console.error("Migration error (active game):", e);
+			}
+		}
+
+		// 2. Handle 'recent_games' (Past Games)
+		const recentGamesStr = localStorage.getItem("recent_games");
+		if (recentGamesStr) {
+			try {
+				const recentGames = JSON.parse(recentGamesStr);
+				if (Array.isArray(recentGames)) {
+					recentGames.forEach((g) => {
+						try {
+							const game = this.validateAndSanitizeJson(g);
+							// Avoid duplicates if recent_games contains the active game
+							if (
+								!games.find(
+									(existing) => existing.id === game.id
+								)
+							) {
+								if (!game.id) game.id = this.generateUUID();
+								game.isActive = false;
+								games.push(game);
+							}
+						} catch (e) {
+							console.error("Migration error (recent game):", e);
+						}
+					});
+				}
+			} catch (e) {
+				console.error("Migration error (recent_games parsing):", e);
+			}
+		}
+
+		localStorage.setItem("wizard.games", JSON.stringify(games));
+		if (activeGameId) {
+			localStorage.setItem("wizard.activegame", activeGameId);
+		}
+
+		localStorage.setItem("wizard.migrated", "true");
+		//localStorage.removeItem("game");
+		//localStorage.removeItem("recent_games");
+	}
+
+	static load(): GameData {
+		this.migrate();
+
+		const activeId = localStorage.getItem("wizard.activegame");
+		if (!activeId) {
+			throw new StorageError("No active game found");
+		}
+
+		const gamesJson = localStorage.getItem("wizard.games");
+		if (!gamesJson) throw new StorageError("No games storage found");
+
+		let allGames: any[] = [];
+		try {
+			allGames = JSON.parse(gamesJson);
+		} catch (e) {
+			throw new StorageError("Corrupt games storage");
+		}
+
+		const gameData = allGames.find((g: any) => g.id === activeId);
+
+		if (!gameData)
+			throw new StorageError("Active game not found in storage");
+
+		return this.fromJson(gameData);
 	}
 
 	static fromJSONString(jsonString: string): GameData {
@@ -287,6 +385,7 @@ export class GameData implements GameState {
 			time_started,
 			time_ended,
 			id,
+			isActive: this.validateBoolean(json.isActive, "isActive", true),
 		};
 	}
 
@@ -442,6 +541,8 @@ export class GameData implements GameState {
 			time_started: gamedata.time_started,
 			time_ended: gamedata.time_ended,
 			id: gamedata.id,
+			isActive: gamedata.isActive,
+			isSynced: gamedata.isSynced,
 		};
 	}
 
@@ -525,8 +626,34 @@ export class GameData implements GameState {
 	// Instance methods
 	save(): void {
 		try {
-			const gameString = GameData.toJsonString(this);
-			localStorage.setItem("game", gameString);
+			if (!this.id) {
+				this.id = GameData.generateUUID();
+			}
+
+			const gameState = GameData.toJsonObject(this);
+
+			let allGames: GameState[] = [];
+			const stored = localStorage.getItem("wizard.games");
+			if (stored) {
+				try {
+					allGames = JSON.parse(stored);
+				} catch (e) {
+					console.error("Failed to parse wizard.games", e);
+				}
+			}
+
+			const index = allGames.findIndex((g) => g.id === this.id);
+			if (index >= 0) {
+				allGames[index] = gameState;
+			} else {
+				allGames.push(gameState);
+			}
+
+			localStorage.setItem("wizard.games", JSON.stringify(allGames));
+
+			if (this.isActive) {
+				localStorage.setItem("wizard.activegame", this.id);
+			}
 		} catch (error) {
 			throw new StorageError("Failed to save game", {
 				error: error.message,

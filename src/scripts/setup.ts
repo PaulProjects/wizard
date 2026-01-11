@@ -1,7 +1,11 @@
 import Sortable from "sortablejs";
 import { Logger } from "./logger";
+import { GameData } from "./game/gamedata";
 
-// Global state
+import { SyncManager } from "./sync";
+
+GameData.migrate();
+
 let crowd_chaos = false;
 let valid_1 = false;
 let valid_2 = true;
@@ -315,7 +319,29 @@ startButton.addEventListener("click", function () {
 		game.score_display = 3;
 	}
 
-	localStorage.setItem("game", JSON.stringify(game));
+	const gameId = GameData.generateUUID();
+	(game as any).id = gameId;
+	(game as any).isActive = true;
+	(game as any).isSynced = false;
+
+	let allGames = [];
+	try {
+		const stored = localStorage.getItem("wizard.games");
+		if (stored) allGames = JSON.parse(stored);
+	} catch (e) {}
+	allGames.push(game);
+	localStorage.setItem("wizard.games", JSON.stringify(allGames));
+	localStorage.setItem("wizard.activegame", gameId);
+
+	// Try to sync (create on server) in background
+	// We convert to GameData instance just for the sync method
+	try {
+		const gd = new GameData(game as any);
+		SyncManager.sync(gd);
+	} catch (e) {
+		console.warn("Initial sync failed", e);
+	}
+
 	Logger.event("game.start", {
 		players: players.length,
 		maxRounds: round_amount,
@@ -331,7 +357,11 @@ tlBtn.addEventListener("click", function () {
 
 let modal_edit = document.getElementById("modal_edit") as HTMLDialogElement;
 //get the presets from localstorage
-let past_games = JSON.parse(localStorage.getItem("recent_games"));
+let past_games: any[] = [];
+try {
+	const stored = localStorage.getItem("wizard.games");
+	if (stored) past_games = JSON.parse(stored);
+} catch (e) {}
 
 //check if presets is null or the array is empty
 if (past_games == null || past_games.length == 0) {

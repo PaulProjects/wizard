@@ -62,7 +62,6 @@ export class TutorialManager {
 				if (target.closest(".driver-popover")) return;
 
 				// Allow clicking the overlay (to close the tour if allowed)
-				// driver.js uses specific ID or class for overlay
 				if (
 					target.id === "driver-page-overlay" ||
 					target.classList.contains("driver-overlay")
@@ -178,6 +177,7 @@ export class TutorialManager {
 		];
 
 		this.driver.setSteps(steps);
+		this.isTourActive = true;
 		this.driver.drive();
 
 		localStorage.setItem("tour_game", "true");
@@ -188,292 +188,290 @@ export class TutorialManager {
 		if (this.hasSeenInputBetsTour) return;
 
 		// Wait a brief moment for the input screen to be fully rendered
-		setTimeout(() => {
-			if (!this.isElementVisible("#input")) return;
+		if (!this.isElementVisible("#input")) return;
+		if (this.isTourActive) return;
 
-			const steps = [
-				{
-					popover: {
-						title: "Step 2: Place Your Bets",
-						description:
-							"Here you can enter how many tricks each player thinks they will win this round.",
-						side: "bottom",
-						align: "center",
-					},
+		const steps = [
+			{
+				popover: {
+					title: "Step 2: Place Your Bets",
+					description:
+						"Here you can enter how many tricks each player thinks they will win this round.",
+					side: "bottom",
+					align: "center",
 				},
-				{
-					element: "#input-container",
-					popover: {
-						title: "Round & Total",
-						description:
-							"The current round and the combined total bets of all players are shown here.",
-						side: "bottom",
-						align: "center",
-					},
+			},
+			{
+				element: "#input-container",
+				popover: {
+					title: "Round & Total",
+					description:
+						"The current round and the combined total bets of all players are shown here.",
+					side: "bottom",
+					align: "center",
 				},
-				{
-					element: "#players",
-					popover: {
-						title: "Enter Bets",
-						description:
-							"Use the sliders to set the bet for each player. They are all set to 0 by default.",
-						side: "top",
-						align: "center",
-					},
+			},
+			{
+				element: "#players",
+				popover: {
+					title: "Enter Bets",
+					description:
+						"Use the sliders to set the bet for each player. They are all set to 0 by default.",
+					side: "top",
+					align: "center",
 				},
-				{
-					element: ".range_number_impossible",
-					popover: {
-						title: "Impossible Bets",
-						description:
-							"The +-1 rule is active! To keep the game challenging, the dealer cannot make a bet that would make the total bets equal the round number.",
-						side: "top",
-						align: "center",
-					},
+			},
+			{
+				element: ".range_number_impossible",
+				popover: {
+					title: "Impossible Bets",
+					description:
+						"The +-1 rule is active! To keep the game challenging, the dealer cannot make a bet that would make the total bets equal the round number.",
+					side: "top",
+					align: "center",
 				},
-				{
-					element: "#chart_nav_icon",
-					popover: {
-						title: "Go back",
-						description:
-							"You can always return to the game screen without continuing by clicking this button. No worries, the entered bets will be saved!",
-						side: "top",
-						align: "right",
-					},
+			},
+			{
+				element: "#chart_nav_icon",
+				popover: {
+					title: "Go back",
+					description:
+						"You can always return to the game screen without continuing by clicking this button. No worries, the entered bets will be saved!",
+					side: "top",
+					align: "right",
 				},
-				{
-					element: "#nav_button",
-					popover: {
-						title: "Confirm",
-						description:
-							"Once every bet is tracked, click here to start the round.",
-						side: "top",
-						align: "center",
-					},
+			},
+			{
+				element: "#nav_button",
+				popover: {
+					title: "Confirm",
+					description:
+						"Once every bet is tracked, click here to start the round.",
+					side: "top",
+					align: "center",
 				},
-			];
+			},
+		];
 
-			this.driver.setSteps(steps);
-			this.driver.drive();
+		this.isTourActive = true;
+		this.driver.setSteps(steps);
+		this.driver.drive();
 
-			localStorage.setItem("tour_input_bets", "true");
-			this.hasSeenInputBetsTour = true;
-		}, this.TOUR_DELAY);
+		localStorage.setItem("tour_input_bets", "true");
+		this.hasSeenInputBetsTour = true;
 	}
 
 	public runInputTricksTour() {
 		if (this.hasSeenInputTricksTour) return;
 
-		setTimeout(() => {
-			if (!this.isElementVisible("#input")) return;
+		if (this.isTourActive) return;
+		if (!this.isElementVisible("#input")) return;
 
-			const steps = [
-				{
-					popover: {
-						title: "Step 4: Entering Tricks",
-						description:
-							"After the round, enter the actual tricks won. This is very similar to entering the bets.",
-					},
+		const steps = [
+			{
+				popover: {
+					title: "Step 4: Entering Tricks",
+					description:
+						"After the round, enter the actual tricks won. This is very similar to entering the bets.",
 				},
-				{
-					element: "#input-container",
-					popover: {
-						title: "Round & Total",
-						description:
-							"The current round and the combined total tricks won by all players are shown here in comparison to the possible tricks for this round.",
-						side: "bottom",
-						align: "center",
-					},
+			},
+			{
+				element: "#input-container",
+				popover: {
+					title: "Round & Total",
+					description:
+						"The current round and the combined total tricks won by all players are shown here in comparison to the possible tricks for this round.",
+					side: "bottom",
+					align: "center",
 				},
-				{
-					element: "#players",
-					popover: {
-						title: "Enter Tricks",
-						description:
-							"Use the sliders to set the tricks won for each player. They are all set to 0 by default.",
-						side: "top",
-						align: "center",
-					},
+			},
+			{
+				element: "#players",
+				popover: {
+					title: "Enter Tricks",
+					description:
+						"Use the sliders to set the tricks won for each player. They are all set to 0 by default.",
+					side: "top",
+					align: "center",
 				},
-				{
-					element: ".range_number_highlighted",
-					popover: {
-						title: "Bets",
-						description:
-							"The highlighted number shows the bet the player made.",
-						side: "top",
-						align: "center",
-					},
+			},
+			{
+				element: ".range_number_highlighted",
+				popover: {
+					title: "Bets",
+					description:
+						"The highlighted number shows the bet the player made.",
+					side: "top",
+					align: "center",
 				},
-				{
-					element: "#nav_button",
-					popover: {
-						title: "Continue",
-						description:
-							"Continue here once all tricks are entered. The colors will indicate if the all tricks are entered.",
-						side: "top",
-						align: "center",
-					},
+			},
+			{
+				element: "#nav_button",
+				popover: {
+					title: "Continue",
+					description:
+						"Continue here once all tricks are entered. The colors will indicate if the all tricks are entered.",
+					side: "top",
+					align: "center",
 				},
-			];
+			},
+		];
+		this.isTourActive = true;
+		this.driver.setSteps(steps);
+		this.driver.drive();
 
-			this.driver.setSteps(steps);
-			this.driver.drive();
-
-			localStorage.setItem("tour_input_tricks", "true");
-			this.hasSeenInputTricksTour = true;
-		}, this.TOUR_DELAY);
+		localStorage.setItem("tour_input_tricks", "true");
+		this.hasSeenInputTricksTour = true;
 	}
 
 	public runGraphTour() {
 		if (this.hasSeenGraphTour) return;
 
-		setTimeout(() => {
-			const tabContainer = document.getElementById("tab_navigation");
-			if (!tabContainer || !this.isElementVisible("#tab_navigation"))
-				return;
+		const tabContainer = document.getElementById("tab_navigation");
+		if (!tabContainer || !this.isElementVisible("#tab_navigation")) return;
 
-			// Ensure graph tab is actually visible/unlocked before running
-			const graphTab = document.getElementById("tab_chart");
-			if (!graphTab || graphTab.classList.contains("hidden")) return;
+		// Ensure graph tab is actually visible/unlocked before running
+		const graphTab = document.getElementById("tab_chart");
+		if (!graphTab || graphTab.classList.contains("hidden")) return;
 
-			// Reset to top view to ensure consistent starting point
-			const tabTop = document.getElementById('tab_top');
-			if (tabTop) {
-				this.allowClick = true;
-				tabTop.click();
-				this.allowClick = false;
-			}
+		if (this.isTourActive) return;
 
-			const steps = [
-				{
-					popover: {
-						title: "New Views Unlocked!",
-						description:
-							"You have played enough rounds to see more statistics about the game.",
-					},
-				},
-				{
-					element: "#tab_chart",
-					popover: {
-						title: "Chart View",
-						description:
-							"Click the the chart icon to see how the scores developed over the game.",
-						side: "bottom",
-						align: "center",
-						onNextClick: () => {
-							const btn = document.getElementById("tab_chart");
-							if (btn) {
-								this.allowClick = true;
-								btn.click();
-								this.allowClick = false;
-							}
-							this.driver.moveNext();
-						},
-					},
-				},
-				{
-					element: "#chart_container",
-					popover: {
-						title: "Score History",
-						description: "This chart shows the score progression.",
-						side: "top",
-						align: "center",
-					},
-				},
-				{
-					element: "#tab_analytics",
-					popover: {
-						title: "Analytics View",
-						description:
-							"Click here to dive deeper into game statistics.",
-						side: "bottom",
-						align: "center",
-						onNextClick: () => {
-							const btn =
-								document.getElementById("tab_analytics");
-							if (btn) {
-								this.allowClick = true;
-								btn.click();
-								this.allowClick = false;
-							}
-							this.driver.moveNext();
-						},
-					},
-				},
-				{
-					element: "#analytics",
-					popover: {
-						title: "Detailed Stats",
-						description:
-							"Explore detailed analytics about every player!.",
-						side: "top",
-						align: "center",
-					},
-				},
-				{
-					element: "#tab_top",
-					popover: {
-						title: "Back to Overview",
-						description:
-							"Click here to return to the player leaderboard.",
-						side: "bottom",
-						align: "center",
-						onNextClick: () => {
-							const btn = document.getElementById("tab_top");
-							if (btn) {
-								this.allowClick = true;
-								btn.click();
-								this.allowClick = false;
-							}
-							this.driver.moveNext();
-						},
-					},
-				},
-                {
-                    element: "#top_players_0",
-                    popover: {
-                        title: "Detailed Player View",
-                        description:
-                            "Click on a player to see more detailed stats about them.",
-                        side: "top",
-                        align: "center",
-                    },
-                }
-			];
+		// Reset to top view to ensure consistent starting point
+		const tabTop = document.getElementById("tab_top");
+		if (tabTop) {
+			this.allowClick = true;
+			tabTop.click();
+			this.allowClick = false;
+		}
 
-			this.driver.setSteps(steps);
-			this.driver.drive();
+		const steps = [
+			{
+				popover: {
+					title: "New Views Unlocked!",
+					description:
+						"You have played enough rounds to see more statistics about the game.",
+				},
+			},
+			{
+				element: "#tab_chart",
+				popover: {
+					title: "Chart View",
+					description:
+						"Click the the chart icon to see how the scores developed over the game.",
+					side: "bottom",
+					align: "center",
+					onNextClick: () => {
+						const btn = document.getElementById("tab_chart");
+						if (btn) {
+							this.allowClick = true;
+							btn.click();
+							this.allowClick = false;
+						}
+						this.driver.moveNext();
+					},
+				},
+			},
+			{
+				element: "#chart_container",
+				popover: {
+					title: "Score History",
+					description: "This chart shows the score progression.",
+					side: "top",
+					align: "center",
+				},
+			},
+			{
+				element: "#tab_analytics",
+				popover: {
+					title: "Analytics View",
+					description:
+						"Click here to dive deeper into game statistics.",
+					side: "bottom",
+					align: "center",
+					onNextClick: () => {
+						const btn = document.getElementById("tab_analytics");
+						if (btn) {
+							this.allowClick = true;
+							btn.click();
+							this.allowClick = false;
+						}
+						this.driver.moveNext();
+					},
+				},
+			},
+			{
+				element: "#analytics",
+				popover: {
+					title: "Detailed Stats",
+					description:
+						"Explore detailed analytics about every player!.",
+					side: "top",
+					align: "center",
+				},
+			},
+			{
+				element: "#tab_top",
+				popover: {
+					title: "Back to Overview",
+					description:
+						"Click here to return to the player leaderboard.",
+					side: "bottom",
+					align: "center",
+					onNextClick: () => {
+						const btn = document.getElementById("tab_top");
+						if (btn) {
+							this.allowClick = true;
+							btn.click();
+							this.allowClick = false;
+						}
+						this.driver.moveNext();
+					},
+				},
+			},
+			{
+				element: "#top_players_0",
+				popover: {
+					title: "Detailed Player View",
+					description:
+						"Click on a player to see more detailed stats about them.",
+					side: "top",
+					align: "center",
+				},
+			},
+		];
 
-			localStorage.setItem("tour_graph", "true");
-			this.hasSeenGraphTour = true;
-		}, this.TOUR_DELAY);
+		this.isTourActive = true;
+		this.driver.setSteps(steps);
+		this.driver.drive();
+
+		localStorage.setItem("tour_graph", "true");
+		this.hasSeenGraphTour = true;
 	}
 
 	public runBetDisplayTour() {
 		if (this.hasSeenBetDisplayTour) return;
 
-		setTimeout(() => {
-			if (!this.isElementVisible("#bet_display_container")) return;
+		if (!this.isElementVisible("#bet_display_container")) return;
+		if (this.isTourActive) return;
 
-			const steps = [
-				{
-					element: "#bet_display_container",
-					popover: {
-						title: "Step 3: Bet Overview",
-						description:
-							"Now that the bets are set, this element shows the number of bets made above or below the total tricks available in this round.",
-						side: "bottom",
-						align: "start",
-					},
+		const steps = [
+			{
+				element: "#bet_display_container",
+				popover: {
+					title: "Step 3: Bet Overview",
+					description:
+						"Now that the bets are set, this element shows the number of bets made above or below the total tricks available in this round.",
+					side: "bottom",
+					align: "start",
 				},
-			];
+			},
+		];
 
-			this.driver.setSteps(steps);
-			this.driver.drive();
+		this.isTourActive = true;
+		this.driver.setSteps(steps);
+		this.driver.drive();
 
-			localStorage.setItem("tour_bet_display", "true");
-			this.hasSeenBetDisplayTour = true;
-		}, this.TOUR_DELAY);
+		localStorage.setItem("tour_bet_display", "true");
+		this.hasSeenBetDisplayTour = true;
 	}
 }

@@ -13,6 +13,7 @@ import { scoreCalculator } from "./game/score-calculator.js";
 import { updatescore, score_switch_view } from "./score.js";
 import { Logger } from "./logger.js";
 import { TutorialManager } from "./tutorial.js";
+import { SyncManager } from "./sync.js";
 
 export class GameController {
 	private game: GameData;
@@ -47,11 +48,9 @@ export class GameController {
 		this.update();
 
 		// Trigger initial game tour
-		setTimeout(() => {
-			if (this.game.getDisplay() === GameDisplay.SCORE_OVERVIEW) {
-				this.tutorialManager.runGameTour();
-			}
-		}, 1000);
+		if (this.game.getDisplay() === GameDisplay.SCORE_OVERVIEW) {
+			this.tutorialManager.runGameTour();
+		}
 	}
 
 	private checkDemoMode(): boolean {
@@ -76,12 +75,6 @@ export class GameController {
 
 			return demoGame;
 		} else {
-			// Check if game exists in localStorage
-			if (!localStorage.getItem("game")) {
-				window.location.href = "/";
-				throw new Error("No game found");
-			}
-
 			try {
 				return GameData.load();
 			} catch (error) {
@@ -514,7 +507,6 @@ export class GameController {
 	private processBets(bets: number[]): void {
 		this.game.setRoundBets(bets);
 		this.game.setStep(GameStep.ENTER_TRICKS);
-		this.saveGame();
 	}
 
 	private processTricks(tricks: number[]): void {
@@ -546,8 +538,6 @@ export class GameController {
 		this.game.addAltScore(scoreCalculation.altPlayerScores);
 		this.game.addAltScoreChange(scoreCalculation.altScoreChanges);
 
-		this.saveGame();
-
 		// Check if game should end or continue
 		if (this.game.getRound() >= this.game.getMaxRounds()) {
 			this.game.setStep(GameStep.CELEBRATION);
@@ -558,14 +548,15 @@ export class GameController {
 				(this.game.getDealer() + 1) % this.players.length
 			);
 			this.game.setStep(GameStep.PLACE_BETS);
-			this.saveGame();
 		}
 	}
 
 	private async finishGame(): Promise<void> {
 		this.uiManager.setNavigationText("Saving...");
 		this.game.setTimeEnded(Date.now());
-		this.saveGame();
+		this.game.isActive = false;
+		this.game.save();
+		localStorage.removeItem("wizard.activegame");
 		Logger.event("game.finish", {
 			id: this.game.getID(),
 			rounds: this.game.getRound(),
@@ -573,65 +564,21 @@ export class GameController {
 		});
 
 		try {
-			const response = await this.saveGameToServer();
-			if (response.success && response.gameId) {
-				this.game.setId(response.gameId);
-				Logger.info("Game saved successfully", {
-					gameId: response.gameId,
-				});
-			}
+			await SyncManager.sync(this.game);
+			Logger.info("Game synced successfully", {
+				gameId: this.game.id,
+			});
 		} catch (error) {
-			Logger.error("Error saving game to server", {
+			Logger.error("Error syncing game to server", {
 				error: (error as Error)?.message,
 			});
 		} finally {
-			this.saveToRecentGames();
 			Logger.event("game.saved.local");
-			localStorage.removeItem("game");
 			location.href = "/";
 		}
 	}
 
-	private async saveGameToServer(): Promise<SaveGameResponse> {
-		const gameData = GameData.toJsonString(this.game);
 
-		try {
-			const response = await fetch(
-				"https://s.paulbertram.de/wizardshare.php",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/x-www-form-urlencoded",
-					},
-					body: new URLSearchParams({
-						game: gameData,
-					}),
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error(
-					`Server error: ${response.status} - ${response.statusText}`
-				);
-			}
-
-			const data = await response.text();
-			return { success: true, gameId: data };
-		} catch (error) {
-			throw new Error(
-				`Server error: ${error instanceof Error ? error.message : "Unknown error"}`
-			);
-		}
-	}
-
-	private saveToRecentGames(): void {
-		let recentGames = JSON.parse(
-			localStorage.getItem("recent_games") || "[]"
-		);
-		const gameEnd = GameData.toJsonObject(this.game);
-		recentGames.push(gameEnd);
-		localStorage.setItem("recent_games", JSON.stringify(recentGames));
-	}
 
 	// UI update methods
 	public update(): void {
@@ -741,6 +688,8 @@ export class GameController {
 	private saveGame(): void {
 		if (!this.isDemoMode) {
 			this.game.save();
+			// Attempt to sync with server in background
+			SyncManager.sync(this.game);
 		}
 	}
 
