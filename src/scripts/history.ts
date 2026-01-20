@@ -79,7 +79,11 @@ for (let i = 0; i < past_games.length; i++) {
 		card.innerHTML = `
             <div class="w-full h-full">
               <span class="inline-block pl-3 pt-3">${date_string}</span>
-              <span class="float-right pr-3 pt-3">${time_diff_minutes} Minutes</span>
+              ${
+					isNaN(time_diff_minutes)
+						? ""
+						: `<span class="float-right pr-3 pt-3">${time_diff_minutes} Minutes</span>`
+				}
               <div class="card-body">
                 <div class="overflow-x-auto">
                   <table class="table">
@@ -120,8 +124,11 @@ for (let i = 0; i < past_games.length; i++) {
 		}
 
 		let score = game.getScore();
-		//extract last row of score
-		let last_row = score[score.length - 1];
+		//extract last row of score or use zeros if no score exists
+		let last_row =
+			score.length > 0
+				? score[score.length - 1]
+				: new Array(players.length).fill(0);
 		//create a new array with the players and their points
 		let p_s = [];
 		for (let j = 0; j < players.length; j++) {
@@ -204,10 +211,29 @@ if (skippedGames.length > 0) {
 	const notification = document.createElement("div");
 	notification.className = "alert alert-warning mt-4";
 	notification.innerHTML = `
-      <div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-2.186-.833-2.956 0L3.858 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+      <div class="flex-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-2.186-.833-2.956 0L3.858 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
         <span>Warning: ${skippedGames.length} corrupted game(s) were skipped and not displayed. Check the console for details.</span>
-      </div>`;
+      </div>
+      <button class="btn btn-sm">Copy Debug Info</button>`;
+
+	const btn = notification.querySelector("button");
+	if (btn) {
+		btn.addEventListener("click", () => {
+			navigator.clipboard
+				.writeText(JSON.stringify(skippedGames, null, 2))
+				.then(() => {
+					const originalText = btn.innerText;
+					btn.innerText = "Copied!";
+					setTimeout(() => (btn.innerText = originalText), 2000);
+				})
+				.catch((err) => {
+					console.error("Failed to copy debug info:", err);
+					btn.innerText = "Error!";
+				});
+		});
+	}
+
 	const pastGamesElement = document.getElementById("past_games");
 	if (pastGamesElement) pastGamesElement.prepend(notification);
 }
@@ -254,6 +280,8 @@ function clicked_more(i: number) {
 	) as HTMLAnchorElement;
 	if (shareGameLink)
 		shareGameLink.href = `${location.origin}/share?id=${Lgame.getID()}`;
+
+	updateExportButton();
 }
 
 // Tab switching is now handled in score.ts
@@ -293,6 +321,8 @@ if (tlBtn) {
 			confetti.reset();
 			//remove the id from the url
 			history.pushState({}, "", "/history/");
+			
+			updateExportButton();
 		} else {
 			location.href = "/";
 		}
@@ -440,3 +470,43 @@ try {
 		error: (error as Error)?.message,
 	});
 }
+
+function updateExportButton() {
+	const exportBtn = document.getElementById("export_data");
+	if (!exportBtn) return;
+
+	// Remove existing listeners
+	const newBtn = exportBtn.cloneNode(true) as HTMLElement;
+	exportBtn.parentNode?.replaceChild(newBtn, exportBtn);
+
+	if (view === 1 && Lgame) {
+		newBtn.textContent = "Export Current Game";
+		newBtn.addEventListener("click", () => {
+			// Export single game wrapped in proper structure
+			// Import expects keys like "wizard.games" to contain stringified arrays
+			const exportData = {
+				"wizard.games": JSON.stringify([Lgame]),
+			};
+			downloadJSON(exportData, `wizard_game_${Lgame.getID()}.json`);
+		});
+	} else {
+		newBtn.textContent = "Export All Data";
+		newBtn.addEventListener("click", () => {
+			const exportData = { ...localStorage };
+			downloadJSON(exportData, "wizard_data_all.json");
+		});
+	}
+}
+
+function downloadJSON(data: any, fileName: string) {
+	const blob = new Blob([JSON.stringify(data)], { type: "text/plain" });
+	const url = window.URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = fileName;
+	a.click();
+	window.URL.revokeObjectURL(url);
+}
+
+// Initial initialization
+updateExportButton();

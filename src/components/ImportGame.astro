@@ -63,14 +63,17 @@
                 try {
                     let didsomething = false;
                     let data = JSON.parse(evt.target.result as string);
-                    let past_games = JSON.parse(
-                        localStorage.getItem("recent_games"),
-                    );
+                    let past_games = [];
+                    try {
+                        const stored = localStorage.getItem("wizard.games");
+                        if (stored) past_games = JSON.parse(stored);
+                    } catch (e) {}
+
                     Object.keys(data).forEach(function (k) {
-                        if (k == "recent_games") {
+                        if (k == "wizard.games" || k == "recent_games") {
                             try {
                                 //loop over the array and add the games to past_games if they are not already in there compare by time_started and time_ended
-                                let new_games = JSON.parse(data[k]);
+                                let new_games = typeof data[k] === 'string' ? JSON.parse(data[k]) : data[k];
                                 if (!past_games) past_games = [];
                                 for (let i = 0; i < new_games.length; i++) {
                                     let pgame = new_games[i];
@@ -95,13 +98,13 @@
                                     }
                                 }
                                 localStorage.setItem(
-                                    "recent_games",
+                                    "wizard.games",
                                     JSON.stringify(past_games),
                                 );
                             } catch (e) {
                                 try { (window as any)['wizardLogger']?.warn?.('Failed to merge past games', { error: String(e) }); } catch {}
                             }
-                        } else if (k == "game") {
+                        } else if (k == "wizard.activegame" || k == "game") {
                             if (
                                 (
                                     document.getElementById(
@@ -109,7 +112,7 @@
                                     ) as HTMLInputElement
                                 ).checked
                             ) {
-                                localStorage.setItem("game", data[k]);
+                                localStorage.setItem("wizard.activegame", data[k]);
                                 didsomething = true;
                             }
                         }
