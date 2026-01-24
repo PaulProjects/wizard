@@ -15,7 +15,7 @@ export class HistoryAnalyticsUI {
 	}
 
 	private initializeUI(): void {
-		this.setupTabNavigation();
+		// Tab navigation is now handled in history.ts
 		this.populateSortOptions();
 		this.setupSortHandler();
 		this.setupSearchHandler();
@@ -23,41 +23,8 @@ export class HistoryAnalyticsUI {
 	}
 
 	private setupTabNavigation(): void {
-		const pastGamesTab = document.getElementById("past-games-tab");
-		const playerAnalyticsTab = document.getElementById(
-			"player-analytics-tab"
-		);
-		const pastGamesView = document.getElementById("past_games");
-		const playerAnalyticsView = document.getElementById("player_analytics");
-
-		if (
-			!pastGamesTab ||
-			!playerAnalyticsTab ||
-			!pastGamesView ||
-			!playerAnalyticsView
-		) {
-			Logger.error("Required tab elements not found");
-			return;
-		}
-
-		pastGamesTab.addEventListener("click", () => {
-			// Switch to past games view
-			pastGamesTab.classList.add("active");
-			playerAnalyticsTab.classList.remove("active");
-			pastGamesView.classList.remove("hidden");
-			playerAnalyticsView.classList.add("hidden");
-			Logger.event("tab.switch.history", { to: "past_games" });
-		});
-
-		playerAnalyticsTab.addEventListener("click", () => {
-			// Switch to analytics view
-			playerAnalyticsTab.classList.add("active");
-			pastGamesTab.classList.remove("active");
-			playerAnalyticsView.classList.remove("hidden");
-			pastGamesView.classList.add("hidden");
-			Logger.event("tab.switch.history", { to: "player_analytics" });
-		});
-	}
+        // Removed
+    }
 
 	private populateSortOptions(): void {
 		const sortSelect = document.getElementById(
@@ -206,8 +173,8 @@ export class HistoryAnalyticsUI {
               <div class="text-xs opacity-70">Avg Position</div>
             </div>
             <div class="stat-item">
-              <div class="font-semibold text-secondary">${stats.averagePoints.toFixed(0)}</div>
-              <div class="text-xs opacity-70">Avg Points</div>
+              <div class="font-semibold text-secondary">${stats.wins}</div>
+              <div class="text-xs opacity-70">Total Wins</div>
             </div>
             <div class="stat-item">
               <div class="font-semibold text-accent">${stats.highestScore}</div>

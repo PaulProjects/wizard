@@ -32,8 +32,8 @@ import ImportGame from "../components/ImportGame.astro";
       </div>
 
       <!-- Tab Navigation -->
-      <div class="flex justify-center mb-6" id="tab_navigation_container">
-        <div class="bg-base-200 rounded-lg flex gap-1 p-1 w-full max-w-md">
+      <div class="flex justify-center mb-6 mt-3" id="tab_navigation_container">
+        <div class="bg-base-200 rounded-lg flex gap-1 p-1 w-full">
           <button class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10 active" id="past-games-tab">
             <Icon name="mdi:history" class="w-5 h-5 flex-shrink-0" />
             <span class="tab-label text-sm pl-2 whitespace-nowrap">Past Games</span>
@@ -42,14 +42,57 @@ import ImportGame from "../components/ImportGame.astro";
             <Icon name="mdi:account-group" class="w-5 h-5 flex-shrink-0" />
             <span class="tab-label text-sm pl-2 whitespace-nowrap">Player Analytics</span>
           </button>
+          <button class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10" id="game-analytics-tab">
+            <Icon name="mdi:chart-bar" class="w-5 h-5 flex-shrink-0" />
+            <span class="tab-label text-sm pl-2 whitespace-nowrap">Game Analytics</span>
+          </button>
         </div>
       </div>
 
       <!-- Past Games View -->
       <div
         id="past_games"
-        class="flex flex-col flex-wrap items-center justify-center"
+        class="w-full flex flex-col items-center"
       >
+        <div class="mb-4 flex flex-col sm:flex-row gap-4 justify-center items-end w-full max-w-4xl">
+          <div class="form-control w-full sm:max-w-xs">
+            <label class="label">
+              <span class="label-text">Search players:</span>
+            </label>
+            <input 
+              type="text" 
+              placeholder="Enter player name..." 
+              class="input input-bordered w-full" 
+              id="history-search"
+            />
+          </div>
+          <div class="form-control w-full sm:max-w-xs">
+            <label class="label">
+              <span class="label-text">Sort by:</span>
+            </label>
+            <select class="select select-bordered" id="history-sort">
+              <option value="date-desc">Newest First</option>
+              <option value="date-asc">Oldest First</option>
+              <option value="duration-desc">Longest Duration</option>
+              <option value="duration-asc">Shortest Duration</option>
+              <option value="players-desc">Most Players</option>
+              <option value="players-asc">Fewest Players</option>
+            </select>
+          </div>
+          <div class="form-control w-full sm:max-w-xs">
+            <label class="label">
+              <span class="label-text">Filter:</span>
+            </label>
+            <select class="select select-bordered" id="history-filter">
+              <option value="completed" selected>Completed Games</option>
+              <option value="active">Active Games</option>
+              <option value="all">All Games</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="past_games_list" class="flex flex-col flex-wrap items-center justify-center w-full">
+        </div>
       </div>
 
       <!-- Player Analytics View -->
@@ -85,6 +128,81 @@ import ImportGame from "../components/ImportGame.astro";
         
         <div id="analytics-summary" class="mt-6 text-center text-sm opacity-70">
           <!-- Summary will be populated by JavaScript -->
+        </div>
+      </div>
+
+       <!-- Game Analytics View -->
+       <div id="game_analytics" class="hidden w-full max-w-6xl mx-auto p-4">
+        
+        <div class="stats stats-vertical lg:stats-horizontal shadow w-full mb-8 bg-base-200">
+            <div class="stat">
+                <div class="stat-title">Total Games</div>
+                <div class="stat-value text-primary" id="ga-total-games">0</div>
+                <div class="stat-desc">Completed games</div>
+            </div>
+            
+            <div class="stat">
+                <div class="stat-title">Unique Players</div>
+                <div class="stat-value text-secondary" id="ga-total-players">0</div>
+                <div class="stat-desc">All time participants</div>
+            </div>
+            
+            <div class="stat">
+                <div class="stat-title">Total Playtime</div>
+                <div class="stat-value text-accent" id="ga-total-playtime">0h</div>
+                <div class="stat-desc">Hours spent playing</div>
+            </div>
+
+             <div class="stat">
+                <div class="stat-title">Total Rounds</div>
+                <div class="stat-value" id="ga-total-rounds">0</div>
+                <div class="stat-desc">played</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8">
+           <div class="">
+               <div class="card-body p-0">
+                   <h2 class="card-title text-3xl font-bold mb-4">Games Played Over Time</h2>
+                   <div class="relative h-80 w-full">
+                       <canvas id="chart-games-over-time"></canvas>
+                   </div>
+               </div>
+           </div>
+           
+           <div class="">
+               <div class="card-body p-0">
+                   <h2 class="card-title text-3xl font-bold mb-4">Game Duration Distribution (in Minutes)</h2>
+                   <div class="relative h-80 w-full">
+                       <canvas id="chart-duration-distribution"></canvas>
+                   </div>
+               </div>
+           </div>
+
+           <div class="">
+               <div class="card-body p-0">
+                   <h2 class="card-title text-3xl font-bold mb-4">Player Count Distribution</h2>
+                   <div class="relative h-80 w-full">
+                       <canvas id="chart-player-counts"></canvas>
+                   </div>
+               </div>
+           </div>
+
+           <div class="">
+               <div class="card-body p-0">
+                   <h2 class="card-title text-3xl font-bold mb-4">Betting Behavior Analysis</h2>
+                   <div class="flex justify-between items-center mb-4">
+                        <div class="stat p-0">
+                            <div class="stat-title text-xs">Avg Bet Deviation</div>
+                            <div id="stat-avg-deviation" class="stat-value text-2xl">0.0</div>
+                            <div class="stat-desc">Difference between tricks expected & taken</div>
+                        </div>
+                   </div>
+                   <div class="relative h-80 w-full">
+                       <canvas id="chart-betting-accuracy"></canvas>
+                   </div>
+               </div>
+           </div>
         </div>
       </div>
     </div>

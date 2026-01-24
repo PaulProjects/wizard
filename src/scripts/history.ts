@@ -1,204 +1,70 @@
 import { updatescore, score_switch_view } from "./score.ts";
 import { GameData as gamedata } from "./game/gamedata.ts";
 import { HistoryAnalyticsUI } from "./history-analytics-ui.ts";
+import { GameAnalyticsUI } from "./game-analytics-ui.ts";
 import { Logger } from "./logger.ts";
 import { SyncManager } from "./sync.ts";
 
 import confetti from "canvas-confetti";
 
 let view = 0; //0 = overview ; 1 = details
-// check if past_games exists in local storage if not return
-let past_games: GameState[] = [];
+
+type SortOption = "date-desc" | "date-asc" | "duration-desc" | "duration-asc" | "players-desc" | "players-asc";
+type FilterOption = "completed" | "active" | "all"; 
+
+let currentSort: SortOption = "date-desc";
+let currentFilter: FilterOption = "completed";
+let currentSearch = "";
+
+// Load all games
+let allGames: gamedata[] = [];
+let skippedGames: any[] = [];
+
 try {
 	const stored = localStorage.getItem("wizard.games");
 	if (stored) {
-		const all_games = JSON.parse(stored);
-		past_games = all_games.filter((g: any) => !g.isActive);
+		const rawGames = JSON.parse(stored);
+		
+		for (let i = 0; i < rawGames.length; i++) {
+			try {
+				const game = gamedata.fromJson(rawGames[i]);
+				
+				// check if it has a id else try to upload it
+				if (!game.hasID()) {
+					Logger.info("No id found, trying to upload", { game });
+
+					SyncManager.sync(game)
+						.then(() => {
+							Logger.info("Success uploading", { id: game.getID() });
+						})
+						.catch((error) => {
+							Logger.error("Error uploading game", {
+								error: error?.message,
+							});
+						});
+				}
+
+				allGames.push(game);
+			} catch (error) {
+				Logger.error(`Failed to load game at index ${i}`, {
+					error: (error as Error)?.message,
+					data: rawGames[i],
+				});
+
+				skippedGames.push({
+					index: i,
+					data: rawGames[i],
+					error: (error as Error).message,
+				});
+			}
+		}
 	}
 } catch (e) {
 	console.error("Failed to load games", e);
 }
 
-if (past_games === null || past_games.length === 0) {
+if (allGames.length === 0) {
 	location.href = "/";
-}
-
-//newest game first - time_started for backwards compatibility
-past_games.sort((a, b) => {
-	return b.time_started - a.time_started;
-});
-
-//create game objects from the games
-let games: gamedata[] = [];
-let skippedGames: any[] = [];
-
-for (let i = 0; i < past_games.length; i++) {
-	try {
-		const game = gamedata.fromJson(past_games[i]);
-
-		//check if it has a id else try to upload it
-		if (!game.hasID()) {
-			Logger.info("No id found, trying to upload", { game });
-
-			SyncManager.sync(game)
-				.then(() => {
-					Logger.info("Success uploading", { id: game.getID() });
-				})
-				.catch((error) => {
-					Logger.error("Error uploading game", {
-						error: error?.message,
-					});
-				});
-		}
-
-		// Only add successfully loaded games to the games array
-		games.push(game);
-
-		let players = game.getPlayers();
-
-		let time_started = game.getTimeStarted();
-		let time_ended = game.getTimeEnded();
-		let time_diff = time_ended - time_started;
-		let time_diff_minutes = Math.floor(time_diff / 60000);
-
-		//Extract date from time_ended
-		let date = new Date(time_started);
-		let day = date.getDate();
-		//write month as string
-		let month = date.toLocaleString("default", { month: "short" });
-		let year = date.getFullYear();
-		let date_string = `${day}.${month}.${year}`;
-
-		// Use the game index in the games array (not the original past_games index)
-		const gameIndex = games.length - 1;
-
-		// Create game card using native DOM manipulation
-		const card = document.createElement("div");
-		card.className = "card mt-10 bg-base-200 w-full";
-		card.id = `card${gameIndex}`;
-		card.innerHTML = `
-            <div class="w-full h-full">
-              <span class="inline-block pl-3 pt-3">${date_string}</span>
-              ${
-					isNaN(time_diff_minutes)
-						? ""
-						: `<span class="float-right pr-3 pt-3">${time_diff_minutes} Minutes</span>`
-				}
-              <div class="card-body">
-                <div class="overflow-x-auto">
-                  <table class="table">
-                    <!-- head -->
-                    <thead>
-                      <tr>
-                        <th>Position</th>
-                        <th>Name</th>
-                        <th>Points</th>
-                      </tr>
-                    </thead>
-                    <tbody id="table${gameIndex}">
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            <div class="card--hover">
-                <a id="more${gameIndex}">Find out more</a>
-            </div>`;
-
-		const pastGamesElement = document.getElementById("past_games");
-		if (pastGamesElement) pastGamesElement.appendChild(card);
-
-		//add event listener to the more button
-		const moreButton = document.getElementById(`more${gameIndex}`);
-		if (moreButton) {
-			moreButton.addEventListener("click", function () {
-				clicked_more(gameIndex);
-			});
-		}
-
-		const cardElement = document.getElementById(`card${gameIndex}`);
-		if (cardElement) {
-			cardElement.addEventListener("click", function () {
-				clicked_more(gameIndex);
-			});
-		}
-
-		let score = game.getScore();
-		//extract last row of score or use zeros if no score exists
-		let last_row =
-			score.length > 0
-				? score[score.length - 1]
-				: new Array(players.length).fill(0);
-		//create a new array with the players and their points
-		let p_s = [];
-		for (let j = 0; j < players.length; j++) {
-			p_s.push({ name: players[j], points: last_row[j], position: 1 });
-		}
-
-		//sort the array by points descending
-		p_s.sort((a, b) => b.points - a.points);
-
-		// Determine positions (handling ties)
-		for (let j = 0; j < p_s.length; j++) {
-			if (j > 0) {
-				if (p_s[j].points === p_s[j - 1].points) {
-					p_s[j].position = p_s[j - 1].position;
-				} else {
-					p_s[j].position = j + 1;
-				}
-			} else {
-				p_s[j].position = j + 1;
-			}
-		}
-
-		// loop through players and add them to the table
-		const tableElement = document.getElementById(`table${gameIndex}`);
-		for (let j = 0; j < p_s.length; j++) {
-			const row = document.createElement("tr");
-
-			const positionCell = document.createElement("th");
-			positionCell.textContent = p_s[j].position.toString();
-			row.appendChild(positionCell);
-
-			const nameCell = document.createElement("td");
-			nameCell.textContent = p_s[j].name;
-			row.appendChild(nameCell);
-
-			const pointsCell = document.createElement("td");
-			pointsCell.textContent = p_s[j].points.toString();
-			row.appendChild(pointsCell);
-
-			if (tableElement) tableElement.appendChild(row);
-		}
-
-		//add class="bg-info" to the first row
-		if (tableElement) {
-			const firstRow = tableElement.querySelector("tr:first-child");
-			if (firstRow) firstRow.classList.add("bg-info");
-		}
-	} catch (error) {
-		Logger.error(`Failed to load game at index ${i}`, {
-			error: (error as Error)?.message,
-			gameData: past_games[i],
-			gameId: past_games[i]?.id || "unknown",
-			gameMetadata: {
-				id: past_games[i]?.id,
-				players: past_games[i]?.players,
-				timeStarted: past_games[i]?.time_started,
-				round: past_games[i]?.round,
-			},
-		});
-
-		// Store the broken game for potential recovery
-		skippedGames.push({
-			index: i,
-			data: past_games[i],
-			error: error.message,
-		});
-
-		// Continue with next game instead of breaking the entire page
-		continue;
-	}
 }
 
 // Log information about skipped games
@@ -206,14 +72,13 @@ if (skippedGames.length > 0) {
 	Logger.warn(`Skipped ${skippedGames.length} corrupted games`, {
 		skippedGames,
 	});
-
-	// Optional: Show user notification about skipped games
-	const notification = document.createElement("div");
-	notification.className = "alert alert-warning mt-4";
+    
+    const notification = document.createElement("div");
+	notification.className = "alert alert-warning mt-4 max-w-4xl";
 	notification.innerHTML = `
       <div class="flex-1">
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-2.186-.833-2.956 0L3.858 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-        <span>Warning: ${skippedGames.length} corrupted game(s) were skipped and not displayed. Check the console for details.</span>
+        <span>Warning: ${skippedGames.length} corrupted game(s) were skipped.</span>
       </div>
       <button class="btn btn-sm">Copy Debug Info</button>`;
 
@@ -238,26 +103,237 @@ if (skippedGames.length > 0) {
 	if (pastGamesElement) pastGamesElement.prepend(notification);
 }
 
+// Render Loop
+function renderGames() {
+    const listContainer = document.getElementById("past_games_list");
+    if (!listContainer) return;
+
+    listContainer.innerHTML = "";
+
+    let displayedGames = allGames.filter((g) => {
+        const isActive = g.isActive;
+        const players = g.getPlayers();
+        
+        switch (currentFilter) {
+            case "completed":
+                if (isActive) return false;
+                break;
+            case "active":
+                if (!isActive) return false;
+                break;
+            case "all":
+                break;
+        }
+        
+        if (currentSearch) {
+            const term = currentSearch.toLowerCase();
+            // Search in players
+            if (players.some(p => p.toLowerCase().includes(term))) return true;
+			// Search in date string
+			const date = new Date(g.getTimeStarted());
+			const dateStr = date.toLocaleDateString().toLowerCase(); 
+            // Also try format used in card: DD.MMM.YYYY
+            const day = date.getDate();
+		    const month = date.toLocaleString("default", { month: "short" }).toLowerCase();
+		    const year = date.getFullYear();
+            if (`${day}.${month}.${year}`.toLowerCase().includes(term)) return true;
+            if (dateStr.includes(term)) return true;
+
+            return false;
+        }
+        return true;
+    });
+
+    // Sorting
+    displayedGames.sort((a, b) => {
+        // Duration helper: active/undefined games get -1 duration
+        const getDur = (g: gamedata) => {
+            const e = g.getTimeEnded();
+            if (!e) return -1;
+            return e - g.getTimeStarted();
+        };
+
+        switch (currentSort) {
+            case "date-desc":
+                return b.getTimeStarted() - a.getTimeStarted();
+            case "date-asc":
+                return a.getTimeStarted() - b.getTimeStarted();
+            case "duration-desc":
+                return getDur(b) - getDur(a);
+            case "duration-asc":
+                return getDur(a) - getDur(b);
+            case "players-desc":
+                return b.getPlayers().length - a.getPlayers().length;
+            case "players-asc":
+                return a.getPlayers().length - b.getPlayers().length;
+            default:
+                return b.getTimeStarted() - a.getTimeStarted();
+        }
+    });
+
+    displayedGames.forEach(game => {
+        const gameId = game.getID();
+        const players = game.getPlayers();
+		const time_started = game.getTimeStarted();
+		const time_ended = game.getTimeEnded();
+		const time_diff = time_ended ? (time_ended - time_started) : 0;
+		const time_diff_minutes = Math.floor(time_diff / 60000);
+        const isActive = game.isActive;
+
+		//Extract date from time_started
+		let date = new Date(time_started);
+		let day = date.getDate();
+		let month = date.toLocaleString("default", { month: "short" });
+		let year = date.getFullYear();
+		let date_string = `${day}.${month}.${year}`;
+
+		const card = document.createElement("div");
+		card.className = `card mt-10 bg-base-200 w-full ${isActive ? 'border-2 border-primary' : ''}`;
+        	
+		// Sanitize ID for DOM usage if needed, but assuming ID is safeish
+		card.id = `card-${gameId}`; 
+		card.innerHTML = `
+            <div class="w-full h-full">
+              <div class="flex justify-between items-center pl-3 pt-3 pr-3">
+                 <span class="inline-block font-bold">${date_string}</span>
+                 ${isActive ? '<span class="badge badge-primary">Active</span>' : ''}
+                 ${
+					!isActive && !isNaN(time_diff_minutes)
+						? `<span class="">${time_diff_minutes} Minutes</span>`
+						: ""
+				}
+              </div>
+              <div class="card-body">
+                <div class="overflow-x-auto">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Position</th>
+                        <th>Name</th>
+                        <th>Points</th>
+                      </tr>
+                    </thead>
+                    <tbody id="table-${gameId}">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="card--hover">
+                <a id="more-${gameId}">Find out more</a>
+            </div>`;
+
+        listContainer.appendChild(card);
+
+        // Populate table
+		let score = game.getScore();
+		let last_row =
+			score.length > 0
+				? score[score.length - 1]
+				: new Array(players.length).fill(0);
+		let p_s = [];
+		for (let j = 0; j < players.length; j++) {
+			p_s.push({ name: players[j], points: last_row[j], position: 1 });
+		}
+		p_s.sort((a, b) => b.points - a.points);
+		for (let j = 0; j < p_s.length; j++) {
+			if (j > 0) {
+				if (p_s[j].points === p_s[j - 1].points) {
+					p_s[j].position = p_s[j - 1].position;
+				} else {
+					p_s[j].position = j + 1;
+				}
+			} else {
+				p_s[j].position = j + 1;
+			}
+		}
+
+		const tableElement = document.getElementById(`table-${gameId}`);
+		for (let j = 0; j < p_s.length; j++) {
+			const row = document.createElement("tr");
+			const posCell = document.createElement("th");
+			posCell.textContent = p_s[j].position.toString();
+			row.appendChild(posCell);
+			const nameCell = document.createElement("td");
+			nameCell.textContent = p_s[j].name;
+			row.appendChild(nameCell);
+			const ptsCell = document.createElement("td");
+			ptsCell.textContent = p_s[j].points.toString();
+			row.appendChild(ptsCell);
+			if (tableElement) tableElement.appendChild(row);
+		}
+		if (tableElement) {
+			const firstRow = tableElement.querySelector("tr:first-child");
+			if (firstRow) firstRow.classList.add("bg-info");
+		}
+
+        // Attach listeners
+        const moreButton = document.getElementById(`more-${gameId}`);
+		if (moreButton) {
+			moreButton.addEventListener("click", function () {
+				clicked_more_game(game);
+			});
+		}
+		const cardElement = document.getElementById(`card-${gameId}`);
+		if (cardElement) {
+			cardElement.addEventListener("click", function () {
+				clicked_more_game(game);
+			});
+		}
+    });
+
+    if (displayedGames.length === 0) {
+        listContainer.innerHTML = `<div class="p-10 opacity-50 text-center">No games found matching your filters.</div>`;
+    }
+}
+
+// New logic for controls
+const searchInput = document.getElementById("history-search") as HTMLInputElement;
+const sortSelect = document.getElementById("history-sort") as HTMLSelectElement;
+const activeToggle = document.getElementById("history-active-toggle") as HTMLInputElement;
+
+if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+        currentSearch = (e.target as HTMLInputElement).value;
+        renderGames();
+    });
+}
+if (sortSelect) {
+    sortSelect.addEventListener("change", (e) => {
+        currentSort = (e.target as HTMLSelectElement).value as SortOption;
+        renderGames();
+    });
+}
+const filterSelect = document.getElementById("history-filter") as HTMLSelectElement;
+if (filterSelect) {
+    filterSelect.addEventListener("change", (e) => {
+        currentFilter = (e.target as HTMLSelectElement).value as FilterOption;
+        renderGames();
+    });
+}
+
+// Initial render
+renderGames();
+
+
 let Lgame: gamedata;
-function clicked_more(i: number) {
+
+function clicked_more_game(game: gamedata) {
 	document.getElementById("nav_container").classList.remove("hidden");
 	score_switch_view(4);
 	view = 1;
-	// Indicate that we are viewing a finished game from the history page.
-	// This flag is used by score/confetti logic to shorten celebration.
+
 	(globalThis as any).historyPageViewing = true;
-	// Allow a fresh (single) short confetti burst each time a card is opened.
 	(globalThis as any).historyConfettiShown = false;
-	//hide past_games and remove hidden from score
+
 	const pastGamesElement = document.getElementById("past_games");
 	const scoreElement = document.getElementById("score");
 	const delGameElement = document.getElementById("del_game");
 	const shareGameElement = document.getElementById("share_game");
 	const sRoundElement = document.getElementById("s_round");
-	const tabNavigationElement = document.getElementById(
-		"tab_navigation_container"
-	);
+	const tabNavigationElement = document.getElementById("tab_navigation_container");
 	const playerAnalyticsElement = document.getElementById("player_analytics");
+    const gameAnalyticsElement = document.getElementById("game_analytics");
 
 	if (pastGamesElement) pastGamesElement.classList.add("hidden");
 	if (scoreElement) scoreElement.classList.remove("hidden");
@@ -266,27 +342,21 @@ function clicked_more(i: number) {
 	if (sRoundElement) sRoundElement.classList.add("hidden");
 	if (tabNavigationElement) tabNavigationElement.classList.add("hidden");
 	if (playerAnalyticsElement) playerAnalyticsElement.classList.add("hidden");
+    if (gameAnalyticsElement) gameAnalyticsElement.classList.add("hidden");
 
-	//get the game and store it in Lgame
-	Lgame = games[i];
+	Lgame = game;
 	Lgame.setStep(3);
-	//add the id to the url
 	history.replaceState({}, "", `?id=${Lgame.getID()}`);
 	let players = Lgame.getPlayers();
 	updatescore(players, Lgame as any);
 
-	const shareGameLink = document.getElementById(
-		"share_game"
-	) as HTMLAnchorElement;
+	const shareGameLink = document.getElementById("share_game") as HTMLAnchorElement;
 	if (shareGameLink)
 		shareGameLink.href = `${location.origin}/share?id=${Lgame.getID()}`;
 
 	updateExportButton();
 }
 
-// Tab switching is now handled in score.ts
-
-//#endregion
 
 const tlBtn = document.getElementById("tlbtn");
 if (tlBtn) {
@@ -296,32 +366,35 @@ if (tlBtn) {
 			const scoreElement = document.getElementById("score");
 			const pastGamesElement = document.getElementById("past_games");
 			const delGameElement = document.getElementById("del_game");
-			const tabNavigationElement = document.getElementById(
-				"tab_navigation_container"
-			);
+			const tabNavigationElement = document.getElementById("tab_navigation_container");
 
-				// Leaving detailed view: clear history confetti flags
-				(globalThis as any).historyPageViewing = false;
-				(globalThis as any).historyConfettiShown = false;
+			(globalThis as any).historyPageViewing = false;
+			(globalThis as any).historyConfettiShown = false;
 
-				// Restore tab navigation active state to Past Games tab
-				const pastGamesTab = document.getElementById("past-games-tab");
-				const playerAnalyticsTab = document.getElementById("player-analytics-tab");
-				if (pastGamesTab) pastGamesTab.classList.add("active");
-				if (playerAnalyticsTab) playerAnalyticsTab.classList.remove("active");
+			const pastGamesTab = document.getElementById("past-games-tab");
+			const playerAnalyticsTab = document.getElementById("player-analytics-tab");
+            const gameAnalyticsTab = document.getElementById("game-analytics-tab");
 
+            // Reset tabs to default (Past Games)
+			if (pastGamesTab) pastGamesTab.classList.add("active");
+			if (playerAnalyticsTab) playerAnalyticsTab.classList.remove("active");
+            if (gameAnalyticsTab) gameAnalyticsTab.classList.remove("active");
+
+            // Reset views
+            const gameAnalyticsView = document.getElementById("game_analytics");
+            const playerAnalyticsView = document.getElementById("player_analytics");
+            
 			if (scoreElement) scoreElement.classList.add("hidden");
 			if (pastGamesElement) pastGamesElement.classList.remove("hidden");
+            if (playerAnalyticsView) playerAnalyticsView.classList.add("hidden");
+            if (gameAnalyticsView) gameAnalyticsView.classList.add("hidden");
+
 			if (delGameElement) delGameElement.classList.add("hidden");
-			if (tabNavigationElement)
-				tabNavigationElement.classList.remove("hidden");
+			if (tabNavigationElement) tabNavigationElement.classList.remove("hidden");
 
 			view = 0;
-
 			confetti.reset();
-			//remove the id from the url
 			history.pushState({}, "", "/history/");
-			
 			updateExportButton();
 		} else {
 			location.href = "/";
@@ -333,8 +406,7 @@ if (tlBtn) {
 const titleElement = document.getElementById("title");
 if (titleElement) {
 	titleElement.addEventListener("click", () => {
-		(document.getElementById("modal_settings") as HTMLDialogElement).open =
-			true;
+		(document.getElementById("modal_settings") as HTMLDialogElement).open = true;
 		Logger.event("settings.open");
 	});
 }
@@ -345,59 +417,41 @@ if (delGameButton) {
 		let id = Lgame.getID();
 		const rremoveDataButton = document.getElementById("rremovedata");
 
-		//remove all onclick attributes
 		if (rremoveDataButton) {
 			rremoveDataButton.removeAttribute("onclick");
-			// Remove any existing event listeners by cloning and replacing the element
 			const newButton = rremoveDataButton.cloneNode(true);
-			rremoveDataButton.parentNode?.replaceChild(
-				newButton,
-				rremoveDataButton
-			);
+			rremoveDataButton.parentNode?.replaceChild(newButton, rremoveDataButton);
 		}
 
-		//show modal_delete
-		(document.getElementById("modal_delete") as HTMLDialogElement).open =
-			true;
-		//change text
+		(document.getElementById("modal_delete") as HTMLDialogElement).open = true;
 		const modalDelText = document.getElementById("modal_del_text");
 		const modalDelInfoText = document.getElementById("modal_del_infotext");
 
 		if (modalDelText)
-			modalDelText.textContent =
-				"Do you really want to delete this game?";
+			modalDelText.textContent = "Do you really want to delete this game?";
 		if (modalDelInfoText)
-			modalDelInfoText.textContent =
-				"This will remove all stored data about this game permanently!";
+			modalDelInfoText.textContent = "This will remove all stored data about this game permanently!";
 
-		//add click event to the button
 		const newRremoveDataButton = document.getElementById("rremovedata");
 		if (newRremoveDataButton) {
 			newRremoveDataButton.addEventListener("click", () => {
-				//delete the game from the local storage
 				try {
 					const stored = localStorage.getItem("wizard.games");
 					if (stored) {
 						const all = JSON.parse(stored);
 						const newAll = all.filter((g: any) => g.id !== id);
-						localStorage.setItem(
-							"wizard.games",
-							JSON.stringify(newAll)
-						);
+						localStorage.setItem("wizard.games", JSON.stringify(newAll));
 					}
 				} catch (e) {
 					console.error("Failed to delete local game", e);
 				}
 
-				//delete the game on the server
 				SyncManager.delete(id)
 					.then(() => {
 						Logger.info("Success deleting", { id });
 					})
 					.catch((error) => {
-						Logger.error("Error deleting", {
-							error: error?.message,
-						});
+						Logger.error("Error deleting", { error: error?.message });
 					})
 					.finally(() => {
 						location.reload();
@@ -412,31 +466,21 @@ if (delAllButton) {
 	delAllButton.addEventListener("click", () => {
 		const rremoveDataButton = document.getElementById("rremovedata");
 
-		//remove all onclick attributes
 		if (rremoveDataButton) {
 			rremoveDataButton.removeAttribute("onclick");
-			// Remove any existing event listeners by cloning and replacing the element
 			const newButton = rremoveDataButton.cloneNode(true);
-			rremoveDataButton.parentNode?.replaceChild(
-				newButton,
-				rremoveDataButton
-			);
+			rremoveDataButton.parentNode?.replaceChild(newButton, rremoveDataButton);
 		}
 
-		//show modal_delete
-		(document.getElementById("modal_delete") as HTMLDialogElement).open =
-			true;
-		//change text
+		(document.getElementById("modal_delete") as HTMLDialogElement).open = true;
 		const modalDelText = document.getElementById("modal_del_text");
 		const modalDelInfoText = document.getElementById("modal_del_infotext");
 
 		if (modalDelText)
 			modalDelText.textContent = "Do you really want to delete all data?";
 		if (modalDelInfoText)
-			modalDelInfoText.textContent =
-				"This will remove all locally stored data about current and past games permanently!";
+			modalDelInfoText.textContent = "This will remove all locally stored data about current and past games permanently!";
 
-		//add click event to the button
 		const newRremoveDataButton = document.getElementById("rremovedata");
 		if (newRremoveDataButton) {
 			newRremoveDataButton.addEventListener("click", () => {
@@ -450,40 +494,96 @@ if (delAllButton) {
 //get url params
 const urlParams = new URLSearchParams(window.location.search);
 const myParam = urlParams.get("id");
-//open the game with the id
 if (myParam) {
-	// Find the game in the successfully loaded games array
-	for (let i = 0; i < games.length; i++) {
-		if (games[i].getID() === myParam) {
-			clicked_more(i);
+	for (let i = 0; i < allGames.length; i++) {
+		if (allGames[i].getID() === myParam) {
+			clicked_more_game(allGames[i]);
 			break;
 		}
 	}
 }
 
-// Initialize player analytics
+// Initialize player analytics and game analytics
+let analyticsUI: HistoryAnalyticsUI;
+let gameAnalyticsUI: GameAnalyticsUI;
 try {
-	const analyticsUI = new HistoryAnalyticsUI(games);
-	Logger.info("Player analytics initialized successfully");
+    const completedGames = allGames.filter((g) => !g.isActive);
+	analyticsUI = new HistoryAnalyticsUI(completedGames);
+    gameAnalyticsUI = new GameAnalyticsUI(allGames); // Pass all games, analytics will filter internally if needed
+	Logger.info("Analytics initialized successfully");
+    
+    // Setup Tab Navigation
+    setupTabNavigation();
+
 } catch (error) {
-	Logger.error("Failed to initialize player analytics", {
+	Logger.error("Failed to initialize analytics", {
 		error: (error as Error)?.message,
 	});
 }
+
+function setupTabNavigation() {
+    const tabs = [
+        { id: 'past-games-tab', viewId: 'past_games', param: 'history', action: null },
+        { id: 'player-analytics-tab', viewId: 'player_analytics', param: 'players', action: null },
+        { id: 'game-analytics-tab', viewId: 'game_analytics', param: 'stats', action: () => { if(gameAnalyticsUI) gameAnalyticsUI.render(); } }
+    ];
+
+    function activateTab(tab: (typeof tabs)[number], updateUrl: boolean = true) {
+        // Update tabs state
+        tabs.forEach(t => {
+            const tBtn = document.getElementById(t.id);
+            const tView = document.getElementById(t.viewId);
+            if (tBtn) {
+                    if(t.id === tab.id) tBtn.classList.add('active');
+                    else tBtn.classList.remove('active');
+            }
+            if (tView) {
+                if(t.viewId === tab.viewId) tView.classList.remove('hidden');
+                else tView.classList.add('hidden');
+            }
+        });
+        
+        if (tab.action) tab.action();
+
+        if (updateUrl) {
+            const url = new URL(window.location.href);
+            url.searchParams.set("tab", tab.param);
+            history.pushState({}, "", url);
+            Logger.event("tab.switch.history", { to: tab.viewId });
+        }
+    }
+
+    tabs.forEach(tab => {
+        const btn = document.getElementById(tab.id);
+        if (!btn) return;
+        
+        btn.addEventListener('click', () => {
+             activateTab(tab);
+        });
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentTabParam = urlParams.get("tab");
+    // Only switch tabs if not looking at a specific game and a tab param is present
+    if (currentTabParam && !urlParams.has("id")) {
+        const tabToActivate = tabs.find(t => t.param === currentTabParam);
+        if (tabToActivate) {
+            activateTab(tabToActivate, false);
+        }
+    }
+}
+
 
 function updateExportButton() {
 	const exportBtn = document.getElementById("export_data");
 	if (!exportBtn) return;
 
-	// Remove existing listeners
 	const newBtn = exportBtn.cloneNode(true) as HTMLElement;
 	exportBtn.parentNode?.replaceChild(newBtn, exportBtn);
 
 	if (view === 1 && Lgame) {
 		newBtn.textContent = "Export Current Game";
 		newBtn.addEventListener("click", () => {
-			// Export single game wrapped in proper structure
-			// Import expects keys like "wizard.games" to contain stringified arrays
 			const exportData = {
 				"wizard.games": JSON.stringify([Lgame]),
 			};
