@@ -42,6 +42,8 @@ export class GameData implements GameState {
 	public alt_score: number[][];
 	/** The change in alternative score of the players of the alternative method*/
 	public alt_score_change: number[][];
+	/** The timestamp when each round ended */
+	public round_timestamps: number[];
 	/** The color of the rounds */
 	public color: Record<number, RoundColor>;
 	/** 1 enter bets | 2 enter tricks - deleted after game finished*/
@@ -81,6 +83,7 @@ export class GameData implements GameState {
 		this.alt_score_change = config.alt_score_change.map((round) => [
 			...round,
 		]); // Deep copy
+		this.round_timestamps = config.round_timestamps ? [...config.round_timestamps] : [];
 		this.color = { ...config.color }; // Shallow copy is sufficient for color object
 		this.step = config.step;
 		this.display = config.display;
@@ -329,6 +332,11 @@ export class GameData implements GameState {
 			"alt_score_change",
 			json.score_change
 		); // Backwards compatibility
+		const round_timestamps = this.validateArray(
+			json.round_timestamps,
+			"round_timestamps",
+			[]
+		);
 		const color = this.validateObject(json.color, "color", {}) as Record<
 			number,
 			RoundColor
@@ -378,6 +386,7 @@ export class GameData implements GameState {
 			score_change,
 			alt_score,
 			alt_score_change,
+			round_timestamps,
 			color,
 			step,
 			display,
@@ -534,6 +543,7 @@ export class GameData implements GameState {
 			alt_score_change: gamedata.alt_score_change.map((round) => [
 				...round,
 			]),
+			round_timestamps: [...gamedata.round_timestamps],
 			color: { ...gamedata.color },
 			step: gamedata.step,
 			display: gamedata.display,
@@ -743,6 +753,9 @@ export class GameData implements GameState {
 
 	// Game progression
 	nextRound(): void {
+		if (this.round_timestamps.length < this.round) {
+			this.round_timestamps[this.round - 1] = Date.now();
+		}
 		this.round++;
 	}
 
@@ -849,6 +862,9 @@ export class GameData implements GameState {
 	getAltScoreChange(): number[][] {
 		return this.alt_score_change.map((round) => [...round]);
 	}
+	getRoundTimestamps(): number[] {
+		return [...this.round_timestamps];
+	}
 	getColor(): Record<number, RoundColor> {
 		return { ...this.color };
 	}
@@ -922,6 +938,9 @@ export class GameData implements GameState {
 	}
 	setAltScoreChange(altScoreChange: number[][]): void {
 		this.alt_score_change = altScoreChange.map((round) => [...round]);
+	}
+	setRoundTimestamps(roundTimestamps: number[]): void {
+		this.round_timestamps = [...roundTimestamps];
 	}
 	setStep(step: GameStep): void {
 		this.step = step;

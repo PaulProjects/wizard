@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				touchStartX = e.changedTouches[0].screenX;
 				touchStartY = e.changedTouches[0].screenY;
 			},
-			{ passive: true }
+			{ passive: true },
 		);
 
 		tabContainer.addEventListener(
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				touchEndY = e.changedTouches[0].screenY;
 				handleSwipe();
 			},
-			{ passive: true }
+			{ passive: true },
 		);
 	}
 
@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		// Get current active tab
 		const currentTab = document.querySelector(
-			".tab-btn.active"
+			".tab-btn.active",
 		) as HTMLElement;
 		if (!currentTab) return;
 
@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (nextIndex >= 0 && nextIndex < visibleTabButtons.length) {
 			// Add a brief visual feedback before switching
 			const tabContainer = document.querySelector(
-				".tab-content-container"
+				".tab-content-container",
 			) as HTMLElement;
 			if (tabContainer) {
 				tabContainer.style.opacity = "0.7";
@@ -202,7 +202,249 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 });
 
+// Update time statistics each second if analytics tab is active
+setInterval(() => {
+	const analyticsTab = document.getElementById("analytics");
+	if (analyticsTab && !analyticsTab.classList.contains("hidden")) {
+		const g = (globalThis as any)?.game;
+		// Check if game object exists and has the required method
+		if (g && typeof g.getRoundTimestamps === "function") {
+			updateTimeStats(g);
+		}
+	}
+}, 1000);
+
+let timeChartInstance: Chart | undefined;
+
+// Cache UI elements to avoid querying the DOM every second
+const uiRefs = {
+	totalDuration: null as HTMLElement | null,
+	startTime: null as HTMLElement | null,
+	endTime: null as HTMLElement | null,
+	avg: null as HTMLElement | null,
+	longest: null as HTMLElement | null,
+	longestLabel: null as HTMLElement | null,
+	shortest: null as HTMLElement | null,
+	shortestLabel: null as HTMLElement | null,
+	chart: null as HTMLCanvasElement | null,
+	chartContainer: null as HTMLElement | null,
+};
+
+function updateTimeStats(game: gamedata) {
+	if (!uiRefs.totalDuration || !uiRefs.totalDuration.isConnected) {
+		uiRefs.totalDuration = document.getElementById("total_duration");
+		uiRefs.startTime = document.getElementById("game_start_time");
+		uiRefs.endTime = document.getElementById("game_end_time");
+		uiRefs.avg = document.getElementById("avg_round_duration");
+		uiRefs.longest = document.getElementById("longest_round_duration");
+		uiRefs.longestLabel = document.getElementById("longest_round_label");
+		uiRefs.shortest = document.getElementById("shortest_round_duration");
+		uiRefs.shortestLabel = document.getElementById("shortest_round_label");
+		uiRefs.chart = document.getElementById(
+			"time_chart",
+		) as HTMLCanvasElement;
+		uiRefs.chartContainer = document.getElementById("time_chart_container");
+	}
+
+	if (!uiRefs.totalDuration) return;
+
+	const roundTimestamps = game.getRoundTimestamps();
+	const timeStarted = game.getTimeStarted();
+	const timeEnded = game.getTimeEnded();
+
+	// Total Duration
+	let totalMs = 0;
+	if (timeStarted) {
+		let currentEnd = Date.now();
+		if (game.getStep() === 3 && timeEnded) {
+			// Game finished
+			currentEnd = timeEnded;
+		}
+		totalMs = currentEnd - timeStarted;
+
+		const totalSeconds = Math.floor(totalMs / 1000);
+		const totalMinutes = Math.floor(totalSeconds / 60);
+		const hours = Math.floor(totalMinutes / 60);
+		const minutes = totalMinutes % 60;
+		const seconds = totalSeconds % 60;
+
+		if (hours > 0) {
+			uiRefs.totalDuration.textContent = `${hours}h ${minutes}m ${seconds}s`;
+		} else {
+			uiRefs.totalDuration.textContent = `${minutes}m ${seconds}s`;
+		}
+
+		if (uiRefs.startTime) {
+			uiRefs.startTime.textContent = `Started: ${new Date(
+				timeStarted,
+			).toLocaleTimeString([], {
+				hour: "2-digit",
+				minute: "2-digit",
+			})}`;
+		}
+
+		if (uiRefs.endTime) {
+			if (timeEnded && game.getStep() === 3) {
+				uiRefs.endTime.textContent = `Ended: ${new Date(
+					timeEnded,
+				).toLocaleTimeString([], {
+					hour: "2-digit",
+					minute: "2-digit",
+				})}`;
+				uiRefs.endTime.classList.remove("hidden");
+			} else {
+				uiRefs.endTime.classList.add("hidden");
+			}
+		}
+	}
+
+	const durations: number[] = [];
+	const durationsMs: number[] = [];
+	const labels: string[] = [];
+	const validRoundLabels: string[] = [];
+	const backgroundColors: string[] = [];
+	const borderColors: string[] = [];
+
+	if (timeStarted) {
+		const finishedRoundsCount = roundTimestamps.length;
+		for (let i = 0; i < finishedRoundsCount; i++) {
+			const start = i === 0 ? timeStarted : roundTimestamps[i - 1];
+			const end = roundTimestamps[i];
+			// Simple validation to ensure positive duration
+			if (end > start) {
+				const ms = end - start;
+				const minutes = ms / 1000 / 60;
+				durationsMs.push(ms);
+				durations.push(parseFloat(minutes.toFixed(1)));
+				labels.push(`R${i + 1}`);
+				validRoundLabels.push(`Round ${i + 1}`);
+				backgroundColors.push("rgba(54, 162, 235, 0.5)");
+				borderColors.push("rgba(54, 162, 235, 1)");
+			}
+		}
+
+		// Add Current Round (if active)
+		if (!timeEnded && game.getStep() !== 3) {
+			const start =
+				finishedRoundsCount === 0
+					? timeStarted
+					: roundTimestamps[finishedRoundsCount - 1];
+			const end = Date.now();
+			if (end > start) {
+				const ms = end - start;
+				const minutes = ms / 1000 / 60;
+				durationsMs.push(ms);
+				durations.push(parseFloat(minutes.toFixed(1)));
+				labels.push(`R${finishedRoundsCount + 1}`);
+				validRoundLabels.push(`Round ${finishedRoundsCount + 1}`);
+				// Distinct color for active round (e.g., Orange/Yellow)
+				backgroundColors.push("rgba(255, 206, 86, 0.5)");
+				borderColors.push("rgba(255, 206, 86, 1)");
+			}
+		}
+
+		// Update Stats
+		if (durationsMs.length > 0) {
+			const formatDuration = (ms: number) => {
+				const seconds = Math.floor(ms / 1000);
+				const minutes = Math.floor(seconds / 60);
+				const remainingSeconds = seconds % 60;
+				return `${minutes}m ${remainingSeconds}s`;
+			};
+
+			// Avg
+			const totalDurationMs = durationsMs.reduce((a, b) => a + b, 0);
+			const avgMs = totalDurationMs / durationsMs.length;
+			if (uiRefs.avg) uiRefs.avg.textContent = formatDuration(avgMs);
+
+			// Max
+			const maxMs = Math.max(...durationsMs);
+			const maxIndex = durationsMs.indexOf(maxMs);
+			if (uiRefs.longest)
+				uiRefs.longest.textContent = formatDuration(maxMs);
+			if (uiRefs.longestLabel && maxIndex !== -1)
+				uiRefs.longestLabel.textContent = validRoundLabels[maxIndex];
+
+			// Min
+			const minMs = Math.min(...durationsMs);
+			const minIndex = durationsMs.indexOf(minMs);
+			if (uiRefs.shortest)
+				uiRefs.shortest.textContent = formatDuration(minMs);
+			if (uiRefs.shortestLabel && minIndex !== -1)
+				uiRefs.shortestLabel.textContent = validRoundLabels[minIndex];
+		} else {
+			if (uiRefs.avg) uiRefs.avg.textContent = `-`;
+			if (uiRefs.longest) uiRefs.longest.textContent = `-`;
+			if (uiRefs.longestLabel) uiRefs.longestLabel.textContent = ``;
+			if (uiRefs.shortest) uiRefs.shortest.textContent = `-`;
+			if (uiRefs.shortestLabel) uiRefs.shortestLabel.textContent = ``;
+		}
+	} else {
+		// Reset stats if no time
+		if (uiRefs.avg) uiRefs.avg.textContent = `-`;
+		if (uiRefs.longest) uiRefs.longest.textContent = `-`;
+		if (uiRefs.longestLabel) uiRefs.longestLabel.textContent = ``;
+		if (uiRefs.shortest) uiRefs.shortest.textContent = `-`;
+		if (uiRefs.shortestLabel) uiRefs.shortestLabel.textContent = ``;
+	}
+
+	// Chart Visibility
+	if (durations.length === 0) {
+		if (uiRefs.chartContainer)
+			uiRefs.chartContainer.classList.add("hidden");
+		return;
+	} else {
+		if (uiRefs.chartContainer)
+			uiRefs.chartContainer.classList.remove("hidden");
+	}
+
+	// Chart
+	if (!uiRefs.chart) return;
+
+	if (timeChartInstance) {
+		// Always update chart to animate the growing bar
+		timeChartInstance.data.labels = labels;
+		timeChartInstance.data.datasets[0].data = durations;
+		timeChartInstance.data.datasets[0].backgroundColor = backgroundColors;
+		timeChartInstance.data.datasets[0].borderColor = borderColors;
+
+		// Update only if needed or just update (update 'none' mode prevents animation reset)
+		timeChartInstance.update("none");
+	} else {
+		// Only create chart if we have data or if we want to show empty chart
+		timeChartInstance = new Chart(uiRefs.chart, {
+			type: "bar",
+			data: {
+				labels: labels,
+				datasets: [
+					{
+						label: "Minutes",
+						data: durations,
+						backgroundColor: backgroundColors,
+						borderColor: borderColors,
+						borderWidth: 1,
+					},
+				],
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				scales: {
+					y: {
+						beginAtZero: true,
+						title: { display: true, text: "Minutes" },
+					},
+				},
+				plugins: {
+					legend: { display: false },
+				},
+			},
+		});
+	}
+}
+
 export function updatescore(players: any, game: gamedata) {
+	updateTimeStats(game);
 	// Data
 	const bets = [...game.getBets()];
 	const gameScore: number[][] = game.getRuleAltcount()
@@ -308,7 +550,9 @@ export function updatescore(players: any, game: gamedata) {
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="-7 -7 24 24"><path fill="currentColor" d="M8 2H1a1 1 0 1 1 0-2h8a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0z"/></svg>
 			</div>
 			<div class="w-full justify-between items-center gap-16 inline-flex">
-				<h1 class="text-4xl font-medium ${sorted_playerlist[i][4] == 1 ? "text-secondary" : ""}" id="top_players_name_${i}"></h1>
+				<h1 class="text-4xl font-medium ${
+					sorted_playerlist[i][4] == 1 ? "text-secondary" : ""
+				}" id="top_players_name_${i}"></h1>
 			</div>
 			<div class="w-full h-9 justify-between items-center inline-flex mb-2 mt-2">
 				<div class="w-10 self-stretch">
@@ -327,7 +571,7 @@ export function updatescore(players: any, game: gamedata) {
 
 		// Safely set the player name
 		const playerNameElement = playerCard.querySelector(
-			`#top_players_name_${i}`
+			`#top_players_name_${i}`,
 		);
 		if (playerNameElement) {
 			playerNameElement.textContent = sorted_playerlist[i][0];
@@ -343,7 +587,7 @@ export function updatescore(players: any, game: gamedata) {
 				gameScore,
 				bets,
 				game.getTricks(),
-				score_change
+				score_change,
 			);
 		});
 
@@ -395,7 +639,9 @@ export function updatescore(players: any, game: gamedata) {
 				datasets: players.map((pplayer, index) => ({
 					label: pplayer,
 					data: graph_score.map((graph_score) => graph_score[index]),
-					borderColor: `hsl(${(index * 360) / players.length}, 100%, 50%)`,
+					borderColor: `hsl(${
+						(index * 360) / players.length
+					}, 100%, 50%)`,
 					fill: false,
 					cubicInterpolationMode: "monotone",
 				})),
@@ -673,10 +919,10 @@ export function updatescore(players: any, game: gamedata) {
 // Base delay for podium animation segments
 let celebtime = 250;
 function podium(sorted_playerlist) {
-    // Reset timing each time podium is rendered (prevents long delays on history page revisits)
-    celebtime = 250;
+	// Reset timing each time podium is rendered (prevents long delays on history page revisits)
+	celebtime = 250;
 
-    add_podium(sorted_playerlist);
+	add_podium(sorted_playerlist);
 
 	// Animate podium columns with stagger
 	const podiumElements = document.querySelectorAll(".js-podium");
@@ -686,7 +932,7 @@ function podium(sorted_playerlist) {
 			podiumEl.classList.add("is-visible");
 			const height = podiumEl.dataset.height;
 			const baseElement = podiumEl.querySelector(
-				".scoreboard__podium-base"
+				".scoreboard__podium-base",
 			) as HTMLElement;
 			if (baseElement && height) {
 				baseElement.style.height = height + "px";
@@ -720,7 +966,7 @@ function add_bottomlist(sorted_playerlist) {
 		// Safely set the player name and score
 		const playerNameElement = listItem.querySelector(".bottom-player-name");
 		const playerScoreElement = listItem.querySelector(
-			".bottom-player-score"
+			".bottom-player-score",
 		);
 
 		if (playerNameElement)
@@ -731,7 +977,11 @@ function add_bottomlist(sorted_playerlist) {
 		if (scoreboardItems) scoreboardItems.appendChild(listItem);
 
 		const barElement = document.getElementById(`bar_${i}`) as HTMLElement;
-		if (barElement && sorted_playerlist[2] && sorted_playerlist[2][1] !== 0) {
+		if (
+			barElement &&
+			sorted_playerlist[2] &&
+			sorted_playerlist[2][1] !== 0
+		) {
 			barElement.style.width =
 				(sorted_playerlist[i][1] / sorted_playerlist[2][1]) * 100 + "%";
 		}
@@ -751,19 +1001,19 @@ function add_podium(sorted_playerlist) {
 	append_graph(
 		sorted_playerlist[1][3],
 		sorted_playerlist[1][0],
-		sorted_playerlist[1][1]
+		sorted_playerlist[1][1],
 	);
 	if (sorted_playerlist.length == 1) return;
 	append_graph(
 		sorted_playerlist[0][3],
 		sorted_playerlist[0][0],
-		sorted_playerlist[0][1]
+		sorted_playerlist[0][1],
 	);
 	if (sorted_playerlist.length == 2) return;
 	append_graph(
 		sorted_playerlist[2][3],
 		sorted_playerlist[2][0],
-		sorted_playerlist[2][1]
+		sorted_playerlist[2][1],
 	);
 }
 
@@ -838,7 +1088,7 @@ let end: number | undefined;
 
 // Internal helper to detect if we are in history short mode
 function isHistoryShortConfettiMode(): boolean {
-  return !!(globalThis as any).historyPageViewing;
+	return !!(globalThis as any).historyPageViewing;
 }
 
 // Launch a (possibly shortened) confetti celebration.
@@ -918,7 +1168,7 @@ function showPlayerStatsModal(
 	gameScore: number[][],
 	bets: number[][],
 	tricks: number[][],
-	score_change: number[][]
+	score_change: number[][],
 ) {
 	Logger.event("player.modal.open", { playerIndex });
 	// Find the actual player index in the original players array
@@ -956,7 +1206,7 @@ function showPlayerStatsModal(
 		const modalPlayerStats =
 			document.querySelectorAll(".modal_player_stat");
 		modalPlayerStats.forEach(
-			(stat) => ((stat as HTMLElement).style.display = "none")
+			(stat) => ((stat as HTMLElement).style.display = "none"),
 		);
 
 		// Show the modal
@@ -968,7 +1218,7 @@ function showPlayerStatsModal(
 
 	const modalPlayerStats = document.querySelectorAll(".modal_player_stat");
 	modalPlayerStats.forEach(
-		(stat) => ((stat as HTMLElement).style.display = "block")
+		(stat) => ((stat as HTMLElement).style.display = "block"),
 	);
 
 	// Calculate and set bet accuracy
@@ -988,7 +1238,7 @@ function showPlayerStatsModal(
 			}
 			totalBetDifference += Math.abs(
 				bets[round][actualPlayerIndex] -
-					tricks[round][actualPlayerIndex]
+					tricks[round][actualPlayerIndex],
 			);
 			totalRounds++;
 		}
@@ -1013,7 +1263,7 @@ function showPlayerStatsModal(
 		game.getRound(),
 		bets.length,
 		tricks.length,
-		gameScore.length
+		gameScore.length,
 	);
 
 	for (let round = 0; round < roundsToShow; round++) {
@@ -1081,10 +1331,10 @@ function openEditPlayerModal() {
 
 	// Set player name in display and input
 	const editPlayerNameDisplay = document.getElementById(
-		"edit_player_name_display"
+		"edit_player_name_display",
 	);
 	const editPlayerNameInput = document.getElementById(
-		"edit_player_name_input"
+		"edit_player_name_input",
 	) as HTMLInputElement;
 
 	if (editPlayerNameDisplay) editPlayerNameDisplay.textContent = playerName;
@@ -1098,7 +1348,7 @@ function openEditPlayerModal() {
 		data.game.getRound(),
 		data.bets.length,
 		data.tricks.length,
-		data.gameScore.length
+		data.gameScore.length,
 	);
 
 	for (let round = 0; round < roundsToShow; round++) {
@@ -1140,7 +1390,7 @@ function openEditPlayerModal() {
 
 	// Add event listeners for real-time score calculation (only for editable inputs)
 	const editInputs = document.querySelectorAll<HTMLInputElement>(
-		"#edit_rounds_table input"
+		"#edit_rounds_table input",
 	);
 	editInputs.forEach((input) => {
 		input.addEventListener("input", recalculatePointsForEdit);
@@ -1168,13 +1418,13 @@ function recalculatePointsForEdit() {
 		tableRows.forEach((row, index) => {
 			const round = index;
 			const betInput = row.querySelector<HTMLInputElement>(
-				`input[data-round="${round}"][data-type="bet"]`
+				`input[data-round="${round}"][data-type="bet"]`,
 			);
 			const trickInput = row.querySelector<HTMLInputElement>(
-				`input[data-round="${round}"][data-type="trick"]`
+				`input[data-round="${round}"][data-type="trick"]`,
 			);
 			const pointsCell = row.querySelector<HTMLElement>(
-				`td[data-round="${round}"][data-type="points"]`
+				`td[data-round="${round}"][data-type="points"]`,
 			);
 
 			// Only recalculate if both inputs exist and are editable
@@ -1210,7 +1460,7 @@ function saveEditedPlayerData() {
 	if (!data) return;
 
 	const editPlayerNameInput = document.getElementById(
-		"edit_player_name_input"
+		"edit_player_name_input",
 	) as HTMLInputElement;
 	const newPlayerName = editPlayerNameInput ? editPlayerNameInput.value : "";
 	const originalName = data.sorted_playerlist[data.playerIndex][5];
@@ -1232,10 +1482,10 @@ function saveEditedPlayerData() {
 		tableRows.forEach((row, index) => {
 			const round = index;
 			const betInput = row.querySelector<HTMLInputElement>(
-				`input[data-round="${round}"][data-type="bet"]`
+				`input[data-round="${round}"][data-type="bet"]`,
 			);
 			const trickInput = row.querySelector<HTMLInputElement>(
-				`input[data-round="${round}"][data-type="trick"]`
+				`input[data-round="${round}"][data-type="trick"]`,
 			);
 
 			// Only update values that have editable input fields
@@ -1347,7 +1597,7 @@ function saveEditedPlayerData() {
 				updatedGameScore,
 				updatedBets,
 				updatedTricks,
-				updatedScore_change
+				updatedScore_change,
 			);
 		}
 	}, 100);

@@ -47,6 +47,7 @@ export interface GameState {
 	score_change: number[][];
 	alt_score: number[][];
 	alt_score_change: number[][];
+	round_timestamps?: number[];
 	color: Record<number, RoundColor>;
 	step?: GameStep;
 	display?: GameDisplay;

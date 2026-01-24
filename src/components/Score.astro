@@ -187,6 +187,108 @@ import Celebration from "./Celebration.astro";
 							</div>
 						</div>
 					</div>
+
+					<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
+						<div
+							class="stats bg-secondary text-primary-content shadow"
+						>
+							<div class="stat p-2 md:p-4">
+								<div
+									class="stat-title text-primary-content text-xs md:text-sm"
+								>
+									Total Duration
+								</div>
+								<div
+									class="stat-value text-lg md:text-2xl"
+									id="total_duration"
+								>
+									0m
+								</div>
+								<div
+									class="stat-desc text-primary-content text-xs"
+									id="game_start_time"
+								>
+									Started at ...
+								</div>
+								<div
+									class="stat-desc text-primary-content text-xs hidden"
+									id="game_end_time"
+								>
+									Ended at ...
+								</div>
+							</div>
+						</div>
+						<div
+							class="stats bg-secondary text-primary-content shadow"
+						>
+							<div class="stat p-2 md:p-4">
+								<div
+									class="stat-title text-primary-content text-xs md:text-sm"
+								>
+									Avg Round
+								</div>
+								<div
+									class="stat-value text-lg md:text-2xl"
+									id="avg_round_duration"
+								>
+									-
+								</div>
+							</div>
+						</div>
+						<div
+							class="stats bg-secondary text-primary-content shadow"
+						>
+							<div class="stat p-2 md:p-4">
+								<div
+									class="stat-title text-primary-content text-xs md:text-sm"
+								>
+									Longest
+								</div>
+								<div
+									class="stat-value text-lg md:text-2xl"
+									id="longest_round_duration"
+								>
+									-
+								</div>
+								<div
+									class="stat-desc text-primary-content text-xs"
+									id="longest_round_label"
+								>
+								</div>
+							</div>
+						</div>
+						<div
+							class="stats bg-secondary text-primary-content shadow"
+						>
+							<div class="stat p-2 md:p-4">
+								<div
+									class="stat-title text-primary-content text-xs md:text-sm"
+								>
+									Shortest
+								</div>
+								<div
+									class="stat-value text-lg md:text-2xl"
+									id="shortest_round_duration"
+								>
+									-
+								</div>
+								<div
+									class="stat-desc text-primary-content text-xs"
+									id="shortest_round_label"
+								>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="mt-4 w-full" id="time_chart_container">
+						<h2 class="card-title text-3xl">
+							Round Durations (min)
+						</h2>
+						<div class="h-60 w-full mt-3">
+							<canvas id="time_chart"></canvas>
+						</div>
+					</div>
 					<div id="player_stats"></div>
 				</div>
 			</div>
@@ -195,7 +297,6 @@ import Celebration from "./Celebration.astro";
 </div>
 <div class="pb-20"></div>
 <!-- Info modal -->
-
 
 <!-- Player Stats Modal -->
 <dialog id="modal_player_stats" class="modal modal-bottom sm:modal-middle">
@@ -264,8 +365,6 @@ import Celebration from "./Celebration.astro";
 				</table>
 			</div>
 		</div>
-
-
 	</form>
 	<form method="dialog" class="modal-backdrop">
 		<button>close</button>
