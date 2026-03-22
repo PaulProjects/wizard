@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { Icon } from "astro-icon/components";
 import Rule from "../components/Rule.astro";
 import Alert from "../components/Alert.astro";
+import Modal from "../components/Modal.astro";
 
 import {} from "../scripts/setup.ts";
 ---
@@ -47,12 +48,7 @@ import {} from "../scripts/setup.ts";
           onclick="modal_addplayer.showModal();"><p>add a player</p></button
         >
         <!-- Add Player modal -->
-        <dialog id="modal_addplayer" class="modal modal-top sm:modal-middle">
-          <form method="dialog" class="modal-box">
-            <button
-              class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-              >✕</button
-            >
+        <Modal id="modal_addplayer">
             <div class="flex flex-col justify-center items-center">
               <h1 class="font-bold text-3xl mt-5">add a new player!</h1>
               <input
@@ -68,11 +64,7 @@ import {} from "../scripts/setup.ts";
               >
               <div id="recent_players" class="mt-3"></div>
             </div>
-          </form>
-          <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-          </form>
-        </dialog>
+        </Modal>
         <!-- End of modal -->
         <div class="flex flex-col names pt-2">
           <div id="playerlist"></div>
@@ -111,7 +103,14 @@ import {} from "../scripts/setup.ts";
         <div class="pt-5"></div>
 
         <!-- Start of calc options -->
-        <h2 class="pt-10 text-3xl w-full">Score calculation</h2>
+        <div class="flex flex-row items-center pt-10 justify-between w-full">
+          <h2 class="text-3xl">Score calculation</h2>
+          <button
+            class="btn btn-circle btn-sm btn-ghost"
+            onclick="modal_calc_info.showModal()"
+            aria-label="Score calculation help">?</button
+          >
+        </div>
         <div class="pt-2"></div>
         <div class="optionbox-flex pr-10 pl-3">
           <div class="form-control">
@@ -275,11 +274,7 @@ import {} from "../scripts/setup.ts";
     </div>
   </div>
   <!-- Info modal -->
-  <dialog id="modal_info" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
+  <Modal id="modal_info">
       <div class="flex flex-col justify-center items-center">
         <h2 class="font-bold text-3xl mt-5">Info</h2>
         <div class="prose">
@@ -297,21 +292,85 @@ import {} from "../scripts/setup.ts";
           >OK</button
         >
       </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
+  </Modal>
+  <!-- End of modal -->
+
+  <!-- Calc Info modal -->
+  <Modal id="modal_calc_info">
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">Score Calculation</h2>
+        <div class="prose w-full">
+          <p class="pb-4 pt-4 text-md">
+            <span class="italic text-md">Classic</span> follows the official rulebook scoring (reward high exact bids).
+            <span class="italic text-md">Custom</span> balances bad hands, while still rewarding good bidding and punishing big misses.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-2 bg-base-200 rounded-box">
+              <h3 class="text-center font-bold m-0 text-lg">Classic</h3>
+              <p class="text-center text-xs opacity-70 m-0 mb-2">Standard Rules</p>
+              <ul class="text-xs pl-4 m-0">
+                <li><b>Correct:</b> 20 + (10 per trick)</li>
+                <li><b>Incorrect:</b> -10 per trick off</li>
+              </ul>
+            </div>
+            <div class="p-2 bg-base-200 rounded-box">
+              <h3 class="text-center font-bold m-0 text-lg">Custom</h3>
+              <p class="text-center text-xs opacity-70 m-0 mb-2">Evaluation Variant</p>
+              <ul class="text-xs pl-4 m-0">
+                <li><b>Correct:</b> 10 per trick + 10 per round</li>
+                <li><b>Incorrect:</b> 10 per trick - penalty*</li>
+                <li class="text-xs text-center mt-2 opacity-70 mb-0">
+                *1 off = -10, 2 off = -30, 3 off = -60, ...
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="divider text-sm m-0 mt-4 mb-2">Example: Round 5</div>
+
+          <div class="overflow-x-auto">
+            <table class="table table-zebra table-sm w-full text-center my-0">
+              <thead>
+                <tr>
+                  <th>Bet</th>
+                  <th>Tricks</th>
+                  <th>Classic</th>
+                  <th>Custom</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2</td>
+                  <td>2</td>
+                  <td class="text-success font-bold">40</td>
+                  <td class="text-success font-bold">70</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>3</td>
+                  <td class="text-error font-bold">-10</td>
+                  <td class="text-success font-bold">20</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>0</td>
+                  <td class="text-error font-bold">-20</td>
+                  <td class="text-error font-bold">-30</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <button class="btn btn-secondary mt-5 btn-block" formmethod="dialog">OK</button>
+      </div>
+  </Modal>
   <!-- End of modal -->
   <!-- Start of edit preset and recent players modal -->
-  <dialog id="modal_edit" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
+  <Modal id="modal_edit">
       <button
         class="btn btn-sm btn-ghost absolute left-2 top-2"
         id="test-preset">test</button
-      >
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
       >
       <div class="flex flex-col justify-center items-center">
         <h2 class="font-bold text-3xl mt-5 mb-3">Past games setups:</h2>
@@ -323,17 +382,9 @@ import {} from "../scripts/setup.ts";
           ><p>Clear Recent Players</p></button
         >
       </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
+  </Modal>
   <!-- Invalid Playername -->
-  <dialog id="alert_invalidplayer" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
+  <Modal id="alert_invalidplayer">
       <div class="flex flex-col justify-center items-center">
         <h2 class="text-3xl mt-5">Invalid Playername</h2>
         <div class="prose">
@@ -346,9 +397,7 @@ import {} from "../scripts/setup.ts";
           >
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop"></form>
-    </form>
-  </dialog>
+  </Modal>
 
   <style is:global>
     .optionbox {

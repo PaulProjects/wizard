@@ -1,6 +1,7 @@
 ---
 import { Icon } from "astro-icon/components";
 import Celebration from "./Celebration.astro";
+import Modal from "./Modal.astro";
 ---
 
 <div class="wrapper flex justify-center items-center w-screen h-full">
@@ -299,12 +300,8 @@ import Celebration from "./Celebration.astro";
 <!-- Info modal -->
 
 <!-- Player Stats Modal -->
-<dialog id="modal_player_stats" class="modal modal-bottom sm:modal-middle">
-	<form id="modal_player_stats_form" method="dialog" class="modal-box">
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-			>✕</button
-		>
-
+<Modal id="modal_player_stats" modalClass="modal modal-bottom sm:modal-middle" boxClass="modal-box">
+	<div>
 		{
 			Astro.url.pathname === "/game/" && (
 				<button
@@ -365,24 +362,12 @@ import Celebration from "./Celebration.astro";
 				</table>
 			</div>
 		</div>
-	</form>
-	<form method="dialog" class="modal-backdrop">
-		<button>close</button>
-	</form>
-</dialog>
+	</div>
+</Modal>
 
 <!-- Edit Player Modal -->
-<dialog id="modal_edit_player" class="modal modal-bottom sm:modal-middle">
-	<form
-		id="modal_edit_player_form"
-		method="dialog"
-		class="modal-box max-w-4xl"
-	>
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-			>✕</button
-		>
-
-		<div class="flex flex-col items-center mb-6">
+<Modal id="modal_edit_player" modalClass="modal modal-bottom sm:modal-middle" boxClass="modal-box max-w-4xl">
+	<div>
 			<h2 class="font-bold text-3xl mt-2">Edit Player Data</h2>
 			<div
 				class="badge badge-secondary text-lg px-4 py-2 mt-2"
@@ -442,16 +427,13 @@ import Celebration from "./Celebration.astro";
 				Save Changes
 			</button>
 		</div>
-	</form>
-	<form method="dialog" class="modal-backdrop">
-		<button>close</button>
-	</form>
-</dialog>
+	</div>
+</Modal>
 
-<dialog>
+<div>
 	<!-- ToDo: Überdenken ob das wirklich die beste lösung ist -->
 	<div class="stats-vertical sm:stats-horizontal mx-auto w-60"></div>
-</dialog>
+</div>
 <!-- End of modal -->
 <!-- End of content -->
 

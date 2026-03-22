@@ -1,47 +1,43 @@
-<dialog id="modal_import" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            >✕</button
-        >
-        <div class="flex flex-col justify-center items-center">
-            <h2 class="font-bold text-3xl mt-5">Import</h2>
-            <label for="import_file">
-                Importing data will add the saved past games from the file to
-                your current past games and optinally overwrite the current game
-                with the one in the file. The file should look like this:
-                wizard_game.json
+---
+import Modal from './Modal.astro';
+---
+
+<Modal id="modal_import">
+    <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">Import</h2>
+        <label for="import_file">
+            Importing data will add the saved past games from the file to
+            your current past games and optinally overwrite the current game
+            with the one in the file. The file should look like this:
+            wizard_game.json
+        </label>
+        <div class="pb-5"></div>
+        <div class="form-control pl-3">
+            <label
+                class="cursor-pointer label"
+                for="overwrite_current_game"
+            >
+                <input
+                    type="checkbox"
+                    aria-label="Button to overwrite the current game"
+                    class="checkbox checkbox-secondary pr-3"
+                    id="overwrite_current_game"
+                />
+                <span class="pl-3">Overwrite the current game?</span>
             </label>
-            <div class="pb-5"></div>
-            <div class="form-control pl-3">
-                <label
-                    class="cursor-pointer label"
-                    for="overwrite_current_game"
-                >
-                    <input
-                        type="checkbox"
-                        aria-label="Button to overwrite the current game"
-                        class="checkbox checkbox-secondary pr-3"
-                        id="overwrite_current_game"
-                    />
-                    <span class="pl-3">Overwrite the current game?</span>
-                </label>
-            </div>
-            <div class="pb-5"></div>
-            <input
-                type="file"
-                id="import_file"
-                class="file-input file-input-bordered w-full max-w-xs"
-            />
-            <button class="btn btn-info btn-block mt-5" id="rimport">
-                Import
-            </button>
-            <button class="btn btn-info btn-block mt-2"> Cancel</button>
         </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-    </form>
-</dialog>
+        <div class="pb-5"></div>
+        <input
+            type="file"
+            id="import_file"
+            class="file-input file-input-bordered w-full max-w-xs"
+        />
+        <button class="btn btn-info btn-block mt-5" id="rimport">
+            Import
+        </button>
+        <button class="btn btn-info btn-block mt-2"> Cancel</button>
+    </div>
+</Modal>
 <!-- End of Import modal -->
 
 <script>

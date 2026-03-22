@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { Icon } from "astro-icon/components";
 import Score from "../components/Score.astro";
 import ImportGame from "../components/ImportGame.astro";
+import Modal from "../components/Modal.astro";
 ---
 
 <Layout title="Wizard - Game History">
@@ -209,11 +210,7 @@ import ImportGame from "../components/ImportGame.astro";
   </div>
   <div class="hidden" id="score"><Score /></div>
   <!-- Settings modal -->
-  <dialog id="modal_settings" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
+  <Modal id="modal_settings">
       <div class="flex flex-col justify-center items-center">
         <h2 class="font-bold text-3xl mt-5">Advanced options</h2>
         <div>
@@ -231,18 +228,10 @@ import ImportGame from "../components/ImportGame.astro";
           </button>
         </div>
       </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
+  </Modal>
   <!-- End of Settings modal -->
   <!-- Really End game? modal -->
-  <dialog id="modal_delete" class="modal modal-top sm:modal-middle">
-    <form method="dialog" class="modal-box">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-        >✕</button
-      >
+  <Modal id="modal_delete">
       <div class="flex flex-col justify-center items-center">
         <h2 class="font-bold text-3xl mt-5" id="modal_del_text">
           Do you really want to delete all data?
@@ -259,25 +248,15 @@ import ImportGame from "../components/ImportGame.astro";
           <button class="btn btn-info btn-block mt-2"> Cancel</button>
         </div>
       </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
+  </Modal>
   <!-- End of Delete modal -->
   
   <!-- Player Details Modal -->
-  <dialog id="player_details_modal" class="modal">
-    <form method="dialog" class="modal-box max-w-2xl">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+  <Modal id="player_details_modal" modalClass="modal" boxClass="modal-box max-w-2xl">
       <div id="player-details-content">
         <!-- Player details will be populated by JavaScript -->
       </div>
-    </form>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
+  </Modal>
   <!-- End of Player Details Modal -->
   
   <ImportGame />

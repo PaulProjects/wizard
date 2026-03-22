@@ -1,0 +1,25 @@
+---
+interface Props {
+	id: string;
+	modalClass?: string;
+	boxClass?: string;
+}
+
+const {
+	id,
+	modalClass = "modal modal-top sm:modal-middle",
+	boxClass = "modal-box",
+} = Astro.props;
+---
+
+<dialog id={id} class={modalClass}>
+	<form method="dialog" class={boxClass}>
+		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+			>✕</button
+		>
+		<slot />
+	</form>
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
+</dialog>

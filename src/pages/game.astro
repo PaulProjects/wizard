@@ -4,6 +4,7 @@ import Layout from "../layouts/Layout.astro";
 import Input from "../components/Input.astro";
 import Score from "../components/Score.astro";
 import Rule from "../components/Rule.astro";
+import Modal from "../components/Modal.astro";
 ---
 
 <Layout title="Wizard - Running Game">
@@ -32,15 +33,10 @@ import Rule from "../components/Rule.astro";
 		>
 	</nav>
 	<!-- Settings modal -->
-	<dialog id="modal_settings" class="modal modal-top sm:modal-middle">
-		<form method="dialog" class="modal-box">
-			<button
-				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-				>✕</button
-			>
-			<div class="flex flex-col justify-center items-center">
-				<h2 class="font-bold text-3xl mt-5">Settings</h2>
-				<div>
+	<Modal id="modal_settings">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Settings</h2>
+			<div>
 					<button
 						class="btn btn-secondary btn-block mt-2"
 						id="replay_tour_button"
@@ -85,19 +81,10 @@ import Rule from "../components/Rule.astro";
 					</button>
 				</div>
 			</div>
-		</form>
-		<form method="dialog" class="modal-backdrop">
-			<button>close</button>
-		</form>
-	</dialog>
+	</Modal>
 	<!-- End of Settings modal -->
 	<!-- Rules Modal -->
-	<dialog id="modal_rules" class="modal modal-top sm:modal-middle">
-		<form method="dialog" class="modal-box">
-			<button
-				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-				>✕</button
-			>
+	<Modal id="modal_rules">
 			<div class="flex flex-col justify-center items-center">
 				<h2 class="font-bold text-3xl mt-5">Rules</h2>
 
@@ -177,16 +164,10 @@ import Rule from "../components/Rule.astro";
 
 				<button class="btn btn-info btn-block mt-2"> Ok</button>
 			</div>
-		</form>
-	</dialog>
+	</Modal>
 	<!-- End of Rules modal -->
 	<!-- Really End game? modal -->
-	<dialog id="modal_confirmend" class="modal modal-top sm:modal-middle">
-		<form method="dialog" class="modal-box">
-			<button
-				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-				>✕</button
-			>
+	<Modal id="modal_confirmend">
 			<div class="flex flex-col justify-center items-center">
 				<h2 class="text-2xl mt-5">
 					Do you really want to finish the game? This ends this game.
@@ -204,19 +185,10 @@ import Rule from "../components/Rule.astro";
 					<button class="btn btn-info btn-block mt-2"> Cancel</button>
 				</div>
 			</div>
-		</form>
-		<form method="dialog" class="modal-backdrop">
-			<button>close</button>
-		</form>
-	</dialog>
+	</Modal>
 	<!-- End of Settings modal -->
 	<!-- Edit Modal -->
-	<dialog id="modal_edit" class="modal modal-top sm:modal-middle">
-		<form method="dialog" class="modal-box">
-			<button
-				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-				>✕</button
-			>
+	<Modal id="modal_edit">
 			<div class="flex flex-col justify-center items-center">
 				<h2 class="font-bold text-3xl mt-5">Edit Game</h2>
 				<div>
@@ -233,102 +205,69 @@ import Rule from "../components/Rule.astro";
 					<button class="btn btn-info btn-block mt-2"> Cancel</button>
 				</div>
 			</div>
-		</form>
-		<form method="dialog" class="modal-backdrop">
-			<button>close</button>
-		</form>
-	</dialog>
+	</Modal>
 	<!-- Warning Modal -->
 	<!-- Edit Modal -->
-	<dialog id="modal_attention" class="modal modal-top sm:modal-middle">
-		<form method="dialog" class="modal-box">
-			<button
-				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-				>✕</button
-			>
+	<Modal id="modal_attention">
 			<div class="flex flex-col justify-center items-center">
 				<h2 class="font-bold text-3xl mt-5">Info</h2>
 				<span id="info_text"></span>
 				<button class="btn btn-info btn-block mt-5">OK</button>
 			</div>
-		</form>
-		<form method="dialog" class="modal-backdrop">
-			<button>close</button>
-		</form>
-	</dialog>
+	</Modal>
 	<!-- Select Dealer Modal -->
-	<dialog id="modal_dealer" class="modal modal-top sm:modal-middle">
-		<form method="dialog" class="modal-box">
-			<button
-				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-				>✕</button
+	<Modal id="modal_dealer">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Select Dealer</h2>
+			<label class="form-control w-full max-w-xs">
+				<div class="label">
+					<span class="label-text">Pick the new dealer</span>
+				</div>
+				<select class="select select-bordered" id="select_dealer">
+				</select>
+			</label>
+			<button class="btn btn-info btn-block mt-2" id="select_dealer_save"
+				>Save</button
 			>
-			<div class="flex flex-col justify-center items-center">
-				<h2 class="font-bold text-3xl mt-5">Select Dealer</h2>
-				<label class="form-control w-full max-w-xs">
-					<div class="label">
-						<span class="label-text">Pick the new dealer</span>
-					</div>
-					<select class="select select-bordered" id="select_dealer">
-					</select>
-				</label>
+		</div>
+	</Modal>
+	<!-- Select color Modal -->
+	<Modal id="modal_color">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Select Color</h2>
+			<div>
+				<button class="btn blue_tag btn-block mt-2" id="color_blue"
+					>Blue</button
+				>
+				<button class="btn red_tag btn-block mt-2" id="color_red"
+					>Red</button
+				>
 				<button
-					class="btn btn-info btn-block mt-2"
-					id="select_dealer_save">Save</button
+					class="btn green_tag btn-block mt-2"
+					id="color_green">Green</button
+				>
+				<button
+					class="btn yellow_tag btn-block mt-2"
+					id="color_yellow">Yellow</button
+				>
+				<button
+					class="btn btn-neutral btn-block mt-2"
+					id="color_none"
+				>
+					Remove Color
+				</button>
+				<button
+					class="btn bg-gradient-to-r from-blue-500 via-red-500 to-green-500 btn-block mt-2"
+					id="color_random">Random</button
+				>
+				<button class="btn btn-neutral btn-block mt-2">
+					Cancel</button
 				>
 			</div>
-		</form>
-		<form method="dialog" class="modal-backdrop">
-			<button>close</button>
-		</form>
-	</dialog>
-	<!-- Select color Modal -->
-	<dialog id="modal_color" class="modal modal-top sm:modal-middle">
-		<form method="dialog" class="modal-box">
-			<button
-				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-				>✕</button
-			>
-			<div class="flex flex-col justify-center items-center">
-				<h2 class="font-bold text-3xl mt-5">Select Color</h2>
-				<div>
-					<button class="btn blue_tag btn-block mt-2" id="color_blue"
-						>Blue</button
-					>
-					<button class="btn red_tag btn-block mt-2" id="color_red"
-						>Red</button
-					>
-					<button
-						class="btn green_tag btn-block mt-2"
-						id="color_green">Green</button
-					>
-					<button
-						class="btn yellow_tag btn-block mt-2"
-						id="color_yellow">Yellow</button
-					>
-					<button
-						class="btn btn-neutral btn-block mt-2"
-						id="color_none"
-					>
-						Remove Color
-					</button>
-					<button
-						class="btn bg-gradient-to-r from-blue-500 via-red-500 to-green-500 btn-block mt-2"
-						id="color_random">Random</button
-					>
-					<button class="btn btn-neutral btn-block mt-2">
-						Cancel</button
-					>
-				</div>
-			</div>
-		</form>
-		<form method="dialog" class="modal-backdrop">
-			<button>close</button>
-		</form>
-	</dialog>
+		</div>
+	</Modal>
 	<!-- Random Color Got Selected Modal -->
-	<dialog id="modal_randomcolor" class="modal modal-top sm:modal-middle">
-		<form method="dialog" class="modal-box" id="random_color_form">
+	<Modal id="modal_randomcolor">
 			<div class="flex flex-col justify-center items-center">
 				<div class="container">
 					<div class="flex items-center justify-center">
@@ -456,25 +395,22 @@ import Rule from "../components/Rule.astro";
 					id="random_close_button">OK</button
 				>
 			</div>
-			<form method="dialog" class="modal-backdrop">
-			</form>
-		</form>
-	</dialog>
+	</Modal>
 
-	<style>
-		.confetti {
-			position: fixed;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			z-index: -1;
-			user-select: none;
-		}
-		:root {
-			--padding-card: 10px;
-		}
-	</style>
+		<style>
+			.confetti {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				z-index: -1;
+				user-select: none;
+			}
+			:root {
+				--padding-card: 10px;
+			}
+		</style>
 
 	<style is:global>
 		.range_number {

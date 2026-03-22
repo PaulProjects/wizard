@@ -31,7 +31,7 @@ jobs:
            uses: pressidium/lftp-mirror-action@v1
            with:
               host: ${{ secrets.SFTP_HOST }}
-              port: 23
+              port: ${{ secrets.SFTP_PORT }}
               user: ${{ secrets.SFTP_USER }}
               pass: ${{ secrets.SFTP_PASSWORD }}
               localDir: "./dist"
