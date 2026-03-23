@@ -1,4 +1,4 @@
-name: Deploy to FTP and submit sitemap
+name: Deploy
 
 on:
    # Trigger the workflow every time you push to the `main` branch
@@ -35,10 +35,4 @@ jobs:
               user: ${{ secrets.SFTP_USER }}
               pass: ${{ secrets.SFTP_PASSWORD }}
               localDir: "./dist"
-              remoteDir: "./wizard.paulbertram.de"
-         - name: indexnow-action
-           uses: bojieyang/indexnow-action@v2
-           with:
-              sitemap-location: 'https://wizard.paulbertram.de/sitemap-0.xml'
-              key: ${{ secrets.INDEXNOW_KEY }}
-              lastmod-required: false
+              remoteDir: "./www"
