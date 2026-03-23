@@ -300,12 +300,18 @@ import Modal from "./Modal.astro";
 <!-- Info modal -->
 
 <!-- Player Stats Modal -->
-<Modal id="modal_player_stats" modalClass="modal modal-bottom sm:modal-middle" boxClass="modal-box">
+<Modal
+	id="modal_player_stats"
+	title="Player Stats"
+	icon="mdi:chart-box-outline"
+	modalClass="modal modal-bottom sm:modal-middle"
+	boxClass="modal-box"
+>
 	<div>
 		{
 			Astro.url.pathname === "/game/" && (
 				<button
-					class="btn btn-circle btn-ghost absolute left-2 top-2"
+					class="btn btn-circle btn-ghost absolute right-16 top-0"
 					id="edit_player_button"
 					title="Edit Player Data"
 				>
@@ -366,9 +372,14 @@ import Modal from "./Modal.astro";
 </Modal>
 
 <!-- Edit Player Modal -->
-<Modal id="modal_edit_player" modalClass="modal modal-bottom sm:modal-middle" boxClass="modal-box max-w-4xl">
+<Modal
+	id="modal_edit_player"
+	title="Edit Player Data"
+	icon="mdi:account-edit-outline"
+	modalClass="modal modal-bottom sm:modal-middle"
+	boxClass="modal-box max-w-4xl"
+>
 	<div>
-			<h2 class="font-bold text-3xl mt-2">Edit Player Data</h2>
 			<div
 				class="badge badge-secondary text-lg px-4 py-2 mt-2"
 				id="edit_player_name_display"

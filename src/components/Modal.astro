@@ -1,12 +1,20 @@
 ---
+import { Icon } from "astro-icon/components";
+
 interface Props {
 	id: string;
+	title?: string;
+	icon?: string;
+	iconClass?: string;
 	modalClass?: string;
 	boxClass?: string;
 }
 
 const {
 	id,
+	title,
+	icon,
+	iconClass = "text-secondary",
 	modalClass = "modal modal-top sm:modal-middle",
 	boxClass = "modal-box",
 } = Astro.props;
@@ -17,6 +25,14 @@ const {
 		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
 			>✕</button
 		>
+		{
+			title && (
+				<div class="flex items-center gap-3 mb-4 pr-8">
+					{icon && <Icon name={icon} class={`w-8 h-8 ${iconClass}`} />}
+					<h2 class="font-bold text-2xl">{title}</h2>
+				</div>
+			)
+		}
 		<slot />
 	</form>
 	<form method="dialog" class="modal-backdrop">

@@ -311,9 +311,12 @@ import Modal from "../components/Modal.astro";
 	</div>
 	<div class="hidden" id="score"><Score /></div>
 	<!-- Settings modal -->
-	<Modal id="modal_settings">
+	<Modal
+		id="modal_settings"
+		title="Advanced Options"
+		icon="mdi:tune-variant"
+	>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Advanced options</h2>
 			<div>
 				<button id="export_data" class="btn btn-info btn-block mt-5">
 					Export Data</button
@@ -335,9 +338,14 @@ import Modal from "../components/Modal.astro";
 	</Modal>
 	<!-- End of Settings modal -->
 	<!-- Really End game? modal -->
-	<Modal id="modal_delete">
+	<Modal
+		id="modal_delete"
+		title="Delete Data"
+		icon="mdi:alert-outline"
+		iconClass="text-warning"
+	>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5" id="modal_del_text">
+			<h2 class="font-bold text-2xl" id="modal_del_text">
 				Do you really want to delete all data?
 			</h2>
 			<p class="pl-10 pr-10" id="modal_del_infotext">
@@ -358,6 +366,8 @@ import Modal from "../components/Modal.astro";
 	<!-- Player Details Modal -->
 	<Modal
 		id="player_details_modal"
+		title="Player Details"
+		icon="mdi:account-details-outline"
 		modalClass="modal"
 		boxClass="modal-box max-w-2xl"
 	>

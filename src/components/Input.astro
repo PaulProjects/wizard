@@ -21,16 +21,26 @@ import Modal from './Modal.astro';
     </div>
   </div>
   <div class="py-20"></div>
-  <Modal id="alert_1" modalClass="modal">
-    <h3 class="font-bold text-lg">Warning!</h3>
+  <Modal
+    id="alert_1"
+    title="Warning"
+    icon="mdi:alert-outline"
+    iconClass="text-warning"
+    modalClass="modal"
+  >
     <p class="py-4">
       The +-1 Rule is enabled. Make sure that the total amount of bets differs
       from the possible amount
       <span class="text-secondary text-xs">(you can disable the rule in the settings (graph icon - settings - Rules - +-1 Rule))</span>
     </p>
   </Modal>
-  <Modal id="alert_2" modalClass="modal">
-    <h3 class="font-bold text-lg">Warning!</h3>
+  <Modal
+    id="alert_2"
+    title="Warning"
+    icon="mdi:alert-outline"
+    iconClass="text-warning"
+    modalClass="modal"
+  >
     <p class="py-4">
       The amount of possible tricks does not match the amount the entered
       tricks.

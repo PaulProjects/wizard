@@ -104,15 +104,13 @@ import Modal from "../components/Modal.astro";
 		</div>
 	</div>
 	<!-- Resume Game Modal -->
-	<Modal id="resume_modal" modalClass="modal modal-bottom sm:modal-middle">
-
-			<div class="flex items-center gap-3 mb-4">
-				<Icon
-					name="mdi:play-circle-outline"
-					class="w-8 h-8 text-secondary"
-				/>
-				<h3 class="font-bold text-2xl">Resume Game</h3>
-			</div>
+	<Modal
+		id="resume_modal"
+		title="Resume Game"
+		icon="mdi:play-circle-outline"
+		iconClass="text-secondary"
+		modalClass="modal modal-bottom sm:modal-middle"
+	>
 
 			<p class="py-4 text-base-content/70">
 				Select a game to continue playing:
@@ -124,16 +122,13 @@ import Modal from "../components/Modal.astro";
 	</Modal>
 
 	<!-- About Modal -->
-	<Modal id="about" modalClass="modal" boxClass="modal-box max-w-2xl">
-
-			<!-- Header -->
-			<div class="flex items-center gap-3 mb-6">
-				<Icon
-					name="mdi:information-outline"
-					class="w-8 h-8 text-primary"
-				/>
-				<h1 class="font-bold text-3xl">About Wizard</h1>
-			</div>
+	<Modal
+		id="about"
+		title="About Wizard"
+		icon="mdi:help-circle-outline"
+		modalClass="modal"
+		boxClass="modal-box max-w-2xl"
+	>
 
 			<!-- About Section -->
 			<div class="space-y-6">
@@ -302,8 +297,13 @@ import Modal from "../components/Modal.astro";
 			</div>
 	</Modal>
 	<!-- Really delete all data Modal -->
-	<Modal id="alert_delete" modalClass="modal">
-			<h1 class="font-bold text-lg">Really delete all data?</h1>
+	<Modal
+		id="alert_delete"
+		title="Really delete all data?"
+		icon="mdi:alert-outline"
+		iconClass="text-warning"
+		modalClass="modal"
+	>
 			<p class="py-4">
 				This will delete all data stored in your browser. This includes
 				the current game and all past games. You can't undo this action.

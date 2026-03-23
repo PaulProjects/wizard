@@ -84,11 +84,12 @@ import {} from "../scripts/setup.ts";
 					2+ players required. 3-6 are recommended.
 				</div>
 				<!-- Add Player modal -->
-				<Modal id="modal_addplayer">
+				<Modal
+					id="modal_addplayer"
+					title="Add a New Player"
+					icon="mdi:account-plus-outline"
+				>
 					<div class="flex flex-col justify-center items-center">
-						<h1 class="font-bold text-3xl mt-5">
-							add a new player!
-						</h1>
 						<input
 							type="text"
 							placeholder="Player Name"
@@ -335,9 +336,8 @@ import {} from "../scripts/setup.ts";
 		</div>
 	</div>
 	<!-- Info modal -->
-	<Modal id="modal_info">
+	<Modal id="modal_info" title="Info" icon="mdi:help-circle-outline">
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Info</h2>
 			<div class="prose">
 				<p class="pb-2">
 					Use this page to configure your Wizard game before you
@@ -365,9 +365,12 @@ import {} from "../scripts/setup.ts";
 	<!-- End of modal -->
 
 	<!-- Players Info modal -->
-	<Modal id="modal_players_info">
+	<Modal
+		id="modal_players_info"
+		title="Players"
+		icon="mdi:help-circle-outline"
+	>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Players</h2>
 			<div class="prose w-full">
 				<p class="pb-2 pt-4">
 					Wizard can be played with 2 or more players. 3-6 is
@@ -393,9 +396,12 @@ import {} from "../scripts/setup.ts";
 	<!-- End of modal -->
 
 	<!-- Rules Info modal -->
-	<Modal id="modal_rules_info">
+	<Modal
+		id="modal_rules_info"
+		title="Rules"
+		icon="mdi:help-circle-outline"
+	>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Rules</h2>
 			<div class="prose w-full">
 				<p class="pb-4 pt-4">
 					Use these toggles to adapt the game setup.
@@ -424,9 +430,12 @@ import {} from "../scripts/setup.ts";
 	<!-- End of modal -->
 
 	<!-- Rounds Info modal -->
-	<Modal id="modal_rounds_info">
+	<Modal
+		id="modal_rounds_info"
+		title="Rounds"
+		icon="mdi:help-circle-outline"
+	>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Rounds</h2>
 			<div class="prose w-full">
 				<p class="pb-4 pt-4 text-md">
 					<span class="italic text-md">Automatic</span> uses the standard
@@ -482,9 +491,12 @@ import {} from "../scripts/setup.ts";
 	<!-- End of modal -->
 
 	<!-- Calc Info modal -->
-	<Modal id="modal_calc_info">
+	<Modal
+		id="modal_calc_info"
+		title="Score Calculation"
+		icon="mdi:help-circle-outline"
+	>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Score Calculation</h2>
 			<div class="prose w-full">
 				<p class="pb-4 pt-4 text-md">
 					<span class="italic text-md">Classic</span> follows the official
@@ -571,14 +583,13 @@ import {} from "../scripts/setup.ts";
 	</Modal>
 	<!-- End of modal -->
 	<!-- Start of edit preset and recent players modal -->
-	<Modal id="modal_edit">
+	<Modal id="modal_edit" title="Past Game Setups" icon="mdi:history">
 		<button
-			class="btn btn-sm btn-ghost absolute left-2 top-2"
+			class="btn btn-sm btn-ghost absolute right-10 top-2"
 			id="test-preset">test</button
 		>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5 mb-3">Past games setups:</h2>
-      <p class="pb-4">Use a past game as a preset:</p>
+      <p class="pb-4">Use a past games as a preset:</p>
 
 			<div class="flex flex-col w-full gap-2" id="presets"></div>
 
@@ -589,9 +600,13 @@ import {} from "../scripts/setup.ts";
 		</div>
 	</Modal>
 	<!-- Invalid Playername -->
-	<Modal id="alert_invalidplayer">
+	<Modal
+		id="alert_invalidplayer"
+		title="Invalid Player Name"
+		icon="mdi:alert-circle-outline"
+		iconClass="text-warning"
+	>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="text-3xl mt-5">Invalid Playername</h2>
 			<div class="prose">
 				<p class="pb-2 text-center">Please enter a valid player name</p>
 				<p class="pb-2 text-center">2 - 15 characters</p>

@@ -33,9 +33,8 @@ import Modal from "../components/Modal.astro";
 		>
 	</nav>
 	<!-- Settings modal -->
-	<Modal id="modal_settings">
+	<Modal id="modal_settings" title="Settings" icon="mdi:cog-outline">
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Settings</h2>
 			<div>
 					<button
 						class="btn btn-secondary btn-block mt-2"
@@ -84,10 +83,12 @@ import Modal from "../components/Modal.astro";
 	</Modal>
 	<!-- End of Settings modal -->
 	<!-- Rules Modal -->
-	<Modal id="modal_rules">
+	<Modal
+		id="modal_rules"
+		title="Rules"
+		icon="mdi:book-open-variant-outline"
+	>
 			<div class="flex flex-col justify-center items-center">
-				<h2 class="font-bold text-3xl mt-5">Rules</h2>
-
 				<div id="rules">
 					<Rule
 						title="±1 Rule"
@@ -167,9 +168,13 @@ import Modal from "../components/Modal.astro";
 	</Modal>
 	<!-- End of Rules modal -->
 	<!-- Really End game? modal -->
-	<Modal id="modal_confirmend">
+	<Modal
+		id="modal_confirmend"
+		title="Finish Game"
+		icon="mdi:flag-checkered"
+	>
 			<div class="flex flex-col justify-center items-center">
-				<h2 class="text-2xl mt-5">
+				<h2 class="text-2xl">
 					Do you really want to finish the game? This ends this game.
 					<br /><br />You can continue it by clicking on the settings
 					and then on continue.
@@ -188,9 +193,8 @@ import Modal from "../components/Modal.astro";
 	</Modal>
 	<!-- End of Settings modal -->
 	<!-- Edit Modal -->
-	<Modal id="modal_edit">
+	<Modal id="modal_edit" title="Edit Game" icon="mdi:pencil-outline">
 			<div class="flex flex-col justify-center items-center">
-				<h2 class="font-bold text-3xl mt-5">Edit Game</h2>
 				<div>
 					<input
 						type="text"
@@ -208,17 +212,23 @@ import Modal from "../components/Modal.astro";
 	</Modal>
 	<!-- Warning Modal -->
 	<!-- Edit Modal -->
-	<Modal id="modal_attention">
+	<Modal
+		id="modal_attention"
+		title="Info"
+		icon="mdi:help-circle-outline"
+	>
 			<div class="flex flex-col justify-center items-center">
-				<h2 class="font-bold text-3xl mt-5">Info</h2>
 				<span id="info_text"></span>
 				<button class="btn btn-info btn-block mt-5">OK</button>
 			</div>
 	</Modal>
 	<!-- Select Dealer Modal -->
-	<Modal id="modal_dealer">
+	<Modal
+		id="modal_dealer"
+		title="Select Dealer"
+		icon="mdi:cards-outline"
+	>
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Select Dealer</h2>
 			<label class="form-control w-full max-w-xs">
 				<div class="label">
 					<span class="label-text">Pick the new dealer</span>
@@ -232,9 +242,8 @@ import Modal from "../components/Modal.astro";
 		</div>
 	</Modal>
 	<!-- Select color Modal -->
-	<Modal id="modal_color">
+	<Modal id="modal_color" title="Select Color" icon="mdi:palette-outline">
 		<div class="flex flex-col justify-center items-center">
-			<h2 class="font-bold text-3xl mt-5">Select Color</h2>
 			<div>
 				<button class="btn blue_tag btn-block mt-2" id="color_blue"
 					>Blue</button
@@ -267,7 +276,11 @@ import Modal from "../components/Modal.astro";
 		</div>
 	</Modal>
 	<!-- Random Color Got Selected Modal -->
-	<Modal id="modal_randomcolor">
+	<Modal
+		id="modal_randomcolor"
+		title="Random Color"
+		icon="mdi:dice-multiple-outline"
+	>
 			<div class="flex flex-col justify-center items-center">
 				<div class="container">
 					<div class="flex items-center justify-center">
