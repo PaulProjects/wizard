@@ -1,38 +1,42 @@
 name: Deploy
 
 on:
-   # Trigger the workflow every time you push to the `main` branch
-   # Using a different branch name? Replace `main` with your branch’s name
-   push:
-      branches: [main]
-   # Allows you to run this workflow manually from the Actions tab on GitHub.
-   workflow_dispatch:
+    # Trigger the workflow every time you push to the `main` branch
+    # Using a different branch name? Replace `main` with your branch’s name
+    push:
+        branches: [main]
+    # Allows you to run this workflow manually from the Actions tab on GitHub.
+    workflow_dispatch:
+
+concurrency:
+    group: deploy-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-   build:
-      runs-on: ubuntu-latest
-      steps:
-         - name: Checkout your repository using git
-           uses: actions/checkout@v4
-         - name: Use Node.js 
-           uses: actions/setup-node@v1
-           with:
-             node-version: 23.11.0
-         - name: Install dependencies & build
-           run: |
-             npm ci
-             npm run build
-             ls -la ./dist
-         - name: Setup IndexNow
-           run: |
-             cd ./dist
-             echo ${{ secrets.INDEXNOW_KEY }} > ${{ secrets.INDEXNOW_KEY }}.txt
-         - name: deploy
-           uses: pressidium/lftp-mirror-action@v1
-           with:
-              host: ${{ secrets.SFTP_HOST }}
-              port: ${{ secrets.SFTP_PORT }}
-              user: ${{ secrets.SFTP_USER }}
-              pass: ${{ secrets.SFTP_PASSWORD }}
-              localDir: "./dist"
-              remoteDir: "./www"
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout your repository using git
+              uses: actions/checkout@v4
+            - name: Use Node.js
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 23.11.0
+            - name: Install dependencies & build
+              run: |
+                  npm ci
+                  npm run build
+                  ls -la ./dist
+            - name: Setup IndexNow
+              run: |
+                  cd ./dist
+                  echo ${{ secrets.INDEXNOW_KEY }} > ${{ secrets.INDEXNOW_KEY }}.txt
+            - name: deploy
+              uses: pressidium/lftp-mirror-action@v1
+              with:
+                  host: ${{ secrets.SFTP_HOST }}
+                  port: ${{ secrets.SFTP_PORT }}
+                  user: ${{ secrets.SFTP_USER }}
+                  pass: ${{ secrets.SFTP_PASSWORD }}
+                  localDir: "./dist"
+                  remoteDir: "./www"
