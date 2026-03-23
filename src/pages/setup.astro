@@ -39,8 +39,15 @@ import {} from "../scripts/setup.ts";
 			<h2 class="text-center text-2xl" id="loading">Loading...</h2>
 			<!-- Player list -->
 			<div class="lg:pr-10 lg:pl-10">
-				<div class="pb-5">
-					<h2 class="pt-10 text-3xl">Players</h2>
+				<div
+					class="flex flex-row items-center pt-10 justify-between w-full pb-5"
+				>
+					<h2 class="text-3xl">Players</h2>
+					<button
+						class="btn btn-circle btn-sm btn-ghost"
+						onclick="modal_players_info.showModal()"
+						aria-label="Players help">?</button
+					>
 				</div>
 
 				<!-- new player button and modal -->
@@ -85,7 +92,16 @@ import {} from "../scripts/setup.ts";
 
 			<!-- Game options -->
 			<div class="lg:pl-10 lg:pr-10">
-				<h2 class="pt-10 text-3xl w-full">Rules</h2>
+				<div
+					class="flex flex-row items-center pt-10 justify-between w-full"
+				>
+					<h2 class="text-3xl">Rules</h2>
+					<button
+						class="btn btn-circle btn-sm btn-ghost"
+						onclick="modal_rules_info.showModal()"
+						aria-label="Rules help">?</button
+					>
+				</div>
 				<div class="pt-2"></div>
 				<!-- +-1 Rule Start -->
 				<Rule
@@ -304,17 +320,80 @@ import {} from "../scripts/setup.ts";
 			<h2 class="font-bold text-3xl mt-5">Info</h2>
 			<div class="prose">
 				<p class="pb-2">
+					Use this page to configure your Wizard game before you
+					start.
+				</p>
+				<p class="pb-2">
+					Set up players, choose the scoring method, and amount of
+					rounds. Most Settings can be changed later in game as well.
+				</p>
+				<p class="pb-2">
+					Use the <span class="font-bold">?</span> buttons next to each
+					section to learn more about specific settings.
+				</p>
+				<p class="pb-2">
+					When everything looks right, click <span class="font-bold"
+						>Start game</span
+					>.
+				</p>
+			</div>
+			<button class="btn btn-secondary mt-5 btn-block" formmethod="dialog"
+				>OK</button
+			>
+		</div>
+	</Modal>
+	<!-- End of modal -->
+
+	<!-- Players Info modal -->
+	<Modal id="modal_players_info">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Players</h2>
+			<div class="prose w-full">
+				<p class="pb-2 pt-4">
 					Wizard can be played with 2 or more players. 3-6 is
 					recommended.
 				</p>
 				<p class="pb-2">
-					For each player click on New Player and then enter their
-					name
+					Click <span class="font-bold">add a player</span> and enter a
+					name for each participant.
 				</p>
 				<p class="pb-2">
-					The list of players can be rearranged by holding and
-					dragging. The checkbox besides the playernames determinds
-					the dealer for the first round.
+					You can reorder players by dragging the list items.
+				</p>
+				<p class="pb-2">
+					The checkbox next to a player sets the dealer for the first
+					round if the random dealer rule is not enabled.
+				</p>
+			</div>
+			<button class="btn btn-secondary mt-5 btn-block" formmethod="dialog"
+				>OK</button
+			>
+		</div>
+	</Modal>
+	<!-- End of modal -->
+
+	<!-- Rules Info modal -->
+	<Modal id="modal_rules_info">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Rules</h2>
+			<div class="prose w-full">
+				<p class="pb-4 pt-4">
+					Use these toggles to adapt the game setup.
+				</p>
+				<p class="pb-4">
+					<span class="font-bold">±1 Rule:</span> Popular rule that requires
+					the total amount of bids to differ from the total possible amount
+					of tricks. This makes it impossible for all players to get their
+					bid right. This rule does not apply in the first round.
+				</p>
+				<p class="pb-4">
+					<span class="font-bold">Random dealer:</span> Chooses the first
+					dealer randomly instead of using a preselected dealer.
+				</p>
+				<p class="pb-4">
+					<span class="font-bold">Expansion:</span> Disables the tricks-fit
+					check (check if all tricks were entered correctly) when using
+					expansion cards like the bomb card.
 				</p>
 			</div>
 			<button class="btn btn-secondary mt-5 btn-block" formmethod="dialog"
