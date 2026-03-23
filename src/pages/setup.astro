@@ -39,6 +39,26 @@ import {} from "../scripts/setup.ts";
 			<h2 class="text-center text-2xl" id="loading">Loading...</h2>
 			<!-- Player list -->
 			<div class="lg:pr-10 lg:pl-10">
+				<div id="preset_toast" class="w-full mb-3 hidden pt-10">
+					<div
+						class="alert grid-cols-1 bg-base-100 shadow-lg border border-base-300"
+					>
+						<div
+							class="flex flex-row items-center justify-between gap-2 w-full"
+						>
+							<span class="font-medium text-left"
+								>Use a past game as a preset</span
+							>
+							<button
+								class="btn btn-secondary btn-sm ml-auto"
+								id="open_presets_toast"
+								aria-label="Open past game setups"
+							>
+								Show options
+							</button>
+						</div>
+					</div>
+				</div>
 				<div
 					class="flex flex-row items-center pt-10 justify-between w-full pb-5"
 				>
@@ -558,6 +578,7 @@ import {} from "../scripts/setup.ts";
 		>
 		<div class="flex flex-col justify-center items-center">
 			<h2 class="font-bold text-3xl mt-5 mb-3">Past games setups:</h2>
+      <p class="pb-4">Use a past game as a preset:</p>
 
 			<div class="flex flex-col w-full gap-2" id="presets"></div>
 

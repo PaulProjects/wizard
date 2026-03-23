@@ -331,6 +331,22 @@ tlBtn.addEventListener("click", function () {
 });
 
 let modal_edit = document.getElementById("modal_edit") as HTMLDialogElement;
+const presetToast = document.getElementById("preset_toast") as HTMLElement;
+const openPresetsToastBtn = document.getElementById(
+	"open_presets_toast"
+) as HTMLButtonElement;
+
+function isValidPastSetup(game: any) {
+	return (
+		game &&
+		Array.isArray(game.players) &&
+		game.players.length >= 2 &&
+		game.players.every((player) => typeof player === "string") &&
+		typeof game.time_started === "number" &&
+		typeof game.max_rounds === "number"
+	);
+}
+
 //get the presets from localstorage
 let past_games: any[] = [];
 try {
@@ -338,17 +354,25 @@ try {
 	if (stored) past_games = JSON.parse(stored);
 } catch (e) {}
 
+const validPastGames = Array.isArray(past_games)
+	? past_games.filter(isValidPastSetup)
+	: [];
+
+if (validPastGames.length > 0 && presetToast) {
+	presetToast.classList.remove("hidden");
+}
+
 //check if presets is null or the array is empty
-if (past_games == null || past_games.length == 0) {
+if (validPastGames.length === 0) {
 	//add a disabled "no presets yet" button to the presets div
 	const presetsContainer = document.getElementById("presets");
 	presetsContainer.innerHTML = `<button class='btn btn-block btn-disabled m-2' id='preset0'>no past games found</button>`;
 } else {
 	//reverse the array so the newest games are on top
-	past_games.reverse();
-	for (let i = 0; i < past_games.length; i++) {
+	validPastGames.reverse();
+	for (let i = 0; i < validPastGames.length; i++) {
 		try {
-			let game = past_games[i];
+			let game = validPastGames[i];
 			let players = game.players;
 			let rule_1 = game.rule_1;
 			let rule_random_dealer = game.rule_random_dealer;
@@ -496,6 +520,16 @@ titleElement.addEventListener("click", function () {
 	modal_edit.showModal();
 	Logger.event("settings.open");
 });
+
+if (openPresetsToastBtn) {
+	openPresetsToastBtn.addEventListener("click", function () {
+		modal_edit.showModal();
+		if (presetToast) {
+			presetToast.classList.add("hidden");
+		}
+		Logger.event("settings.open");
+	});
+}
 
 //if the playlist is empty, hide the button
 const clearRecentBtn = document.getElementById("clearrecent");
