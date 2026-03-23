@@ -7,346 +7,454 @@ import Modal from "../components/Modal.astro";
 ---
 
 <Layout title="Wizard - Game History">
-  <nav
-    id="nav_container"
-    class="boxbuttons self-center w-4/5 lg:w-3/5 fixed bottom-5 inset-x-0 mx-auto join flex justify-center items-center hidden z-10"
-  >
-    <a class="btn btn-secondary w-full join-item" id="share_game" target="_blank"
-      >
-      <Icon name="mi:share" class="w-6 h-6" />
-      <p>Share the game</p></a
-    >
-  </nav>
-  <div class="flex justify-center">
-    <div
-      class="flex justify-center flex-wrap flex-col p-5 w-full lg:w-1/2 md:w-2/3 md:h-2/3"
-    >
-      <div class="flex flex-nowrap items-center">
-        <div class="" id="tl_container">
-          <button class="btn btn-square btn-outline" id="tlbtn">
-            <Icon name="mdi:chevron-left" class="w-6 h-6" />
-          </button>
-        </div>
-        <div id="title" class="prose prose-sm md:prose-base w-full flex-grow">
-          <h1 class="text-center text-6xl">History</h1>
-        </div>
-      </div>
+	<nav
+		id="nav_container"
+		class="boxbuttons self-center w-4/5 lg:w-3/5 fixed bottom-5 inset-x-0 mx-auto join flex justify-center items-center hidden z-10"
+	>
+		<a
+			class="btn btn-secondary w-full join-item"
+			id="share_game"
+			target="_blank"
+		>
+			<Icon name="mi:share" class="w-6 h-6" />
+			<p>Share the game</p></a
+		>
+	</nav>
+	<div class="flex justify-center">
+		<div
+			class="flex justify-center flex-wrap flex-col p-5 w-full lg:w-1/2 md:w-2/3 md:h-2/3"
+		>
+			<div class="flex flex-nowrap items-center">
+				<div class="" id="tl_container">
+					<button class="btn btn-square btn-outline" id="tlbtn">
+						<Icon name="mdi:chevron-left" class="w-6 h-6" />
+					</button>
+				</div>
+				<div
+					id="title"
+					class="prose prose-sm md:prose-base w-full flex-grow"
+				>
+					<h1 class="text-center text-6xl">History</h1>
+				</div>
+			</div>
 
-      <!-- Tab Navigation -->
-      <div class="flex justify-center mb-6 mt-3" id="tab_navigation_container">
-        <div class="bg-base-200 rounded-lg flex gap-1 p-1 w-full">
-          <button class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10 active" id="past-games-tab">
-            <Icon name="mdi:history" class="w-5 h-5 flex-shrink-0" />
-            <span class="tab-label text-sm pl-2 whitespace-nowrap">Past Games</span>
-          </button>
-          <button class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10" id="player-analytics-tab">
-            <Icon name="mdi:account-group" class="w-5 h-5 flex-shrink-0" />
-            <span class="tab-label text-sm pl-2 whitespace-nowrap">Player Analytics</span>
-          </button>
-          <button class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10" id="game-analytics-tab">
-            <Icon name="mdi:chart-bar" class="w-5 h-5 flex-shrink-0" />
-            <span class="tab-label text-sm pl-2 whitespace-nowrap">Game Analytics</span>
-          </button>
-        </div>
-      </div>
+			<!-- Tab Navigation -->
+			<div
+				class="flex justify-center mb-6 mt-3"
+				id="tab_navigation_container"
+			>
+				<div class="bg-base-200 rounded-lg flex gap-1 p-1 w-full">
+					<button
+						class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10 active"
+						id="past-games-tab"
+					>
+						<Icon
+							name="mdi:history"
+							class="w-5 h-5 flex-shrink-0"
+						/>
+						<span class="tab-label text-sm pl-2 whitespace-nowrap"
+							>Past Games</span
+						>
+					</button>
+					<button
+						class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10"
+						id="player-analytics-tab"
+					>
+						<Icon
+							name="mdi:account-group"
+							class="w-5 h-5 flex-shrink-0"
+						/>
+						<span class="tab-label text-sm pl-2 whitespace-nowrap"
+							>Player Analytics</span
+						>
+					</button>
+					<button
+						class="tab-btn flex items-center justify-center px-2 sm:px-3 py-2 rounded-md transition-colors flex-1 min-w-[2.25rem] sm:min-w-[2.5rem] h-10"
+						id="game-analytics-tab"
+					>
+						<Icon
+							name="mdi:chart-bar"
+							class="w-5 h-5 flex-shrink-0"
+						/>
+						<span class="tab-label text-sm pl-2 whitespace-nowrap"
+							>Game Analytics</span
+						>
+					</button>
+				</div>
+			</div>
 
-      <!-- Past Games View -->
-      <div
-        id="past_games"
-        class="w-full flex flex-col items-center"
-      >
-        <div class="mb-4 flex flex-col sm:flex-row gap-4 justify-center items-end w-full max-w-4xl">
-          <div class="form-control w-full sm:max-w-xs">
-            <label class="label">
-              <span class="label-text">Search players:</span>
-            </label>
-            <input 
-              type="text" 
-              placeholder="Enter player name..." 
-              class="input input-bordered w-full" 
-              id="history-search"
-            />
-          </div>
-          <div class="form-control w-full sm:max-w-xs">
-            <label class="label">
-              <span class="label-text">Sort by:</span>
-            </label>
-            <select class="select select-bordered" id="history-sort">
-              <option value="date-desc">Newest First</option>
-              <option value="date-asc">Oldest First</option>
-              <option value="duration-desc">Longest Duration</option>
-              <option value="duration-asc">Shortest Duration</option>
-              <option value="players-desc">Most Players</option>
-              <option value="players-asc">Fewest Players</option>
-            </select>
-          </div>
-          <div class="form-control w-full sm:max-w-xs">
-            <label class="label">
-              <span class="label-text">Filter:</span>
-            </label>
-            <select class="select select-bordered" id="history-filter">
-              <option value="completed" selected>Completed Games</option>
-              <option value="active">Active Games</option>
-              <option value="all">All Games</option>
-            </select>
-          </div>
-        </div>
+			<!-- Past Games View -->
+			<div id="past_games" class="w-full flex flex-col items-center">
+				<div
+					class="mb-4 flex flex-col sm:flex-row gap-4 justify-center items-end w-full max-w-4xl"
+				>
+					<div class="form-control w-full sm:max-w-xs">
+						<label class="label">
+							<span class="label-text">Search players:</span>
+						</label>
+						<input
+							type="text"
+							placeholder="Enter player name..."
+							class="input input-bordered w-full"
+							id="history-search"
+						/>
+					</div>
+					<div class="form-control w-full sm:max-w-xs">
+						<label class="label">
+							<span class="label-text">Sort by:</span>
+						</label>
+						<select
+							class="select select-bordered"
+							id="history-sort"
+						>
+							<option value="date-desc">Newest First</option>
+							<option value="date-asc">Oldest First</option>
+							<option value="duration-desc"
+								>Longest Duration</option
+							>
+							<option value="duration-asc"
+								>Shortest Duration</option
+							>
+							<option value="players-desc">Most Players</option>
+							<option value="players-asc">Fewest Players</option>
+						</select>
+					</div>
+					<div class="form-control w-full sm:max-w-xs">
+						<label class="label">
+							<span class="label-text">Filter:</span>
+						</label>
+						<select
+							class="select select-bordered"
+							id="history-filter"
+						>
+							<option value="completed" selected
+								>Completed Games</option
+							>
+							<option value="active">Active Games</option>
+							<option value="all">All Games</option>
+						</select>
+					</div>
+				</div>
 
-        <div id="past_games_list" class="flex flex-col flex-wrap items-center justify-center w-full">
-        </div>
-      </div>
+				<div
+					id="past_games_list"
+					class="flex flex-col flex-wrap items-center justify-center w-full"
+				>
+				</div>
+			</div>
 
-      <!-- Player Analytics View -->
-      <div
-        id="player_analytics"
-        class="hidden"
-      >
-        <div class="mb-4 flex flex-col sm:flex-row gap-4 justify-center items-end">
-          <div class="form-control w-full md:max-w-xs">
-            <label class="label">
-              <span class="label-text">Search players:</span>
-            </label>
-            <input 
-              type="text" 
-              placeholder="Enter player name..." 
-              class="input input-bordered w-full" 
-              id="player-search"
-            />
-          </div>
-          <div class="form-control w-full md:max-w-xs">
-            <label class="label">
-              <span class="label-text">Sort by:</span>
-            </label>
-            <select class="select select-bordered" id="sort-select">
-              <!-- Options will be populated by JavaScript -->
-            </select>
-          </div>
-        </div>
-        
-        <div id="player-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Player cards will be populated by JavaScript -->
-        </div>
-        
-        <div id="analytics-summary" class="mt-6 text-center text-sm opacity-70">
-          <!-- Summary will be populated by JavaScript -->
-        </div>
-      </div>
+			<!-- Player Analytics View -->
+			<div id="player_analytics" class="hidden">
+				<div
+					class="mb-4 flex flex-col sm:flex-row gap-4 justify-center items-end"
+				>
+					<div class="form-control w-full md:max-w-xs">
+						<label class="label">
+							<span class="label-text">Search players:</span>
+						</label>
+						<input
+							type="text"
+							placeholder="Enter player name..."
+							class="input input-bordered w-full"
+							id="player-search"
+						/>
+					</div>
+					<div class="form-control w-full md:max-w-xs">
+						<label class="label">
+							<span class="label-text">Sort by:</span>
+						</label>
+						<select class="select select-bordered" id="sort-select">
+							<!-- Options will be populated by JavaScript -->
+						</select>
+					</div>
+				</div>
 
-       <!-- Game Analytics View -->
-       <div id="game_analytics" class="hidden w-full max-w-6xl mx-auto p-4">
-        
-        <div class="stats stats-vertical lg:stats-horizontal shadow w-full mb-8 bg-base-200">
-            <div class="stat">
-                <div class="stat-title">Total Games</div>
-                <div class="stat-value text-primary" id="ga-total-games">0</div>
-                <div class="stat-desc">Completed games</div>
-            </div>
-            
-            <div class="stat">
-                <div class="stat-title">Unique Players</div>
-                <div class="stat-value text-secondary" id="ga-total-players">0</div>
-                <div class="stat-desc">All time participants</div>
-            </div>
-            
-            <div class="stat">
-                <div class="stat-title">Total Playtime</div>
-                <div class="stat-value text-accent" id="ga-total-playtime">0h</div>
-                <div class="stat-desc">Hours spent playing</div>
-            </div>
+				<div
+					id="player-cards-container"
+					class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+				>
+					<!-- Player cards will be populated by JavaScript -->
+				</div>
 
-             <div class="stat">
-                <div class="stat-title">Total Rounds</div>
-                <div class="stat-value" id="ga-total-rounds">0</div>
-                <div class="stat-desc">played</div>
-            </div>
-        </div>
+				<div
+					id="analytics-summary"
+					class="mt-6 text-center text-sm opacity-70"
+				>
+					<!-- Summary will be populated by JavaScript -->
+				</div>
+			</div>
 
-        <div class="grid grid-cols-1 gap-8">
-           <div class="">
-               <div class="card-body p-0">
-                   <h2 class="card-title text-3xl font-bold mb-4">Games Played Over Time</h2>
-                   <div class="relative h-80 w-full">
-                       <canvas id="chart-games-over-time"></canvas>
-                   </div>
-               </div>
-           </div>
-           
-           <div class="">
-               <div class="card-body p-0">
-                   <h2 class="card-title text-3xl font-bold mb-4">Game Duration Distribution (in Minutes)</h2>
-                   <div class="relative h-80 w-full">
-                       <canvas id="chart-duration-distribution"></canvas>
-                   </div>
-               </div>
-           </div>
+			<!-- Game Analytics View -->
+			<div
+				id="game_analytics"
+				class="hidden w-full max-w-6xl mx-auto p-4"
+			>
+				<div
+					class="stats stats-vertical lg:stats-horizontal shadow w-full mb-8 bg-base-200"
+				>
+					<div class="stat">
+						<div class="stat-title">Total Games</div>
+						<div
+							class="stat-value text-primary"
+							id="ga-total-games"
+						>
+							0
+						</div>
+						<div class="stat-desc">Completed games</div>
+					</div>
 
-           <div class="">
-               <div class="card-body p-0">
-                   <h2 class="card-title text-3xl font-bold mb-4">Player Count Distribution</h2>
-                   <div class="relative h-80 w-full">
-                       <canvas id="chart-player-counts"></canvas>
-                   </div>
-               </div>
-           </div>
+					<div class="stat">
+						<div class="stat-title">Unique Players</div>
+						<div
+							class="stat-value text-secondary"
+							id="ga-total-players"
+						>
+							0
+						</div>
+						<div class="stat-desc">All time participants</div>
+					</div>
 
-           <div class="">
-               <div class="card-body p-0">
-                   <h2 class="card-title text-3xl font-bold mb-4">Betting Behavior Analysis</h2>
-                   <div class="flex justify-between items-center mb-4">
-                        <div class="stat p-0">
-                            <div class="stat-title text-xs">Avg Bet Deviation</div>
-                            <div id="stat-avg-deviation" class="stat-value text-2xl">0.0</div>
-                            <div class="stat-desc">Difference between tricks expected & taken</div>
-                        </div>
-                   </div>
-                   <div class="relative h-80 w-full">
-                       <canvas id="chart-betting-accuracy"></canvas>
-                   </div>
-               </div>
-           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="hidden" id="score"><Score /></div>
-  <!-- Settings modal -->
-  <Modal id="modal_settings">
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Advanced options</h2>
-        <div>
-          <button id="export_data" class="btn btn-info btn-block mt-5">
-            Export Data</button
-          >
-          <button class="btn btn-info btn-block mt-2 import_data">
-            Import Data
-          </button>
-          <button id="del_game" class="btn btn-primary btn-block mt-2 hidden">
-            Delete this game
-          </button>
-          <button id="del_all" class="btn btn-primary btn-block mt-2">
-            Delete all local data
-          </button>
-        </div>
-      </div>
-  </Modal>
-  <!-- End of Settings modal -->
-  <!-- Really End game? modal -->
-  <Modal id="modal_delete">
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5" id="modal_del_text">
-          Do you really want to delete all data?
-        </h2>
-        <p class="pl-10 pr-10" id="modal_del_infotext">
-          This will remove all stored data about current and past games
-          permanently!
-        </p>
-        <div>
-          <!-- Cancel Game Button that navigates to / -->
-          <button class="btn btn-primary btn-block mt-5" id="rremovedata">
-            Remove Data
-          </button>
-          <button class="btn btn-info btn-block mt-2"> Cancel</button>
-        </div>
-      </div>
-  </Modal>
-  <!-- End of Delete modal -->
-  
-  <!-- Player Details Modal -->
-  <Modal id="player_details_modal" modalClass="modal" boxClass="modal-box max-w-2xl">
-      <div id="player-details-content">
-        <!-- Player details will be populated by JavaScript -->
-      </div>
-  </Modal>
-  <!-- End of Player Details Modal -->
-  
-  <ImportGame />
+					<div class="stat">
+						<div class="stat-title">Total Playtime</div>
+						<div
+							class="stat-value text-accent"
+							id="ga-total-playtime"
+						>
+							0h
+						</div>
+						<div class="stat-desc">Hours spent playing</div>
+					</div>
+
+					<div class="stat">
+						<div class="stat-title">Total Rounds</div>
+						<div class="stat-value" id="ga-total-rounds">0</div>
+						<div class="stat-desc">played</div>
+					</div>
+				</div>
+
+				<div class="grid grid-cols-1 gap-8">
+					<div class="">
+						<div class="card-body p-0">
+							<h2 class="card-title text-3xl font-bold mb-4">
+								Games Played Over Time
+							</h2>
+							<div class="relative h-80 w-full">
+								<canvas id="chart-games-over-time"></canvas>
+							</div>
+						</div>
+					</div>
+
+					<div class="">
+						<div class="card-body p-0">
+							<h2 class="card-title text-3xl font-bold mb-4">
+								Game Duration Distribution (in Minutes)
+							</h2>
+							<div class="relative h-80 w-full">
+								<canvas id="chart-duration-distribution"
+								></canvas>
+							</div>
+						</div>
+					</div>
+
+					<div class="">
+						<div class="card-body p-0">
+							<h2 class="card-title text-3xl font-bold mb-4">
+								Player Count Distribution
+							</h2>
+							<div class="relative h-80 w-full">
+								<canvas id="chart-player-counts"></canvas>
+							</div>
+						</div>
+					</div>
+
+					<div class="">
+						<div class="card-body p-0">
+							<h2 class="card-title text-3xl font-bold mb-4">
+								Betting Behavior Analysis
+							</h2>
+							<div class="flex justify-between items-center mb-4">
+								<div class="stat p-0">
+									<div class="stat-title text-xs">
+										Average Miss Per Bet
+									</div>
+									<div
+										id="stat-avg-deviation"
+										class="stat-value text-2xl"
+									>
+										0.0
+									</div>
+									<div class="stat-desc">
+										Difference between tricks expected &
+										taken
+									</div>
+								</div>
+							</div>
+							<div class="relative h-80 w-full">
+								<canvas id="chart-betting-accuracy"></canvas>
+							</div>
+						</div>
+					</div>
+
+					<div class="">
+						<div class="card-body p-0">
+							<h2 class="card-title text-3xl font-bold mb-4">
+								Rule Usage Analysis
+							</h2>
+							<div class="relative h-80 w-full">
+								<canvas id="chart-rules-usage"></canvas>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="hidden" id="score"><Score /></div>
+	<!-- Settings modal -->
+	<Modal id="modal_settings">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Advanced options</h2>
+			<div>
+				<button id="export_data" class="btn btn-info btn-block mt-5">
+					Export Data</button
+				>
+				<button class="btn btn-info btn-block mt-2 import_data">
+					Import Data
+				</button>
+				<button
+					id="del_game"
+					class="btn btn-primary btn-block mt-2 hidden"
+				>
+					Delete this game
+				</button>
+				<button id="del_all" class="btn btn-primary btn-block mt-2">
+					Delete all local data
+				</button>
+			</div>
+		</div>
+	</Modal>
+	<!-- End of Settings modal -->
+	<!-- Really End game? modal -->
+	<Modal id="modal_delete">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5" id="modal_del_text">
+				Do you really want to delete all data?
+			</h2>
+			<p class="pl-10 pr-10" id="modal_del_infotext">
+				This will remove all stored data about current and past games
+				permanently!
+			</p>
+			<div>
+				<!-- Cancel Game Button that navigates to / -->
+				<button class="btn btn-primary btn-block mt-5" id="rremovedata">
+					Remove Data
+				</button>
+				<button class="btn btn-info btn-block mt-2"> Cancel</button>
+			</div>
+		</div>
+	</Modal>
+	<!-- End of Delete modal -->
+
+	<!-- Player Details Modal -->
+	<Modal
+		id="player_details_modal"
+		modalClass="modal"
+		boxClass="modal-box max-w-2xl"
+	>
+		<div id="player-details-content">
+			<!-- Player details will be populated by JavaScript -->
+		</div>
+	</Modal>
+	<!-- End of Player Details Modal -->
+
+	<ImportGame />
 </Layout>
 <script>
-  import "../scripts/history.ts";
+	import "../scripts/history.ts";
 </script>
 
 <style is:global>
-  .card:hover .card--hover a,
-  .card:hover {
-    box-shadow: 0 4px 18px 0 rgba(0, 0, 0, 0.25);
-  }
+	.card:hover .card--hover a,
+	.card:hover {
+		box-shadow: 0 4px 18px 0 rgba(0, 0, 0, 0.25);
+	}
 
-  .card {
-    -webkit-box-flex: 300px;
-    -ms-flex: 300px;
-    flex: 300px;
-    border-radius: 10px;
-    border: 2px solid #c3c6ce;
-    cursor: pointer;
-    position: relative;
-    transition: 0.5s ease;
-  }
-  .card:hover {
-    border-color: #008bf8;
-  }
-  .card:hover .card--hover {
-    opacity: 1;
-  }
-  .card:hover .card--hover a {
-    -webkit-transform: translate(-50%, 50%);
-    -ms-transform: translate(-50%, 50%);
-    transform: translate(-50%, 50%);
-    opacity: 1;
-  }
-  .card--hover {
-    padding: 10px 0;
-    text-align: center;
-    opacity: 0.6;
-    transition: 0.25s ease;
-  }
-  .card--hover h3 {
-    font-size: 30px;
-    font-weight: bold;
-    margin: 0;
-  }
-  .card--hover p {
-    margin: 10px 0 0;
-  }
-  .card--hover a {
-    -webkit-transform: translate(-50%, 125%);
-    -ms-transform: translate(-50%, 125%);
-    transform: translate(-50%, 125%);
-    border-radius: 20px;
-    background-color: #7fefbd;
-    color: #1a1a1a;
-    padding: 8px 16px;
-    display: inline-block;
-    text-decoration: none;
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    opacity: 0;
-    transition: 0.25s ease;
-  }
+	.card {
+		-webkit-box-flex: 300px;
+		-ms-flex: 300px;
+		flex: 300px;
+		border-radius: 10px;
+		border: 2px solid #c3c6ce;
+		cursor: pointer;
+		position: relative;
+		transition: 0.5s ease;
+	}
+	.card:hover {
+		border-color: #008bf8;
+	}
+	.card:hover .card--hover {
+		opacity: 1;
+	}
+	.card:hover .card--hover a {
+		-webkit-transform: translate(-50%, 50%);
+		-ms-transform: translate(-50%, 50%);
+		transform: translate(-50%, 50%);
+		opacity: 1;
+	}
+	.card--hover {
+		padding: 10px 0;
+		text-align: center;
+		opacity: 0.6;
+		transition: 0.25s ease;
+	}
+	.card--hover h3 {
+		font-size: 30px;
+		font-weight: bold;
+		margin: 0;
+	}
+	.card--hover p {
+		margin: 10px 0 0;
+	}
+	.card--hover a {
+		-webkit-transform: translate(-50%, 125%);
+		-ms-transform: translate(-50%, 125%);
+		transform: translate(-50%, 125%);
+		border-radius: 20px;
+		background-color: #7fefbd;
+		color: #1a1a1a;
+		padding: 8px 16px;
+		display: inline-block;
+		text-decoration: none;
+		position: absolute;
+		left: 50%;
+		bottom: 0;
+		opacity: 0;
+		transition: 0.25s ease;
+	}
 
-  /* Custom tab styling to match Score.astro */
-  .tab-btn {
-    color: hsl(var(--bc) / 0.6);
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
+	/* Custom tab styling to match Score.astro */
+	.tab-btn {
+		color: hsl(var(--bc) / 0.6);
+		background-color: transparent;
+		border: none;
+		cursor: pointer;
+		flex-shrink: 0;
+	}
 
-  .tab-btn:hover {
-    color: hsl(var(--bc));
-    background-color: hsl(var(--p) / 0.1);
-    box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.15);
-  }
+	.tab-btn:hover {
+		color: hsl(var(--bc));
+		background-color: hsl(var(--p) / 0.1);
+		box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.15);
+	}
 
-  .tab-btn.active {
-    @apply bg-white text-neutral;
-  }
+	.tab-btn.active {
+		@apply bg-white text-neutral;
+	}
 
-  /* Tab label visibility for mobile */
-  @media screen and (max-width: 640px) {
-    .tab-label {
-      display: none;
-    }
-  }
+	/* Tab label visibility for mobile */
+	@media screen and (max-width: 640px) {
+		.tab-label {
+			display: none;
+		}
+	}
 </style>

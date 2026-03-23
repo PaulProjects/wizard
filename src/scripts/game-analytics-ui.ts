@@ -20,6 +20,7 @@ export class GameAnalyticsUI {
             this.renderDurationDistribution();
             this.renderPlayerCounts();
             this.renderBettingBehavior();
+            this.renderRuleUsage();
             this.isInitialized = true;
         } catch (e) {
             Logger.error("Failed to render game analytics", { error: (e as Error).message });
@@ -320,14 +321,9 @@ export class GameAnalyticsUI {
         
         if (this.charts['betting']) this.charts['betting'].destroy();
 
-        let totalRounds = 0;
-        let sumDeviation = 0;
-        // -2+: Over-estimated significantly
-        // -1: Over-estimated by 1
-        // 0: Perfect
-        // +1: Under-estimated by 1
-        // +2+: Under-estimated significantly
-        const deviationDist = { '-2+': 0, '-1': 0, '0': 0, '+1': 0, '+2+': 0 };
+        let totalRoundEntries = 0;
+        let sumAbsoluteDeviation = 0;
+        const deviationDist = new Map<number, number>();
 
         this.games.filter(g => !g.isActive).forEach(g => {
             const bets = g.bets || [];
@@ -337,64 +333,81 @@ export class GameAnalyticsUI {
                  if (!bets[r] || !tricks[r]) continue;
                  for(let p=0; p < g.players.length; p++) {
                      if (bets[r][p] === undefined || tricks[r][p] === undefined) continue;
-                     
-                     // Diff = Tricks - Bets
-                     // Diff > 0: Won more than bet (Underestimated) -> +1
-                     // Diff < 0: Won less than bet (Overestimated) -> -1
-                     
-                     const diff = tricks[r][p] - bets[r][p];
-                     
-                     sumDeviation += Math.abs(diff);
-                     totalRounds++;
-                     
-                     if (diff === 0) deviationDist['0']++;
-                     else if (diff === -1) deviationDist['-1']++;
-                     else if (diff === 1) deviationDist['+1']++;
-                     else if (diff < -1) deviationDist['-2+']++;
-                     else if (diff > 1) deviationDist['+2+']++;
+
+                     // Deviation is bet minus tricks:
+                     // negative = underestimated, 0 = spot on, positive = overestimated.
+                     const deviation = bets[r][p] - tricks[r][p];
+
+                     sumAbsoluteDeviation += Math.abs(deviation);
+                     totalRoundEntries++;
+                     deviationDist.set(
+                        deviation,
+                        (deviationDist.get(deviation) || 0) + 1
+                     );
                  }
              }
         });
 
-        if (statEl && totalRounds > 0) {
-            statEl.innerText = (sumDeviation / totalRounds).toFixed(2);
+        if (statEl) {
+            statEl.innerText = totalRoundEntries > 0
+                ? (sumAbsoluteDeviation / totalRoundEntries).toFixed(2)
+                : '0.00';
         }
 
-        const bettingData = [deviationDist['-2+'], deviationDist['-1'], deviationDist['0'], deviationDist['+1'], deviationDist['+2+']];
-        const maxVal = Math.max(...bettingData, 0);
+        const hasData = deviationDist.size > 0;
+        const sortedDeviations = hasData
+            ? Array.from(deviationDist.keys()).sort((a, b) => a - b)
+            : [-1, 0, 1];
+
+        const minDeviation = Math.min(...sortedDeviations, 0);
+        const maxDeviation = Math.max(...sortedDeviations, 0);
+
+        const points: { x: number; y: number }[] = [];
+        for (let d = minDeviation; d <= maxDeviation; d++) {
+            points.push({ x: d, y: deviationDist.get(d) || 0 });
+        }
+
+        const maxVal = Math.max(...points.map(point => point.y), 0);
 
         this.charts['betting'] = new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
-                // Labels: Tricks - Bets
-                labels: ['Too Optimistic (<-1)', 'Too Optimistic (-1)', 'Spot On (0)', 'Too Pessimistic (+1)', 'Too Pessimistic (>1)'],
                 datasets: [{
                     label: 'Rounds',
-                    data: bettingData,
-                     backgroundColor: [
-                        'rgba(255, 99, 132, 0.7)',
-                        'rgba(255, 159, 64, 0.7)',
-                        'rgba(75, 192, 192, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                         'rgba(153, 102, 255, 0.7)',
-                    ],
+                    data: points,
+                    parsing: false,
+                    borderColor: 'rgba(54, 162, 235, 0.9)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    pointBorderColor: 'rgba(54, 162, 235, 1)',
+                    pointBackgroundColor: (context) => {
+                        const value = context.raw as { x: number; y: number };
+                        return value.x === 0
+                            ? 'rgba(75, 192, 192, 1)'
+                            : 'rgba(54, 162, 235, 1)';
+                    },
+                    pointRadius: (context) => {
+                        const value = context.raw as { x: number; y: number };
+                        return value.x === 0 ? 5 : 4;
+                    },
+                    tension: 0.25,
+                    fill: true,
                 }]
             },
             plugins: [{
-                id: 'barLabels',
+                id: 'linePointLabels',
                 afterDatasetsDraw(chart) {
                     const { ctx } = chart;
                     ctx.save();
                     chart.data.datasets.forEach((dataset, i) => {
                         const meta = chart.getDatasetMeta(i);
                         meta.data.forEach((element, index) => {
-                            const data = dataset.data[index] as number;
-                            if (data > 0) {
+                            const data = dataset.data[index] as { x: number; y: number };
+                            if (data.y > 0) {
                                 ctx.fillStyle = 'gray';
                                 ctx.font = 'bold 12px sans-serif';
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'bottom';
-                                ctx.fillText(data.toString(), element.x, element.y - 5);
+                                ctx.fillText(data.y.toString(), element.x, element.y - 7);
                             }
                         });
                     });
@@ -405,10 +418,130 @@ export class GameAnalyticsUI {
                  responsive: true,
                 maintainAspectRatio: false,
                  scales: {
+                    x: {
+                        type: 'linear',
+                        min: minDeviation - 0.5,
+                        max: maxDeviation + 0.5,
+                        ticks: {
+                            stepSize: 1,
+                            callback: (value) => {
+                                const num = Number(value);
+                                if (!Number.isInteger(num)) return '';
+                                if (num === 0) return 'Spot On (0)';
+                                if (num < 0) return `${num} (Under)`;
+                                return `+${num} (Over)`;
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Difference between Bet and actual Tricks'
+                        },
+                        grid: { display: false }
+                    },
                     y: { 
                         beginAtZero: true,
+                        ticks: { precision: 0 },
                         grid: { display: false },
                         suggestedMax: maxVal * 1.15
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => {
+                                const x = (items[0].raw as { x: number; y: number }).x;
+                                if (x === 0) return 'Spot on';
+                                return x < 0
+                                    ? `${Math.abs(x)} too low (underestimated)`
+                                    : `${x} too high (overestimated)`;
+                            },
+                            label: (item) => `Rounds: ${item.parsed.y}`
+                        }
+                    }
+                }
+            }
+        });
+
+    }
+
+    private renderRuleUsage() {
+        const ctx = document.getElementById('chart-rules-usage') as HTMLCanvasElement;
+        if (!ctx) return;
+
+        if (this.charts['rulesUsage']) this.charts['rulesUsage'].destroy();
+
+        const completedGames = this.games.filter(g => !g.isActive);
+        if (completedGames.length === 0) return;
+
+        const rules = [
+            { key: 'rule_1', label: '+-1 Rule' },
+            { key: 'rule_random_dealer', label: 'Random Dealer' },
+            { key: 'rule_expansion', label: 'Expansion' },
+            { key: 'rule_custom_rounds', label: 'Custom Rounds' },
+            { key: 'rule_crowdchaos', label: 'Crowdchaos' },
+            { key: 'rule_altcount', label: 'Alt Count' },
+        ] as const;
+
+        // Count only active rule values (true) across completed games.
+        const counts = rules.map((rule) => {
+            return completedGames.reduce((acc, game) => {
+                const gameWithRules = game as unknown as Record<string, unknown>;
+                return gameWithRules[rule.key] === true ? acc + 1 : acc;
+            }, 0);
+        });
+
+        const labels = rules.map((rule) => rule.label);
+        const maxVal = Math.max(...counts, 0);
+
+        this.charts['rulesUsage'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Games with Rule Enabled',
+                    data: counts,
+                    backgroundColor: [
+                        'rgba(99, 102, 241, 0.7)',
+                        'rgba(34, 197, 94, 0.7)',
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(14, 165, 233, 0.7)',
+                        'rgba(236, 72, 153, 0.7)',
+                        'rgba(168, 85, 247, 0.7)',
+                    ],
+                }]
+            },
+            plugins: [{
+                id: 'ruleUsageLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    ctx.save();
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        meta.data.forEach((element, index) => {
+                            const data = dataset.data[index] as number;
+                            if (data > 0) {
+                                const percentage = ((data / completedGames.length) * 100).toFixed(1);
+                                ctx.fillStyle = 'gray';
+                                ctx.font = 'bold 12px sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+                                ctx.fillText(`${data} (${percentage}%)`, element.x, element.y - 5);
+                            }
+                        });
+                    });
+                    ctx.restore();
+                }
+            }],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                        grid: { display: false },
+                        suggestedMax: maxVal * 1.2
                     },
                     x: {
                         grid: { display: false }
@@ -419,6 +552,5 @@ export class GameAnalyticsUI {
                 }
             }
         });
-
     }
 }
