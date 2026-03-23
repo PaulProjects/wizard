@@ -172,7 +172,14 @@ import {} from "../scripts/setup.ts";
         <!-- End of calc options -->
 
         <!-- Start of round options -->
-        <h2 class="pt-10 text-3xl w-full">Rounds</h2>
+        <div class="flex flex-row items-center pt-10 justify-between w-full">
+          <h2 class="text-3xl">Rounds</h2>
+          <button
+            class="btn btn-circle btn-sm btn-ghost"
+            onclick="modal_rounds_info.showModal()"
+            aria-label="Rounds help">?</button
+          >
+        </div>
         <div class="pt-2"></div>
         <div class="optionbox-flex pr-10 pl-3">
           <div class="form-control">
@@ -291,6 +298,50 @@ import {} from "../scripts/setup.ts";
         <button class="btn btn-secondary mt-5 btn-block" formmethod="dialog"
           >OK</button
         >
+      </div>
+  </Modal>
+  <!-- End of modal -->
+
+  <!-- Rounds Info modal -->
+  <Modal id="modal_rounds_info">
+      <div class="flex flex-col justify-center items-center">
+        <h2 class="font-bold text-3xl mt-5">Rounds</h2>
+        <div class="prose w-full">
+          <p class="pb-4 pt-4 text-md">
+            <span class="italic text-md">Automatic</span> uses the standard Wizard round amount based on the player count.
+            <span class="italic text-md">Custom</span> lets you choose any number of rounds between 1 and 20.
+          </p>
+
+          <div class="overflow-x-auto">
+            <table class="table table-zebra table-sm w-full text-center my-0">
+              <thead>
+                <tr>
+                  <th>Players</th>
+                  <th>Automatic rounds</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>3</td>
+                  <td>20</td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>15</td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td>10</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <button class="btn btn-secondary mt-5 btn-block" formmethod="dialog">OK</button>
       </div>
   </Modal>
   <!-- End of modal -->

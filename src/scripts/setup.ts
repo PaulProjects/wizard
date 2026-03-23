@@ -199,7 +199,7 @@ const ruleRandomDealer = document.getElementById(
 ) as HTMLInputElement;
 ruleRandomDealer.addEventListener("click", function () {
 	const dealerCheckboxes =
-		document.querySelectorAll<HTMLInputElement>(".dealer-checkbox");
+		document.querySelectorAll<HTMLInputElement>(".dealer-container");
 	dealerCheckboxes.forEach((checkbox) => {
 		checkbox.style.display = this.checked ? "none" : "";
 	});
@@ -660,7 +660,7 @@ function addPlayer(playername: string) {
 		"appear flex flex-row input input-bordered input-secondary w-full my-1 items-center new-box";
 	playerDiv.innerHTML = `
         <input type='text' placeholder='Name' class='h-full w-full !outline-none bg-transparent player-name' aria-label="playername">
-        <div class='flex items-center gap-2 px-2'>
+        <div class='flex items-center gap-2 px-2 dealer-container'>
           <input type='checkbox' class='checkbox checkbox-sm dealer-checkbox' aria-label="select dealer">
           <span class='text-xs font-medium text-gray-400 whitespace-nowrap'>Dealer</span>
         </div>
@@ -685,7 +685,7 @@ function addPlayer(playername: string) {
 	) as HTMLInputElement;
 	if (ruleRandomDealerEl.checked) {
 		const dealerCheckbox =
-			playerDiv.querySelector<HTMLInputElement>(".dealer-checkbox");
+			playerDiv.querySelector<HTMLInputElement>(".dealer-container");
 		if (dealerCheckbox) {
 			dealerCheckbox.style.display = "none";
 		}
