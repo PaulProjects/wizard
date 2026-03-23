@@ -6,7 +6,6 @@ import { SyncManager } from "./sync";
 
 GameData.migrate();
 
-let crowd_chaos = false;
 let valid_1 = false;
 let valid_2 = true;
 
@@ -19,6 +18,9 @@ const startButton = document.getElementById(
 const alertPlayers = document.getElementById("alert_players") as HTMLElement;
 const alertInvalidPlayers = document.getElementById(
 	"alert_invalidplayers"
+) as HTMLElement;
+const minPlayersHint = document.getElementById(
+	"min_players_hint"
 ) as HTMLElement;
 const rangeContainer = document.getElementById(
 	"range_container"
@@ -68,25 +70,6 @@ function populateRecentPlayers() {
 		}
 	});
 }
-
-const ruleCrowdChaos = document.getElementById(
-	"rule_crowdchaos"
-) as HTMLInputElement;
-ruleCrowdChaos.addEventListener("click", function () {
-	crowd_chaos = this.checked;
-	const alertPlayersText = document.getElementById("alert_players_text");
-	alertPlayersText.textContent = `Please add at least ${crowd_chaos ? 2 : 3} players`;
-
-	if (crowd_chaos) {
-		showmodal.disabled = false;
-		showmodal.textContent = "New Player";
-	}
-	checkPlayers();
-	Logger.event("settings.change", {
-		setting: "rule_crowdchaos",
-		value: this.checked,
-	});
-});
 
 //function user presses enter
 document.addEventListener("keyup", function (event) {
@@ -185,11 +168,6 @@ document.addEventListener("click", function (event) {
 			}
 		}
 
-		// Re-enable add button if under limit
-		if (remainingPlayers.length < 6) {
-			showmodal.disabled = false;
-			showmodal.textContent = "New Player";
-		}
 		checkPlayers();
 	}
 });
@@ -294,9 +272,6 @@ startButton.addEventListener("click", function () {
 		rule_custom_rounds: (
 			document.getElementById("rounds_custom") as HTMLInputElement
 		).checked,
-		rule_crowdchaos: (
-			document.getElementById("rule_crowdchaos") as HTMLInputElement
-		).checked,
 		rule_altcount: (document.getElementById("calc_alt") as HTMLInputElement)
 			.checked,
 		round: 1,
@@ -378,7 +353,6 @@ if (past_games == null || past_games.length == 0) {
 			let rule_1 = game.rule_1;
 			let rule_random_dealer = game.rule_random_dealer;
 			let rule_expansion = game.rule_expansion;
-			let rule_crowdchaos = game.rule_crowdchaos;
 			let rule_custom_rounds = game.rule_custom_rounds;
 			let rule_altcount = game.rule_altcount;
 			let max_rounds = game.max_rounds;
@@ -435,7 +409,6 @@ if (past_games == null || past_games.length == 0) {
 						value: rule_random_dealer,
 					},
 					{ selector: "#rule_expansion", value: rule_expansion },
-					{ selector: "#rule_crowdchaos", value: rule_crowdchaos },
 					{
 						selector: rule_altcount ? "#calc_alt" : "#calc_classic",
 						value: true,
@@ -509,7 +482,6 @@ document.getElementById("test-preset").addEventListener("click", function () {
 		{ selector: "#rule_1", value: true },
 		{ selector: "#rule_random_dealer", value: false },
 		{ selector: "#rule_expansion", value: false },
-		{ selector: "#rule_crowdchaos", value: false },
 	];
 
 	testSettings.forEach(({ selector, value }) => {
@@ -615,12 +587,17 @@ function checkValid() {
 	}
 }
 
-//function that checks if the playerlist has at least 3 players and if not hide the div with the id alter_players and its children
+function updateMinPlayersHint(playerCount: number) {
+	minPlayersHint.style.display = playerCount >= 2 ? "none" : "block";
+}
+
+//function that checks if the playerlist has at least 2 players and if not hide the div with the id alter_players and its children
 function checkPlayers() {
 	const playerCount = playerlist.children.length;
-	const minPlayers = crowd_chaos ? 2 : 3;
+	const minPlayers = 2;
 	const hasEnoughPlayers = playerCount >= minPlayers;
 
+	updateMinPlayersHint(playerCount);
 	alertPlayers.style.display = hasEnoughPlayers ? "none" : "block";
 	valid_1 = hasEnoughPlayers;
 	checkValid();
@@ -632,8 +609,8 @@ function validatename(playername: string) {
 }
 
 function amountofrounds(players: number) {
-	const roundsMap = { 3: 20, 4: 15, 5: 12, 6: 10 };
-	return roundsMap[players] || 10;
+	const roundsMap = { 2: 30, 3: 20, 4: 15, 5: 12, 6: 10 };
+		return roundsMap[players] || 10;
 }
 
 function addPlayer(playername: string) {
@@ -645,14 +622,6 @@ function addPlayer(playername: string) {
 		).showModal();
 		Logger.warn("invalid playername", { playername });
 		return;
-	}
-
-	const playerCount = playerlist.children.length;
-	if (playerCount > 5 && !crowd_chaos) return;
-
-	if (playerCount === 5 && !crowd_chaos) {
-		showmodal.disabled = true;
-		showmodal.textContent = "Max amount of players reached";
 	}
 
 	const playerDiv = document.createElement("div");
@@ -702,3 +671,5 @@ function addPlayer(playername: string) {
 	}
 	checkPlayers();
 }
+
+checkPlayers();

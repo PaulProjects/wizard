@@ -9,519 +9,573 @@ import {} from "../scripts/setup.ts";
 ---
 
 <Layout title="Wizard - Configure your game.">
-  <div class="wrapper flex justify-center items-center w-full h-full">
-    <div class="flex justify-center flex-wrap flex-col p-5 lg:w:1/3 lg:h-2/3">
-      <div class="flex justify-between items-center">
-        <div id="tl_container">
-          <button
-            class="btn btn-square btn-outline"
-            id="tlbtn"
-            aria-label="Back"
-          >
-            <Icon name="mdi:chevron-left" class="w-6 h-6" />
-          </button>
-        </div>
-        <div
-          id="title"
-          class="prose prose-sm md:prose-base flex-grow text-center"
-        >
-          <h1 class="text-center text-6xl">Setup</h1>
-        </div>
-        <button
-          class="btn float-right"
-          onclick="modal_info.showModal(); "
-          id="help"
-          aria-label="Help">?</button
-        >
-      </div>
-      <h2 class="text-center text-2xl" id="loading">Loading...</h2>
-      <!-- Player list -->
-      <div class="lg:pr-10 lg:pl-10">
-        <div class="pb-5">
-          <h2 class="pt-10 text-3xl">Players (3-6)</h2>
-        </div>
+	<div class="wrapper flex justify-center items-center w-full h-full">
+		<div
+			class="flex justify-center flex-wrap flex-col p-5 lg:w:1/3 lg:h-2/3"
+		>
+			<div class="flex justify-between items-center">
+				<div id="tl_container">
+					<button
+						class="btn btn-square btn-outline"
+						id="tlbtn"
+						aria-label="Back"
+					>
+						<Icon name="mdi:chevron-left" class="w-6 h-6" />
+					</button>
+				</div>
+				<div
+					id="title"
+					class="prose prose-sm md:prose-base flex-grow text-center"
+				>
+					<h1 class="text-center text-6xl">Setup</h1>
+				</div>
+				<button
+					class="btn float-right"
+					onclick="modal_info.showModal(); "
+					id="help"
+					aria-label="Help">?</button
+				>
+			</div>
+			<h2 class="text-center text-2xl" id="loading">Loading...</h2>
+			<!-- Player list -->
+			<div class="lg:pr-10 lg:pl-10">
+				<div class="pb-5">
+					<h2 class="pt-10 text-3xl">Players</h2>
+				</div>
 
-        <!-- new player button and modal -->
-        <button
-          class="input input-bordered input-primary w-full"
-          id="showmodal"
-          onclick="modal_addplayer.showModal();"><p>add a player</p></button
-        >
-        <!-- Add Player modal -->
-        <Modal id="modal_addplayer">
-            <div class="flex flex-col justify-center items-center">
-              <h1 class="font-bold text-3xl mt-5">add a new player!</h1>
-              <input
-                type="text"
-                placeholder="Player Name"
-                id="input_playername"
-                aria-label="Playername"
-                class="input input-bordered input-primary w-2/3 mt-10 mb-3"
-              />
-              <button
-                class="input input-bordered input-primary w-2/3"
-                id="addPlayer"><p>add the player</p></button
-              >
-              <div id="recent_players" class="mt-3"></div>
-            </div>
-        </Modal>
-        <!-- End of modal -->
-        <div class="flex flex-col names pt-2">
-          <div id="playerlist"></div>
-        </div>
-      </div>
-      <!-- End Player list -->
+				<!-- new player button and modal -->
+				<button
+					class="input input-bordered input-primary w-full"
+					id="showmodal"
+					onclick="modal_addplayer.showModal();"
+					><p>add a player</p></button
+				>
+				<div
+					class="mt-2 p-3 bg-base-200 rounded text-sm text-base-content opacity-80 w-full"
+					id="min_players_hint"
+				>
+					2+ players required. 3-6 are recommended.
+				</div>
+				<!-- Add Player modal -->
+				<Modal id="modal_addplayer">
+					<div class="flex flex-col justify-center items-center">
+						<h1 class="font-bold text-3xl mt-5">
+							add a new player!
+						</h1>
+						<input
+							type="text"
+							placeholder="Player Name"
+							id="input_playername"
+							aria-label="Playername"
+							class="input input-bordered input-primary w-2/3 mt-10 mb-3"
+						/>
+						<button
+							class="input input-bordered input-primary w-2/3"
+							id="addPlayer"><p>add the player</p></button
+						>
+						<div id="recent_players" class="mt-3"></div>
+					</div>
+				</Modal>
+				<!-- End of modal -->
+				<div class="flex flex-col names pt-2">
+					<div id="playerlist"></div>
+				</div>
+			</div>
+			<!-- End Player list -->
 
-      <!-- Game options -->
-      <div class="lg:pl-10 lg:pr-10">
-        <h2 class="pt-10 text-3xl w-full">Rules</h2>
-        <div class="pt-2"></div>
-        <!-- +-1 Rule Start -->
-        <Rule
-          title="±1 Rule"
-          description="Require the amount of bids to differ from the total possible amount of tricks"
-          js_id="rule_1"
-        />
-        <div class="pt-5"></div>
-        <Rule
-          title="Random dealer"
-          description="Randomly select the dealer for the first round."
-          js_id="rule_random_dealer"
-        />
-        <div class="pt-5"></div>
-        <Rule
-          title="Expansion"
-          description="Disable the check if the amount of tricks fit (needed if you play with the bomb card)"
-          js_id="rule_expansion"
-        />
-        <div class="pt-5"></div>
-        <Rule
-          title="Crowd Chaos"
-          description="Less limitations on the amount of players (still need at least 2 players)"
-          js_id="rule_crowdchaos"
-        />
-        <div class="pt-5"></div>
+			<!-- Game options -->
+			<div class="lg:pl-10 lg:pr-10">
+				<h2 class="pt-10 text-3xl w-full">Rules</h2>
+				<div class="pt-2"></div>
+				<!-- +-1 Rule Start -->
+				<Rule
+					title="±1 Rule"
+					description="Require the amount of bids to differ from the total possible amount of tricks"
+					js_id="rule_1"
+				/>
+				<div class="pt-5"></div>
+				<Rule
+					title="Random dealer"
+					description="Randomly select the dealer for the first round."
+					js_id="rule_random_dealer"
+				/>
+				<div class="pt-5"></div>
+				<Rule
+					title="Expansion"
+					description="Disable the check if the amount of tricks fit (needed if you play with the bomb card)"
+					js_id="rule_expansion"
+				/>
+				<div class="pt-5"></div>
 
-        <!-- Start of calc options -->
-        <div class="flex flex-row items-center pt-10 justify-between w-full">
-          <h2 class="text-3xl">Score calculation</h2>
-          <button
-            class="btn btn-circle btn-sm btn-ghost"
-            onclick="modal_calc_info.showModal()"
-            aria-label="Score calculation help">?</button
-          >
-        </div>
-        <div class="pt-2"></div>
-        <div class="optionbox-flex pr-10 pl-3">
-          <div class="form-control">
-            <div
-              class="flex flex-row items-center h-full w-full"
-              id="calc_classic_box"
-            >
-              <div class="form-control pl-3">
-                <label class="cursor-pointer label">
-                  <input
-                    type="radio"
-                    name="calc"
-                    aria-label="radio button to toggle automatic rounds"
-                    class="radio checked:bg-blue-500"
-                    id="calc_classic"
-                    checked
-                  />
-                </label>
-              </div>
-              <div
-                class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
-              >
-                <span class="label-text text-xl bold font-bold w-full"
-                  >Classic</span
-                >
-                <span class="label-text text-sm bold w-full"
-                  >Calculate the score according to the ruleset</span
-                >
-              </div>
-            </div>
-            <div
-              class="flex flex-row items-center h-full w-full"
-              id="calc_alt_box"
-            >
-              <div class="form-control pl-3">
-                <label class="cursor-pointer label">
-                  <input
-                    type="radio"
-                    name="calc"
-                    aria-label="radio button to toggle custom rounds"
-                    class="radio checked:bg-blue-500"
-                    id="calc_alt"
-                  />
-                </label>
-              </div>
-              <div
-                class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
-              >
-                <span class="label-text text-xl bold font-bold w-full"
-                  >Custom</span
-                >
-                <span class="label-text text-sm bold w-full"
-                  >Use an alternative counting system thats less punishing towards a bad hand</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- End of calc options -->
+				<!-- Start of calc options -->
+				<div
+					class="flex flex-row items-center pt-10 justify-between w-full"
+				>
+					<h2 class="text-3xl">Score calculation</h2>
+					<button
+						class="btn btn-circle btn-sm btn-ghost"
+						onclick="modal_calc_info.showModal()"
+						aria-label="Score calculation help">?</button
+					>
+				</div>
+				<div class="pt-2"></div>
+				<div class="optionbox-flex pr-10 pl-3">
+					<div class="form-control">
+						<div
+							class="flex flex-row items-center h-full w-full"
+							id="calc_classic_box"
+						>
+							<div class="form-control pl-3">
+								<label class="cursor-pointer label">
+									<input
+										type="radio"
+										name="calc"
+										aria-label="radio button to toggle automatic rounds"
+										class="radio checked:bg-blue-500"
+										id="calc_classic"
+										checked
+									/>
+								</label>
+							</div>
+							<div
+								class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+							>
+								<span
+									class="label-text text-xl bold font-bold w-full"
+									>Classic</span
+								>
+								<span class="label-text text-sm bold w-full"
+									>Calculate the score according to the
+									ruleset</span
+								>
+							</div>
+						</div>
+						<div
+							class="flex flex-row items-center h-full w-full"
+							id="calc_alt_box"
+						>
+							<div class="form-control pl-3">
+								<label class="cursor-pointer label">
+									<input
+										type="radio"
+										name="calc"
+										aria-label="radio button to toggle custom rounds"
+										class="radio checked:bg-blue-500"
+										id="calc_alt"
+									/>
+								</label>
+							</div>
+							<div
+								class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+							>
+								<span
+									class="label-text text-xl bold font-bold w-full"
+									>Custom</span
+								>
+								<span class="label-text text-sm bold w-full"
+									>Use an alternative counting system thats
+									less punishing towards a bad hand</span
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- End of calc options -->
 
-        <!-- Start of round options -->
-        <div class="flex flex-row items-center pt-10 justify-between w-full">
-          <h2 class="text-3xl">Rounds</h2>
-          <button
-            class="btn btn-circle btn-sm btn-ghost"
-            onclick="modal_rounds_info.showModal()"
-            aria-label="Rounds help">?</button
-          >
-        </div>
-        <div class="pt-2"></div>
-        <div class="optionbox-flex pr-10 pl-3">
-          <div class="form-control">
-            <div
-              class="flex flex-row items-center h-full w-full"
-              id="rounds_auto_box"
-            >
-              <div class="form-control pl-3">
-                <label class="cursor-pointer label">
-                  <input
-                    type="radio"
-                    name="rounds"
-                    aria-label="radio button to toggle automatic rounds"
-                    class="radio checked:bg-blue-500"
-                    id="rounds_auto"
-                    checked
-                  />
-                </label>
-              </div>
-              <div
-                class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
-              >
-                <span class="label-text text-xl bold font-bold w-full"
-                  >Automatic</span
-                >
-                <span class="label-text text-sm bold w-full"
-                  >Play the amount of rounds from the ruleset</span
-                >
-              </div>
-            </div>
-            <div
-              class="flex flex-row items-center h-full w-full"
-              id="rounds_custom_box"
-            >
-              <div class="form-control pl-3">
-                <label class="cursor-pointer label">
-                  <input
-                    type="radio"
-                    name="rounds"
-                    aria-label="radio button to toggle custom rounds"
-                    class="radio checked:bg-blue-500"
-                    id="rounds_custom"
-                  />
-                </label>
-              </div>
-              <div
-                class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
-              >
-                <span class="label-text text-xl bold font-bold w-full"
-                  >Custom</span
-                >
-                <span class="label-text text-sm bold w-full"
-                  >Set a custom amount of rounds</span
-                >
-              </div>
-            </div>
-            <div
-              class="pt-2 flex items-center pl-4 pb-4 transition ease-in duration-300"
-              id="range_container"
-            >
-              <input
-                type="number"
-                id="range_val"
-                class="input input-secondary w-14 text-center mb-3"
-                min="1"
-                max="20"
-                value="10"
-                id="range_val"
-              />
-              <input
-                type="range"
-                min="1"
-                max="20"
-                value="10"
-                class="range ml-2 w-4/5"
-                id="rounds_custom_range"
-              />
-            </div>
-          </div>
-        </div>
-        <!-- End of round options -->
+				<!-- Start of round options -->
+				<div
+					class="flex flex-row items-center pt-10 justify-between w-full"
+				>
+					<h2 class="text-3xl">Rounds</h2>
+					<button
+						class="btn btn-circle btn-sm btn-ghost"
+						onclick="modal_rounds_info.showModal()"
+						aria-label="Rounds help">?</button
+					>
+				</div>
+				<div class="pt-2"></div>
+				<div class="optionbox-flex pr-10 pl-3">
+					<div class="form-control">
+						<div
+							class="flex flex-row items-center h-full w-full"
+							id="rounds_auto_box"
+						>
+							<div class="form-control pl-3">
+								<label class="cursor-pointer label">
+									<input
+										type="radio"
+										name="rounds"
+										aria-label="radio button to toggle automatic rounds"
+										class="radio checked:bg-blue-500"
+										id="rounds_auto"
+										checked
+									/>
+								</label>
+							</div>
+							<div
+								class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+							>
+								<span
+									class="label-text text-xl bold font-bold w-full"
+									>Automatic</span
+								>
+								<span class="label-text text-sm bold w-full"
+									>Play the amount of rounds from the ruleset</span
+								>
+							</div>
+						</div>
+						<div
+							class="flex flex-row items-center h-full w-full"
+							id="rounds_custom_box"
+						>
+							<div class="form-control pl-3">
+								<label class="cursor-pointer label">
+									<input
+										type="radio"
+										name="rounds"
+										aria-label="radio button to toggle custom rounds"
+										class="radio checked:bg-blue-500"
+										id="rounds_custom"
+									/>
+								</label>
+							</div>
+							<div
+								class="flex flex-col h-full justify-center pt-4 pb-4 pr-10 pl-2"
+							>
+								<span
+									class="label-text text-xl bold font-bold w-full"
+									>Custom</span
+								>
+								<span class="label-text text-sm bold w-full"
+									>Set a custom amount of rounds</span
+								>
+							</div>
+						</div>
+						<div
+							class="pt-2 flex items-center pl-4 pb-4 transition ease-in duration-300"
+							id="range_container"
+						>
+							<input
+								type="number"
+								id="range_val"
+								class="input input-secondary w-14 text-center mb-3"
+								min="1"
+								max="20"
+								value="10"
+								id="range_val"
+							/>
+							<input
+								type="range"
+								min="1"
+								max="20"
+								value="10"
+								class="range ml-2 w-4/5"
+								id="rounds_custom_range"
+							/>
+						</div>
+					</div>
+				</div>
+				<!-- End of round options -->
 
-        <div
-          class="rounded-md border-indigo-500 border-2 pt-5 pl-5 pr-5 pb-5 mt-10"
-        >
-          <nav class="boxbuttons self-center w-full">
-            <button
-              class="btn btn-primary btn-disabled btn-block"
-              id="start_button"><p>Start game</p></button
-            >
-          </nav>
-          <Alert title="Please add at least 3 players" js_id="alert_players" />
-          <Alert
-            title="Please enter valid player names"
-            js_id="alert_invalidplayers"
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Info modal -->
-  <Modal id="modal_info">
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Info</h2>
-        <div class="prose">
-          <p class="pb-2">Wizard can be played in a group of 3-6 Players</p>
-          <p class="pb-2">
-            For each player click on New Player and then enter their name
-          </p>
-          <p class="pb-2">
-            The list of players can be rearranged by holding and dragging. The
-            checkbox besides the playernames determinds the dealer for the first
-            round.
-          </p>
-        </div>
-        <button class="btn btn-secondary mt-5 btn-block" formmethod="dialog"
-          >OK</button
-        >
-      </div>
-  </Modal>
-  <!-- End of modal -->
+				<div
+					class="rounded-md border-indigo-500 border-2 pt-5 pl-5 pr-5 pb-5 mt-10"
+				>
+					<nav class="boxbuttons self-center w-full">
+						<button
+							class="btn btn-primary btn-disabled btn-block"
+							id="start_button"><p>Start game</p></button
+						>
+					</nav>
+					<Alert
+						title="Please add at least 2 players"
+						js_id="alert_players"
+					/>
+					<Alert
+						title="Please enter valid player names"
+						js_id="alert_invalidplayers"
+					/>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Info modal -->
+	<Modal id="modal_info">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Info</h2>
+			<div class="prose">
+				<p class="pb-2">
+					Wizard can be played with 2 or more players. 3-6 is
+					recommended.
+				</p>
+				<p class="pb-2">
+					For each player click on New Player and then enter their
+					name
+				</p>
+				<p class="pb-2">
+					The list of players can be rearranged by holding and
+					dragging. The checkbox besides the playernames determinds
+					the dealer for the first round.
+				</p>
+			</div>
+			<button class="btn btn-secondary mt-5 btn-block" formmethod="dialog"
+				>OK</button
+			>
+		</div>
+	</Modal>
+	<!-- End of modal -->
 
-  <!-- Rounds Info modal -->
-  <Modal id="modal_rounds_info">
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Rounds</h2>
-        <div class="prose w-full">
-          <p class="pb-4 pt-4 text-md">
-            <span class="italic text-md">Automatic</span> uses the standard Wizard round amount based on the player count.
-            <span class="italic text-md">Custom</span> lets you choose any number of rounds between 1 and 20.
-          </p>
+	<!-- Rounds Info modal -->
+	<Modal id="modal_rounds_info">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Rounds</h2>
+			<div class="prose w-full">
+				<p class="pb-4 pt-4 text-md">
+					<span class="italic text-md">Automatic</span> uses the standard
+					Wizard round amount based on the player count.
+					<span class="italic text-md">Custom</span> lets you choose any
+					number of rounds between 1 and 20.
+				</p>
 
-          <div class="overflow-x-auto">
-            <table class="table table-zebra table-sm w-full text-center my-0">
-              <thead>
-                <tr>
-                  <th>Players</th>
-                  <th>Automatic rounds</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>3</td>
-                  <td>20</td>
-                </tr>
-                <tr>
-                  <td>4</td>
-                  <td>15</td>
-                </tr>
-                <tr>
-                  <td>5</td>
-                  <td>12</td>
-                </tr>
-                <tr>
-                  <td>6</td>
-                  <td>10</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <button class="btn btn-secondary mt-5 btn-block" formmethod="dialog">OK</button>
-      </div>
-  </Modal>
-  <!-- End of modal -->
+				<div class="overflow-x-auto">
+					<table
+						class="table table-zebra table-sm w-full text-center my-0"
+					>
+						<thead>
+							<tr>
+								<th>Players</th>
+								<th>Automatic rounds</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>2</td>
+								<td>30</td>
+							</tr>
+							<tr>
+								<td>3</td>
+								<td>20</td>
+							</tr>
+							<tr>
+								<td>4</td>
+								<td>15</td>
+							</tr>
+							<tr>
+								<td>5</td>
+								<td>12</td>
+							</tr>
+							<tr>
+								<td>6</td>
+								<td>10</td>
+							</tr>
+							<tr>
+								<td>7+</td>
+								<td>10</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<button class="btn btn-secondary mt-5 btn-block" formmethod="dialog"
+				>OK</button
+			>
+		</div>
+	</Modal>
+	<!-- End of modal -->
 
-  <!-- Calc Info modal -->
-  <Modal id="modal_calc_info">
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5">Score Calculation</h2>
-        <div class="prose w-full">
-          <p class="pb-4 pt-4 text-md">
-            <span class="italic text-md">Classic</span> follows the official rulebook scoring (reward high exact bids).
-            <span class="italic text-md">Custom</span> balances bad hands, while still rewarding good bidding and punishing big misses.
-          </p>
+	<!-- Calc Info modal -->
+	<Modal id="modal_calc_info">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5">Score Calculation</h2>
+			<div class="prose w-full">
+				<p class="pb-4 pt-4 text-md">
+					<span class="italic text-md">Classic</span> follows the official
+					rulebook scoring (reward high exact bids).
+					<span class="italic text-md">Custom</span> balances bad hands,
+					while still rewarding good bidding and punishing big misses.
+				</p>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-2 bg-base-200 rounded-box">
-              <h3 class="text-center font-bold m-0 text-lg">Classic</h3>
-              <p class="text-center text-xs opacity-70 m-0 mb-2">Standard Rules</p>
-              <ul class="text-xs pl-4 m-0">
-                <li><b>Correct:</b> 20 + (10 per trick)</li>
-                <li><b>Incorrect:</b> -10 per trick off</li>
-              </ul>
-            </div>
-            <div class="p-2 bg-base-200 rounded-box">
-              <h3 class="text-center font-bold m-0 text-lg">Custom</h3>
-              <p class="text-center text-xs opacity-70 m-0 mb-2">Evaluation Variant</p>
-              <ul class="text-xs pl-4 m-0">
-                <li><b>Correct:</b> 10 per trick + 10 per round</li>
-                <li><b>Incorrect:</b> 10 per trick - penalty*</li>
-                <li class="text-xs text-center mt-2 opacity-70 mb-0">
-                *1 off = -10, 2 off = -30, 3 off = -60, ...
-                </li>
-              </ul>
-            </div>
-          </div>
-          
-          <div class="divider text-sm m-0 mt-4 mb-2">Example: Round 5</div>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div class="p-2 bg-base-200 rounded-box">
+						<h3 class="text-center font-bold m-0 text-lg">
+							Classic
+						</h3>
+						<p class="text-center text-xs opacity-70 m-0 mb-2">
+							Standard Rules
+						</p>
+						<ul class="text-xs pl-4 m-0">
+							<li><b>Correct:</b> 20 + (10 per trick)</li>
+							<li><b>Incorrect:</b> -10 per trick off</li>
+						</ul>
+					</div>
+					<div class="p-2 bg-base-200 rounded-box">
+						<h3 class="text-center font-bold m-0 text-lg">
+							Custom
+						</h3>
+						<p class="text-center text-xs opacity-70 m-0 mb-2">
+							Evaluation Variant
+						</p>
+						<ul class="text-xs pl-4 m-0">
+							<li><b>Correct:</b> 10 per trick + 10 per round</li>
+							<li><b>Incorrect:</b> 10 per trick - penalty*</li>
+							<li
+								class="text-xs text-center mt-2 opacity-70 mb-0"
+							>
+								*1 off = -10, 2 off = -30, 3 off = -60, ...
+							</li>
+						</ul>
+					</div>
+				</div>
 
-          <div class="overflow-x-auto">
-            <table class="table table-zebra table-sm w-full text-center my-0">
-              <thead>
-                <tr>
-                  <th>Bet</th>
-                  <th>Tricks</th>
-                  <th>Classic</th>
-                  <th>Custom</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>2</td>
-                  <td>2</td>
-                  <td class="text-success font-bold">40</td>
-                  <td class="text-success font-bold">70</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>3</td>
-                  <td class="text-error font-bold">-10</td>
-                  <td class="text-success font-bold">20</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>0</td>
-                  <td class="text-error font-bold">-20</td>
-                  <td class="text-error font-bold">-30</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <button class="btn btn-secondary mt-5 btn-block" formmethod="dialog">OK</button>
-      </div>
-  </Modal>
-  <!-- End of modal -->
-  <!-- Start of edit preset and recent players modal -->
-  <Modal id="modal_edit">
-      <button
-        class="btn btn-sm btn-ghost absolute left-2 top-2"
-        id="test-preset">test</button
-      >
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="font-bold text-3xl mt-5 mb-3">Past games setups:</h2>
+				<div class="divider text-sm m-0 mt-4 mb-2">
+					Example: Round 5
+				</div>
 
-        <div class="flex flex-col w-full gap-2" id="presets"></div>
+				<div class="overflow-x-auto">
+					<table
+						class="table table-zebra table-sm w-full text-center my-0"
+					>
+						<thead>
+							<tr>
+								<th>Bet</th>
+								<th>Tricks</th>
+								<th>Classic</th>
+								<th>Custom</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>2</td>
+								<td>2</td>
+								<td class="text-success font-bold">40</td>
+								<td class="text-success font-bold">70</td>
+							</tr>
+							<tr>
+								<td>2</td>
+								<td>3</td>
+								<td class="text-error font-bold">-10</td>
+								<td class="text-success font-bold">20</td>
+							</tr>
+							<tr>
+								<td>2</td>
+								<td>0</td>
+								<td class="text-error font-bold">-20</td>
+								<td class="text-error font-bold">-30</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<button class="btn btn-secondary mt-5 btn-block" formmethod="dialog"
+				>OK</button
+			>
+		</div>
+	</Modal>
+	<!-- End of modal -->
+	<!-- Start of edit preset and recent players modal -->
+	<Modal id="modal_edit">
+		<button
+			class="btn btn-sm btn-ghost absolute left-2 top-2"
+			id="test-preset">test</button
+		>
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="font-bold text-3xl mt-5 mb-3">Past games setups:</h2>
 
-        <div class="mt-5"></div>
-        <button class="btn btn-primary btn-block mt-2" id="clearrecent"
-          ><p>Clear Recent Players</p></button
-        >
-      </div>
-  </Modal>
-  <!-- Invalid Playername -->
-  <Modal id="alert_invalidplayer">
-      <div class="flex flex-col justify-center items-center">
-        <h2 class="text-3xl mt-5">Invalid Playername</h2>
-        <div class="prose">
-          <p class="pb-2 text-center">Please enter a valid player name</p>
-          <p class="pb-2 text-center">2 - 15 characters</p>
-          <button
-            class="btn btn-secondary mt-5 btn-block"
-            formmethod="dialog"
-            id="ok_invalidplayer">OK</button
-          >
-        </div>
-      </div>
-  </Modal>
+			<div class="flex flex-col w-full gap-2" id="presets"></div>
 
-  <style is:global>
-    .optionbox {
-      width: 100%;
-      height: 6rem;
-      border-left: solid rgb(99 102 241);
-      background-color: rgba(240, 251, 239, 0.1);
-    }
-    .optionbox-flex {
-      width: 100%;
-      border-left: solid rgb(99 102 241);
-      background-color: rgba(240, 251, 239, 0.1);
-    }
-  </style>
+			<div class="mt-5"></div>
+			<button class="btn btn-primary btn-block mt-2" id="clearrecent"
+				><p>Clear Recent Players</p></button
+			>
+		</div>
+	</Modal>
+	<!-- Invalid Playername -->
+	<Modal id="alert_invalidplayer">
+		<div class="flex flex-col justify-center items-center">
+			<h2 class="text-3xl mt-5">Invalid Playername</h2>
+			<div class="prose">
+				<p class="pb-2 text-center">Please enter a valid player name</p>
+				<p class="pb-2 text-center">2 - 15 characters</p>
+				<button
+					class="btn btn-secondary mt-5 btn-block"
+					formmethod="dialog"
+					id="ok_invalidplayer">OK</button
+				>
+			</div>
+		</div>
+	</Modal>
 
-  <style>
-    @keyframes append-animate {
-      from {
-        transform: scaleY(0);
-        opacity: 0;
-      }
-      to {
-        transform: scaleY(1);
-        opacity: 1;
-      }
-    }
+	<style is:global>
+		.optionbox {
+			width: 100%;
+			height: 6rem;
+			border-left: solid rgb(99 102 241);
+			background-color: rgba(240, 251, 239, 0.1);
+		}
+		.optionbox-flex {
+			width: 100%;
+			border-left: solid rgb(99 102 241);
+			background-color: rgba(240, 251, 239, 0.1);
+		}
+	</style>
 
-    .appear {
-      transform-origin: 50% 0;
-      animation: append-animate 0.3s linear;
-    }
+	<style>
+		@keyframes append-animate {
+			from {
+				transform: scaleY(0);
+				opacity: 0;
+			}
+			to {
+				transform: scaleY(1);
+				opacity: 1;
+			}
+		}
 
-    @media (hover: hover) {
-      .wlabel a:hover {
-        --tw-text-opacity: 1;
-        color: hsl(var(--bc) / var(--tw-text-opacity));
-      }
-    }
-    .wlabel {
-      display: flex;
-      user-select: none;
-      align-items: center;
-      padding-left: 0.25rem /* 4px */;
-      padding-right: 0.25rem /* 4px */;
-      padding-top: 0.5rem /* 8px */;
-      padding-bottom: 0.5rem /* 8px */;
-    }
-    .btm-nav > * .wlabel {
-      font-size: 1rem /* 16px */;
-      line-height: 1.5rem /* 24px */;
-    }
+		.appear {
+			transform-origin: 50% 0;
+			animation: append-animate 0.3s linear;
+		}
 
-    .bg_grey {
-      background-color: rgba(240, 251, 239, 0.1);
-    }
+		@media (hover: hover) {
+			.wlabel a:hover {
+				--tw-text-opacity: 1;
+				color: hsl(var(--bc) / var(--tw-text-opacity));
+			}
+		}
+		.wlabel {
+			display: flex;
+			user-select: none;
+			align-items: center;
+			padding-left: 0.25rem /* 4px */;
+			padding-right: 0.25rem /* 4px */;
+			padding-top: 0.5rem /* 8px */;
+			padding-bottom: 0.5rem /* 8px */;
+		}
+		.btm-nav > * .wlabel {
+			font-size: 1rem /* 16px */;
+			line-height: 1.5rem /* 24px */;
+		}
 
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-      /* display: none; <- Crashes Chrome on hover */
-      -webkit-appearance: none;
-      margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
-    }
+		.bg_grey {
+			background-color: rgba(240, 251, 239, 0.1);
+		}
 
-    input[type="number"] {
-      -moz-appearance: textfield; /* Firefox */
-    }
-  </style>
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+			/* display: none; <- Crashes Chrome on hover */
+			-webkit-appearance: none;
+			margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+		}
 
-  <script
-    is:inline
-    src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"
-  ></script>
-  <script>
-    import "../scripts/setup.ts";
-  </script>
+		input[type="number"] {
+			-moz-appearance: textfield; /* Firefox */
+		}
+	</style>
+
+	<script
+		is:inline
+		src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"
+	></script>
+	<script>
+		import "../scripts/setup.ts";
+	</script>
 </Layout>

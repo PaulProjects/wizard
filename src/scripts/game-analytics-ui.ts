@@ -479,7 +479,6 @@ export class GameAnalyticsUI {
             { key: 'rule_random_dealer', label: 'Random Dealer' },
             { key: 'rule_expansion', label: 'Expansion' },
             { key: 'rule_custom_rounds', label: 'Custom Rounds' },
-            { key: 'rule_crowdchaos', label: 'Crowdchaos' },
             { key: 'rule_altcount', label: 'Alt Count' },
         ] as const;
 
@@ -506,7 +505,6 @@ export class GameAnalyticsUI {
                         'rgba(34, 197, 94, 0.7)',
                         'rgba(245, 158, 11, 0.7)',
                         'rgba(14, 165, 233, 0.7)',
-                        'rgba(236, 72, 153, 0.7)',
                         'rgba(168, 85, 247, 0.7)',
                     ],
                 }]

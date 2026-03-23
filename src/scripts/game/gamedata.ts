@@ -20,8 +20,6 @@ export class GameData implements GameState {
 	public rule_expansion: boolean;
 	/** if the number of rounds is set custom */
 	public rule_custom_rounds: boolean;
-	/** if crowdchaos is active -> No limit on the amount of players */
-	public rule_crowdchaos: boolean;
 	/** if the altcount rule is active -> display the alternative counting system */
 	public rule_altcount: boolean;
 	/** The current round */
@@ -70,7 +68,6 @@ export class GameData implements GameState {
 		this.rule_random_dealer = config.rule_random_dealer;
 		this.rule_expansion = config.rule_expansion;
 		this.rule_custom_rounds = config.rule_custom_rounds;
-		this.rule_crowdchaos = config.rule_crowdchaos;
 		this.rule_altcount = config.rule_altcount;
 		this.round = config.round;
 		this.max_rounds = config.max_rounds;
@@ -298,11 +295,6 @@ export class GameData implements GameState {
 			"rule_custom_rounds",
 			false
 		);
-		const rule_crowdchaos = this.validateBoolean(
-			json.rule_crowdchaos,
-			"rule_crowdchaos",
-			false
-		);
 		const rule_altcount = this.validateBoolean(
 			json.rule_altcount,
 			"rule_altcount",
@@ -375,7 +367,6 @@ export class GameData implements GameState {
 			rule_random_dealer,
 			rule_expansion,
 			rule_custom_rounds,
-			rule_crowdchaos,
 			rule_altcount,
 			round,
 			max_rounds,
@@ -530,7 +521,6 @@ export class GameData implements GameState {
 			rule_random_dealer: gamedata.rule_random_dealer,
 			rule_expansion: gamedata.rule_expansion,
 			rule_custom_rounds: gamedata.rule_custom_rounds,
-			rule_crowdchaos: gamedata.rule_crowdchaos,
 			rule_altcount: gamedata.rule_altcount,
 			round: gamedata.round,
 			max_rounds: gamedata.max_rounds,
@@ -564,7 +554,6 @@ export class GameData implements GameState {
 			rule_random_dealer: false,
 			rule_expansion: false,
 			rule_custom_rounds: false,
-			rule_crowdchaos: false,
 			rule_altcount: false,
 			round: 8,
 			max_rounds: 12,
@@ -829,9 +818,6 @@ export class GameData implements GameState {
 	getRuleCustomRounds(): boolean {
 		return this.rule_custom_rounds;
 	}
-	getRuleCrowdchaos(): boolean {
-		return this.rule_crowdchaos;
-	}
 	getRuleAltcount(): boolean {
 		return this.rule_altcount;
 	}
@@ -905,9 +891,6 @@ export class GameData implements GameState {
 	}
 	setRuleCustomRounds(ruleCustomRounds: boolean): void {
 		this.rule_custom_rounds = ruleCustomRounds;
-	}
-	setRuleCrowdchaos(ruleCrowdchaos: boolean): void {
-		this.rule_crowdchaos = ruleCrowdchaos;
 	}
 	setRuleAltcount(ruleAltcount: boolean): void {
 		this.rule_altcount = ruleAltcount;

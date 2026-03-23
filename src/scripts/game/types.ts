@@ -36,7 +36,6 @@ export interface GameState {
 	rule_random_dealer: boolean;
 	rule_expansion: boolean;
 	rule_custom_rounds: boolean;
-	rule_crowdchaos: boolean;
 	rule_altcount: boolean;
 	round: number;
 	max_rounds: number;
@@ -154,8 +153,8 @@ export const COLORS: RoundColor[] = [
 ];
 
 export const DEFAULT_GAME_CONFIG = {
-	maxPlayers: 6,
-	minPlayers: 3,
+	maxPlayers: Number.MAX_SAFE_INTEGER,
+	minPlayers: 2,
 	defaultMaxRounds: 10,
 	infiniteRounds: Number.MAX_SAFE_INTEGER,
 	scoreMultiplier: 10,
