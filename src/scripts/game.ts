@@ -395,13 +395,24 @@ export class GameController {
 	}
 
 	private handleTotalUpdate(total: number, isValid: boolean): void {
-		this.uiManager.setValidInput(isValid);
-
 		const step = this.game.getStep();
 		const currentRound = this.game.getRound();
+		const isBlindEntryBetsStep =
+			step === GameStep.PLACE_BETS && this.game.getRuleBlindentry();
+
+		if (isBlindEntryBetsStep) {
+			const allLocked = this.inputHandler.isBlindEntryComplete();
+			this.uiManager.setValidInput(true);
+			this.uiManager.updateNavigationStyle(allLocked);
+			this.uiManager.hideElement("total");
+			return;
+		}
+
+		this.uiManager.setValidInput(isValid);
 
 		if (step === GameStep.PLACE_BETS) {
 			this.uiManager.setElementText("total", `Total: ${total}`);
+			this.uiManager.showElement("total");
 		} else {
 			this.uiManager.setElementText(
 				"total",
@@ -478,6 +489,12 @@ export class GameController {
 
 	// Core game logic
 	private confirmInput(): void {
+		// Check if blind entry is active and not all players have locked their bets
+		if (this.isBlindEntryIncomplete()) {
+			this.uiManager.showModal("alert_blindentry");
+			return;
+		}
+
 		if (!this.inputHandler.confirmInput()) {
 			// Show appropriate error modal
 			const step = this.game.getStep();
@@ -489,6 +506,14 @@ export class GameController {
 
 		const scores = this.inputHandler.getScores();
 		const step = this.game.getStep();
+
+		if (this.shouldRevealFullBlindBetsFirst()) {
+			this.inputHandler.saveTemporaryInput();
+			this.game.isFullblindBetsRevealed = true;
+			this.saveGame();
+			this.update();
+			return;
+		}
 
 		// Clear temporary input since we're confirming it
 		this.inputHandler.clearTemporaryInput();
@@ -549,6 +574,30 @@ export class GameController {
 			);
 			this.game.setStep(GameStep.PLACE_BETS);
 		}
+	}
+
+	private isBlindEntryIncomplete(): boolean {
+		return (
+			this.game.getRuleBlindentry() &&
+			this.game.getStep() === GameStep.PLACE_BETS &&
+			!this.inputHandler.isBlindEntryComplete()
+		);
+	}
+
+	private isFullBlindActive(): boolean {
+		return this.game.getRuleBlindentry() && this.game.getRuleFullblind();
+	}
+
+	private shouldRevealFullBlindBetsFirst(): boolean {
+		return (
+			this.isFullBlindActive() &&
+			this.game.getStep() === GameStep.ENTER_TRICKS &&
+			!this.game.isFullblindBetsRevealed
+		);
+	}
+
+	private shouldShowContinueOnTricksInput(): boolean {
+		return this.game.getFullblindBetsRevealed();
 	}
 
 	private async finishGame(): Promise<void> {
@@ -612,8 +661,12 @@ export class GameController {
 		this.uiManager.updateUIForStep(step!);
 
 		if (step === GameStep.ENTER_TRICKS) {
-			this.updateBetDisplay();
-			this.tutorialManager.runBetDisplayTour();
+			if (!this.shouldRevealFullBlindBetsFirst()) {
+				this.updateBetDisplay();
+				this.tutorialManager.runBetDisplayTour();
+			} else {
+				this.uiManager.hideBetDisplay();
+			}
 		}
 
 		if (step === GameStep.CELEBRATION) {
@@ -638,11 +691,22 @@ export class GameController {
 
 		const step = this.game.getStep();
 		this.uiManager.updateUIForStep(step);
+		if (this.shouldShowContinueOnTricksInput()) {
+			this.uiManager.setNavigationText("Continue");
+		}
 
 		if (step === GameStep.PLACE_BETS) {
-			this.tutorialManager.runInputBetsTour();
+			if (this.game.getRuleBlindentry()) {
+				this.tutorialManager.runBlindEntryBetsTour();
+			} else {
+				this.tutorialManager.runInputBetsTour();
+			}
 		} else if (step === GameStep.ENTER_TRICKS) {
-			this.tutorialManager.runInputTricksTour();
+			if (this.game.getRuleBlindentry()) {
+				this.tutorialManager.runBlindEntryTricksTour();
+			} else {
+				this.tutorialManager.runInputTricksTour();
+			}
 		}
 	}
 

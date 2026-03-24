@@ -4,11 +4,8 @@ import "driver.js/dist/driver.css";
 
 export class TutorialManager {
 	private driver: any;
-	private hasSeenGameTour: boolean;
-	private hasSeenInputBetsTour: boolean;
-	private hasSeenInputTricksTour: boolean;
-	private hasSeenGraphTour: boolean;
-	private hasSeenBetDisplayTour: boolean;
+	private seenTours: Set<string> = new Set();
+	private readonly TOUR_KEYS = ["game", "input_bets", "input_tricks", "blindentry_bets", "blindentry_tricks", "graph", "bet_display"];
 	private readonly DEV_ALWAYS_RUN_TOURS = false; // Set to true to force tours to run every time
 	private readonly TOUR_DELAY = 1;
 	private currentHighlightedElement: HTMLElement | null = null;
@@ -21,7 +18,6 @@ export class TutorialManager {
 			animate: true,
 			allowClose: true,
 			doneBtnText: "Done",
-			closeBtnText: "Skip",
 			nextBtnText: "Next",
 			prevBtnText: "Previous",
 			popoverClass: "driverjs-theme",
@@ -77,36 +73,19 @@ export class TutorialManager {
 		);
 
 		if (this.DEV_ALWAYS_RUN_TOURS) {
-			this.hasSeenGameTour = false;
-			this.hasSeenInputBetsTour = false;
-			this.hasSeenInputTricksTour = false;
-			this.hasSeenGraphTour = false;
-			this.hasSeenBetDisplayTour = false;
+			this.seenTours.clear();
 		} else {
-			this.hasSeenGameTour = localStorage.getItem("tour_game") === "true";
-			this.hasSeenInputBetsTour =
-				localStorage.getItem("tour_input_bets") === "true";
-			this.hasSeenInputTricksTour =
-				localStorage.getItem("tour_input_tricks") === "true";
-			this.hasSeenGraphTour =
-				localStorage.getItem("tour_graph") === "true";
-			this.hasSeenBetDisplayTour =
-				localStorage.getItem("tour_bet_display") === "true";
+			this.TOUR_KEYS.forEach(key => {
+				if (localStorage.getItem(`tour_${key}`) === "true") {
+					this.seenTours.add(key);
+				}
+			});
 		}
 	}
 
 	public reset() {
-		localStorage.removeItem("tour_game");
-		localStorage.removeItem("tour_input_bets");
-		localStorage.removeItem("tour_input_tricks");
-		localStorage.removeItem("tour_graph");
-		localStorage.removeItem("tour_bet_display");
-
-		this.hasSeenGameTour = false;
-		this.hasSeenInputBetsTour = false;
-		this.hasSeenInputTricksTour = false;
-		this.hasSeenGraphTour = false;
-		this.hasSeenBetDisplayTour = false;
+		this.TOUR_KEYS.forEach(key => localStorage.removeItem(`tour_${key}`));
+		this.seenTours.clear();
 	}
 
 	private isElementVisible(selector: string): boolean {
@@ -115,7 +94,7 @@ export class TutorialManager {
 	}
 
 	public runGameTour(force: boolean = false) {
-		if (this.hasSeenGameTour && !force) return;
+		if (this.seenTours.has("game") && !force) return;
 		if (this.isTourActive) return;
 
 		if (!force) {
@@ -181,11 +160,11 @@ export class TutorialManager {
 		this.driver.drive();
 
 		localStorage.setItem("tour_game", "true");
-		this.hasSeenGameTour = true;
+		this.seenTours.add("game");
 	}
 
 	public runInputBetsTour() {
-		if (this.hasSeenInputBetsTour) return;
+		if (this.seenTours.has("input_bets")) return;
 
 		// Wait a brief moment for the input screen to be fully rendered
 		if (!this.isElementVisible("#input")) return;
@@ -258,11 +237,11 @@ export class TutorialManager {
 		this.driver.drive();
 
 		localStorage.setItem("tour_input_bets", "true");
-		this.hasSeenInputBetsTour = true;
+		this.seenTours.add("input_bets");
 	}
 
 	public runInputTricksTour() {
-		if (this.hasSeenInputTricksTour) return;
+		if (this.seenTours.has("input_tricks")) return;
 
 		if (this.isTourActive) return;
 		if (!this.isElementVisible("#input")) return;
@@ -321,11 +300,109 @@ export class TutorialManager {
 		this.driver.drive();
 
 		localStorage.setItem("tour_input_tricks", "true");
-		this.hasSeenInputTricksTour = true;
+		this.seenTours.add("input_tricks");
+	}
+
+	public runBlindEntryBetsTour() {
+		if (this.seenTours.has("blindentry_bets")) return;
+		if (!this.isElementVisible("#input")) return;
+		if (!this.isElementVisible("#players")) return;
+		if (this.isTourActive) return;
+
+		const steps = [
+			{
+				popover: {
+					title: "Blind Entry Bets",
+					description:
+						"In this mode, bets are entered one by one so no one can see the others.",
+				},
+			},
+			{
+				element: "#players",
+				popover: {
+					title: "Sequential Input",
+					description:
+						"Only one player can enter at a time. Others stay in waiting state until it is their turn.",
+					side: "top",
+					align: "center",
+				},
+			},
+			{
+				element: "[id^='blind_entry_unlock_btn_']",
+				popover: {
+					title: "Unlock, Then Enter",
+					description:
+						"The active player taps Unlock, sets a bet, and locks it to pass control to the next player.",
+					side: "top",
+					align: "center",
+				},
+			},
+			{
+				element: "#nav_button",
+				popover: {
+					title: "Confirm After All Locked",
+					description:
+						"This button only proceeds once all players have locked their bets.",
+					side: "top",
+					align: "center",
+				},
+			},
+		];
+
+		this.isTourActive = true;
+		this.driver.setSteps(steps);
+		this.driver.drive();
+
+		localStorage.setItem("tour_blindentry_bets", "true");
+		this.seenTours.add("blindentry_bets");
+	}
+
+	public runBlindEntryTricksTour() {
+		if (this.seenTours.has("blindentry_tricks")) return;
+		if (!this.isElementVisible("#input")) return;
+		if (!this.isElementVisible("#players")) return;
+		if (this.isTourActive) return;
+
+		const steps = [
+			{
+				popover: {
+					title: "Blind Entry Tricks",
+					description:
+						"Enter tricks as usual. In FullBlind, the first confirm reveals bets and locks the entered tricks.",
+				},
+			},
+			{
+				element: "#players",
+				popover: {
+					title: "Trick Input",
+					description:
+						"Set each player's trick count. Once revealed in FullBlind, bet markers become visible.",
+					side: "top",
+					align: "center",
+				},
+			},
+			{
+				element: "#nav_button",
+				popover: {
+					title: "Continue",
+					description:
+						"First click reveal the players bets. Click Continue to proceed to the score view.",
+						"The first click reveals the players' bets. Click Continue to proceed to the score view.",
+					align: "center",
+				},
+			},
+		];
+
+		this.isTourActive = true;
+		this.driver.setSteps(steps);
+		this.driver.drive();
+
+		localStorage.setItem("tour_blindentry_tricks", "true");
+		this.seenTours.add("blindentry_tricks");
 	}
 
 	public runGraphTour() {
-		if (this.hasSeenGraphTour) return;
+		if (this.seenTours.has("graph")) return;
 
 		const tabContainer = document.getElementById("tab_navigation");
 		if (!tabContainer || !this.isElementVisible("#tab_navigation")) return;
@@ -445,11 +522,11 @@ export class TutorialManager {
 		this.driver.drive();
 
 		localStorage.setItem("tour_graph", "true");
-		this.hasSeenGraphTour = true;
+		this.seenTours.add("graph");
 	}
 
 	public runBetDisplayTour() {
-		if (this.hasSeenBetDisplayTour) return;
+		if (this.seenTours.has("bet_display")) return;
 
 		if (!this.isElementVisible("#bet_display_container")) return;
 		if (this.isTourActive) return;
@@ -472,6 +549,6 @@ export class TutorialManager {
 		this.driver.drive();
 
 		localStorage.setItem("tour_bet_display", "true");
-		this.hasSeenBetDisplayTour = true;
+		this.seenTours.add("bet_display");
 	}
 }

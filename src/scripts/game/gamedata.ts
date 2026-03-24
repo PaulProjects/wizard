@@ -22,6 +22,10 @@ export class GameData implements GameState {
 	public rule_custom_rounds: boolean;
 	/** if the altcount rule is active -> display the alternative counting system */
 	public rule_altcount: boolean;
+	/** if blind entry is active -> players enter bets one by one without seeing others */
+	public rule_blindentry: boolean;
+	/** if full blind is active -> bets stay hidden until tricks are entered and explicitly revealed */
+	public rule_fullblind: boolean;
 	/** The current round */
 	public round: number;
 	/** The maximum number of rounds */
@@ -69,19 +73,21 @@ export class GameData implements GameState {
 		this.rule_expansion = config.rule_expansion;
 		this.rule_custom_rounds = config.rule_custom_rounds;
 		this.rule_altcount = config.rule_altcount;
+		this.rule_blindentry = config.rule_blindentry;
+		this.rule_fullblind = config.rule_fullblind;
 		this.round = config.round;
 		this.max_rounds = config.max_rounds;
-		this.players = [...config.players]; // Create a copy
-		this.bets = config.bets.map((round) => [...round]); // Deep copy
-		this.tricks = config.tricks.map((round) => [...round]); // Deep copy
-		this.score = config.score.map((round) => [...round]); // Deep copy
-		this.score_change = config.score_change.map((round) => [...round]); // Deep copy
-		this.alt_score = config.alt_score.map((round) => [...round]); // Deep copy
+		this.players = [...config.players];
+		this.bets = config.bets.map((round) => [...round]);
+		this.tricks = config.tricks.map((round) => [...round]);
+		this.score = config.score.map((round) => [...round]);
+		this.score_change = config.score_change.map((round) => [...round]);
+		this.alt_score = config.alt_score.map((round) => [...round]);
 		this.alt_score_change = config.alt_score_change.map((round) => [
 			...round,
-		]); // Deep copy
+		]);
 		this.round_timestamps = config.round_timestamps ? [...config.round_timestamps] : [];
-		this.color = { ...config.color }; // Shallow copy is sufficient for color object
+		this.color = { ...config.color };
 		this.step = config.step;
 		this.display = config.display;
 		this.score_display = config.score_display;
@@ -300,6 +306,16 @@ export class GameData implements GameState {
 			"rule_altcount",
 			false
 		); // Default for backwards compatibility
+		const rule_blindentry = this.validateBoolean(
+			json.rule_blindentry,
+			"rule_blindentry",
+			false
+		); // Default for backwards compatibility
+		const rule_fullblind = this.validateBoolean(
+			json.rule_fullblind,
+			"rule_fullblind",
+			false
+		); // Default for backwards compatibility
 		const round = this.validateNumber(json.round, "round", 1);
 		const max_rounds = this.validateNumber(
 			json.max_rounds,
@@ -333,11 +349,21 @@ export class GameData implements GameState {
 			number,
 			RoundColor
 		>;
-		const step = this.validateNumber(
+		let step = this.validateNumber(
 			json.step,
 			"step",
 			GameStep.PLACE_BETS
 		); // Default for backwards compatibility
+
+		const legacyFullblindBetsRevealed =
+			typeof json.fullblind_bets_revealed === "boolean"
+				? json.fullblind_bets_revealed
+				: false;
+		const legacyFullblindTricksLocked =
+			typeof json.fullblind_tricks_locked === "boolean"
+				? json.fullblind_tricks_locked
+				: false;
+
 		const display = this.validateNumber(
 			json.display,
 			"display",
@@ -368,6 +394,8 @@ export class GameData implements GameState {
 			rule_expansion,
 			rule_custom_rounds,
 			rule_altcount,
+			rule_blindentry,
+			rule_fullblind,
 			round,
 			max_rounds,
 			players,
@@ -522,6 +550,8 @@ export class GameData implements GameState {
 			rule_expansion: gamedata.rule_expansion,
 			rule_custom_rounds: gamedata.rule_custom_rounds,
 			rule_altcount: gamedata.rule_altcount,
+			rule_blindentry: gamedata.rule_blindentry,
+			rule_fullblind: gamedata.rule_fullblind,
 			round: gamedata.round,
 			max_rounds: gamedata.max_rounds,
 			players: [...gamedata.players],
@@ -555,6 +585,8 @@ export class GameData implements GameState {
 			rule_expansion: false,
 			rule_custom_rounds: false,
 			rule_altcount: false,
+			rule_blindentry: false,
+			rule_fullblind: false,
 			round: 8,
 			max_rounds: 12,
 			players: ["Darth Maul", "Rey", "Han Solo", "Andor"],
@@ -821,6 +853,23 @@ export class GameData implements GameState {
 	getRuleAltcount(): boolean {
 		return this.rule_altcount;
 	}
+	getRuleBlindentry(): boolean {
+		return this.rule_blindentry;
+	}
+	getRuleFullblind(): boolean {
+		return this.rule_fullblind;
+	}
+
+	public isFullblindBetsRevealed = false;
+
+	getFullblindBetsRevealed(): boolean {
+		return (
+			this.rule_blindentry &&
+			this.rule_fullblind &&
+			this.step === GameStep.ENTER_TRICKS &&
+			this.isFullblindBetsRevealed
+		);
+	}
 	getRound(): number {
 		return this.round;
 	}
@@ -894,6 +943,12 @@ export class GameData implements GameState {
 	}
 	setRuleAltcount(ruleAltcount: boolean): void {
 		this.rule_altcount = ruleAltcount;
+	}
+	setRuleBlindentry(ruleBlindentry: boolean): void {
+		this.rule_blindentry = ruleBlindentry;
+	}
+	setRuleFullblind(ruleFullblind: boolean): void {
+		this.rule_fullblind = ruleFullblind;
 	}
 	setRound(round: number): void {
 		this.round = round;

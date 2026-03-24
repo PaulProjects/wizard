@@ -25,6 +25,15 @@ const minPlayersHint = document.getElementById(
 const rangeContainer = document.getElementById(
 	"range_container"
 ) as HTMLElement;
+const blindEntryRule = document.getElementById(
+	"rule_blindentry"
+) as HTMLInputElement;
+const fullBlindRule = document.getElementById(
+	"rule_fullblind"
+) as HTMLInputElement;
+const fullBlindContainer = document.getElementById(
+	"rule_fullblind_container"
+) as HTMLElement;
 
 // Initialize
 alertInvalidPlayers.style.display = "none";
@@ -40,6 +49,21 @@ if (roundsAuto?.checked) {
 	rangeContainer.style.display = "none";
 	rangeContainer.classList.add("opacity-0");
 }
+
+const syncFullBlindVisibility = () => {
+	const blindEntryActive = blindEntryRule?.checked;
+	if (!fullBlindContainer || !fullBlindRule) return;
+
+	fullBlindContainer.classList.toggle("hidden", !blindEntryActive);
+	if (!blindEntryActive) {
+		fullBlindRule.checked = false;
+	}
+};
+
+if (blindEntryRule) {
+	blindEntryRule.addEventListener("change", syncFullBlindVisibility);
+}
+syncFullBlindVisibility();
 
 // Event handlers
 document.getElementById("showmodal").addEventListener("click", function () {
@@ -274,6 +298,13 @@ startButton.addEventListener("click", function () {
 		).checked,
 		rule_altcount: (document.getElementById("calc_alt") as HTMLInputElement)
 			.checked,
+		rule_blindentry: (document.getElementById("rule_blindentry") as HTMLInputElement)
+			.checked,
+		rule_fullblind:
+			(document.getElementById("rule_blindentry") as HTMLInputElement)
+				.checked &&
+			(document.getElementById("rule_fullblind") as HTMLInputElement)
+				.checked,
 		round: 1,
 		max_rounds: round_amount,
 		players: players,
@@ -379,6 +410,8 @@ if (validPastGames.length === 0) {
 			let rule_expansion = game.rule_expansion;
 			let rule_custom_rounds = game.rule_custom_rounds;
 			let rule_altcount = game.rule_altcount;
+			let rule_blindentry = game.rule_blindentry;
+			let rule_fullblind = game.rule_fullblind;
 			let max_rounds = game.max_rounds;
 
 			//add a div containing the date and underneath the list of players and the rules
@@ -433,6 +466,8 @@ if (validPastGames.length === 0) {
 						value: rule_random_dealer,
 					},
 					{ selector: "#rule_expansion", value: rule_expansion },
+					{ selector: "#rule_blindentry", value: rule_blindentry },
+					{ selector: "#rule_fullblind", value: rule_fullblind },
 					{
 						selector: rule_altcount ? "#calc_alt" : "#calc_classic",
 						value: true,
@@ -445,6 +480,7 @@ if (validPastGames.length === 0) {
 					) as HTMLInputElement;
 					if (element) element.checked = value;
 				});
+				syncFullBlindVisibility();
 
 				if (!rule_altcount) {
 					const calcClassic = document.getElementById(
@@ -506,12 +542,15 @@ document.getElementById("test-preset").addEventListener("click", function () {
 		{ selector: "#rule_1", value: true },
 		{ selector: "#rule_random_dealer", value: false },
 		{ selector: "#rule_expansion", value: false },
+		{ selector: "#rule_blindentry", value: false },
+		{ selector: "#rule_fullblind", value: false },
 	];
 
 	testSettings.forEach(({ selector, value }) => {
 		const element = document.querySelector(selector) as HTMLInputElement;
 		if (element) element.checked = value;
 	});
+	syncFullBlindVisibility();
 });
 
 const titleElement = document.getElementById("title");

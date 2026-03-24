@@ -4,6 +4,7 @@ Chart.register(...registerables);
 
 import confetti from "canvas-confetti";
 import { Logger } from "./logger";
+import { GameStep } from "./game/types";
 
 // Helper: are advanced tabs (Chart/Analytics) unlocked?
 function isAdvancedTabsUnlocked(): boolean {
@@ -447,6 +448,14 @@ export function updatescore(players: any, game: gamedata) {
 	updateTimeStats(game);
 	// Data
 	const bets = [...game.getBets()];
+	const isTricksStep = game.getStep() === GameStep.ENTER_TRICKS;
+	const showBetsOnOverview =
+		!(
+			game.getRuleBlindentry() &&
+			game.getRuleFullblind() &&
+			isTricksStep &&
+			!game.getFullblindBetsRevealed()
+		);
 	const gameScore: number[][] = game.getRuleAltcount()
 		? [...game.getAltScore()]
 		: [...game.getScore()];
@@ -560,7 +569,7 @@ export function updatescore(players: any, game: gamedata) {
 						<p class="font-light text-sm">Score<p>
 				</div>
 				${
-					game.getStep() === 2
+					isTricksStep && showBetsOnOverview
 						? /*html*/ `<div class="w-10 self-stretch">
 					<h3 class="text-2xl">${sorted_playerlist[i][2]}</h3>
 					<p class="font-light text-sm">Bet<p>
@@ -1265,9 +1274,20 @@ function showPlayerStatsModal(
 		tricks.length,
 		gameScore.length,
 	);
+	const isTricksStep = game.getStep() === 2;
+	const hideLatestBetInModal =
+		game.getRuleBlindentry() &&
+		game.getRuleFullblind() &&
+		isTricksStep &&
+		!game.getFullblindBetsRevealed();
 
 	for (let round = 0; round < roundsToShow; round++) {
 		const bet = bets.length > round ? bets[round][actualPlayerIndex] : "-";
+		const shouldMaskBet =
+			hideLatestBetInModal &&
+			round === bets.length - 1 &&
+			bet !== "-";
+		const betDisplay = shouldMaskBet ? '<span role="img" aria-label="Hidden bet">🔒</span>' : bet;
 		const trick =
 			tricks.length > round ? tricks[round][actualPlayerIndex] : "-";
 		const points =
@@ -1292,7 +1312,7 @@ function showPlayerStatsModal(
 		row.className = rowClass;
 		row.innerHTML = `
 			<td class="font-semibold">${round + 1}</td>
-			<td>${bet}</td>
+			<td>${betDisplay}</td>
 			<td>${trick}</td>
 			<td>${points}</td>`;
 

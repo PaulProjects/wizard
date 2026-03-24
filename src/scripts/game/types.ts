@@ -37,6 +37,8 @@ export interface GameState {
 	rule_expansion: boolean;
 	rule_custom_rounds: boolean;
 	rule_altcount: boolean;
+	rule_blindentry: boolean;
+	rule_fullblind: boolean;
 	round: number;
 	max_rounds: number;
 	players: string[];
