@@ -431,8 +431,19 @@ import {} from "../scripts/setup.ts";
 				</p>
 				<p class="pb-4">
 					<span class="font-bold">Expansion:</span> Disables the tricks-fit
-					check (check if all tricks were entered correctly) when using
-					expansion cards like the bomb card.
+					check (check if all tricks were entered correctly). Enable this when using
+					expansion cards like the bomb card, which leads to a trick nobody can win.
+				</p>
+				<p class="pb-4">
+					<span class="font-bold">Blind Entry:</span> Players enter their
+					bids one by one without seeing other players' bids or the total
+					amount of bids. This adds more suspense and makes it harder to
+					adjust your bet based on others' bets. If enabled, players will be prompted to enter their bets in a
+					blind entry view after clicking "Start game". Be aware that if the ±1 rule is enabled, the last player could potentially get information about the total bids when entering the exact amount of remaining bids.
+				</p>
+				<p class="pb-4">
+					<span class="font-bold">FullBlind:</span>
+					If Blind Entry is enabled, you can also enable <span class="font-bold">FullBlind</span>, which hides all bets until the tricks are entered and revealed. This way, players won't get any information about the bets of others until the end of the round.
 				</p>
 			</div>
 			<button class="btn btn-secondary mt-5 btn-block" formmethod="dialog"

@@ -480,6 +480,8 @@ export class GameAnalyticsUI {
             { key: 'rule_expansion', label: 'Expansion' },
             { key: 'rule_custom_rounds', label: 'Custom Rounds' },
             { key: 'rule_altcount', label: 'Alt Count' },
+            { key: 'rule_blindentry', label: 'Blind Entry' },
+            { key: 'rule_fullblind', label: 'Full Blind' },
         ] as const;
 
         // Count only active rule values (true) across completed games.

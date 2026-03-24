@@ -386,7 +386,6 @@ export class TutorialManager {
 				popover: {
 					title: "Continue",
 					description:
-						"First click reveal the players bets. Click Continue to proceed to the score view.",
 						"The first click reveals the players' bets. Click Continue to proceed to the score view.",
 					align: "center",
 				},
