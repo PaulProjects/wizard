@@ -4,6 +4,7 @@ import { Icon } from "astro-icon/components";
 import Score from "../components/Score.astro";
 import ImportGame from "../components/ImportGame.astro";
 import Modal from "../components/Modal.astro";
+import SyncModal from "../components/SyncModal.astro";
 ---
 
 <Layout title="Wizard - Game History">
@@ -32,9 +33,25 @@ import Modal from "../components/Modal.astro";
 				</div>
 				<div
 					id="title"
-					class="prose prose-sm md:prose-base w-full flex-grow"
+					class="prose prose-sm md:prose-base w-full flex-grow flex justify-center"
 				>
-					<h1 class="text-center text-6xl">History</h1>
+					<h1 class="text-center text-6xl m-0">History</h1>
+				</div>
+				<div class="flex justify-end gap-2">
+					<button
+						class="btn btn-square btn-outline"
+						id="settings_btn"
+						title="Settings"
+					>
+						<Icon name="mdi:cog-outline" class="w-6 h-6" />
+					</button>
+					<button
+						class="btn btn-square btn-outline"
+						onclick="window.openSyncModal && window.openSyncModal()"
+						title="Sync Account"
+					>
+						<Icon name="mdi:account-sync-outline" class="w-6 h-6" />
+					</button>
 				</div>
 			</div>
 
@@ -311,27 +328,20 @@ import Modal from "../components/Modal.astro";
 	</div>
 	<div class="hidden" id="score"><Score /></div>
 	<!-- Settings modal -->
-	<Modal
-		id="modal_settings"
-		title="Advanced Options"
-		icon="mdi:tune-variant"
-	>
+	<Modal id="modal_settings" title="Advanced Options" icon="mdi:tune-variant">
 		<div class="flex flex-col justify-center items-center">
 			<div>
-				<button id="export_data" class="btn btn-info btn-block mt-5">
-					Export Data</button
-				>
-				<button class="btn btn-info btn-block mt-2 import_data">
-					Import Data
-				</button>
 				<button
-					id="del_game"
-					class="btn btn-primary btn-block mt-2 hidden"
+					id="end_old_games"
+					class="btn btn-secondary btn-block mt-2"
 				>
-					Delete this game
+					End Games Older Than 3 Months
 				</button>
-				<button id="del_all" class="btn btn-primary btn-block mt-2">
-					Delete all local data
+				<button class="btn btn-secondary btn-block mt-2 import_data">
+					Import Games
+				</button>
+				<button id="del_all_local" class="btn btn-primary btn-block mt-2">
+					Delete All Local Data
 				</button>
 			</div>
 		</div>
@@ -340,24 +350,26 @@ import Modal from "../components/Modal.astro";
 	<!-- Really End game? modal -->
 	<Modal
 		id="modal_delete"
-		title="Delete Data"
+		title="Confirm Action"
 		icon="mdi:alert-outline"
 		iconClass="text-warning"
 	>
 		<div class="flex flex-col justify-center items-center">
 			<h2 class="font-bold text-2xl" id="modal_del_text">
-				Do you really want to delete all data?
+				Do you really want to continue?
 			</h2>
 			<p class="pl-10 pr-10" id="modal_del_infotext">
-				This will remove all stored data about current and past games
-				permanently!
+				This action cannot be undone.
 			</p>
 			<div>
 				<!-- Cancel Game Button that navigates to / -->
 				<button class="btn btn-primary btn-block mt-5" id="rremovedata">
-					Remove Data
+					Confirm
 				</button>
-				<button class="btn btn-info btn-block mt-2"> Cancel</button>
+				<button
+					class="btn btn-info btn-block mt-2"
+					id="cancel_delete_action">Cancel</button
+				>
 			</div>
 		</div>
 	</Modal>
@@ -378,9 +390,13 @@ import Modal from "../components/Modal.astro";
 	<!-- End of Player Details Modal -->
 
 	<ImportGame />
+	<SyncModal />
 </Layout>
 <script>
 	import "../scripts/history.ts";
+	import { SyncManager } from "../scripts/sync";
+
+	void SyncManager.maybeAutoAssignSyncCode();
 </script>
 
 <style is:global>

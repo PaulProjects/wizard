@@ -4,6 +4,7 @@ dist/
 # generated types
 .astro/
 *.php
+*.sql
 
 # dependencies
 node_modules/

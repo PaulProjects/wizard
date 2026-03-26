@@ -1,0 +1,141 @@
+---
+import Modal from "./Modal.astro";
+import { Icon } from "astro-icon/components";
+---
+
+<Modal
+	id="sync_modal"
+	title="Sync Account"
+	icon="mdi:sync"
+	iconClass="text-primary"
+	modalClass="modal modal-bottom sm:modal-middle"
+>
+	<p class="py-4 text-base-content/70">
+		Here you can manage your sync code to share and preserve your games
+		across devices. Entering the same code on another device will sync the
+		games between devices. You get a sync code assigned automatically when
+		playing your first game. Copy the code below to share it.
+	</p>
+	<div class="form-control mb-4">
+		<label class="label">
+			<span class="label-text">Your Sync Code</span>
+		</label>
+		<div class="join w-full">
+			<input
+				type="text"
+				id="sync_code_input"
+				placeholder="e.g., a1b2c3"
+				class="input input-bordered w-full join-item"
+			/>
+			<button
+				class="btn btn-neutral join-item p-2"
+				id="copy_sync_code_btn"
+				title="Copy Sync Code"
+			>
+				<Icon name="mdi:content-copy" class="w-5 h-5" />
+			</button>
+		</div>
+		<label class="label">
+			<span class="label-text-alt text-success hidden" id="copy_tooltip"
+				>Copied to clipboard!</span
+			>
+		</label>
+	</div>
+
+	<div class="modal-action">
+		<button type="button" class="btn btn-secondary" id="save_sync_btn">Save & Sync</button
+		>
+		<form method="dialog">
+			<button class="btn">Close</button>
+		</form>
+	</div>
+	<p id="sync_progress_text" class="text-sm text-base-content/70 mt-2"></p>
+</Modal>
+
+<script>
+	import { SyncManager } from "../scripts/sync";
+
+	document.addEventListener("DOMContentLoaded", () => {
+		const modal = document.getElementById(
+			"sync_modal",
+		) as HTMLDialogElement;
+		const copy_btn = document.getElementById("copy_sync_code_btn");
+		const save_btn = document.getElementById("save_sync_btn");
+		const code_input = document.getElementById(
+			"sync_code_input",
+		) as HTMLInputElement;
+		const copy_tooltip = document.getElementById("copy_tooltip");
+		const progress_text = document.getElementById("sync_progress_text");
+
+		// Make it accessible for trigger buttons
+		(window as any).openSyncModal = () => {
+			const existingCode = localStorage.getItem("wizard.synccode");
+			if (existingCode) {
+				code_input.value = existingCode;
+			}
+			modal?.showModal();
+		};
+
+		if (copy_btn && code_input) {
+			copy_btn.addEventListener("click", () => {
+				if (code_input.value) {
+					navigator.clipboard.writeText(code_input.value);
+					if (copy_tooltip) {
+						copy_tooltip.classList.remove("hidden");
+						setTimeout(
+							() => copy_tooltip.classList.add("hidden"),
+							2000,
+						);
+					}
+				}
+			});
+		}
+
+		if (save_btn && code_input && modal) {
+			save_btn.addEventListener("click", async (event) => {
+				event.preventDefault();
+				const code = code_input.value.trim();
+				if (code) {
+					localStorage.setItem("wizard.synccode", code);
+					const originalText = save_btn.innerHTML;
+					save_btn.innerHTML = `<span class="loading loading-spinner"></span> Syncing...`;
+					save_btn.classList.add("btn-disabled");
+					if (progress_text) {
+						progress_text.textContent = "Starting sync...";
+					}
+					try {
+						await SyncManager.syncAccount(code, (progress) => {
+							if (!progress_text) return;
+							progress_text.textContent = progress.message;
+						});
+						save_btn.innerHTML = "Success!";
+						if (progress_text) {
+							progress_text.textContent = "Sync complete.";
+						}
+						setTimeout(() => {
+							save_btn.innerHTML = originalText;
+							save_btn.classList.remove("btn-disabled");
+						}, 1000);
+					} catch (e) {
+						console.error(e);
+						save_btn.innerHTML = "Error!";
+						if (progress_text) {
+							progress_text.textContent =
+								"Sync failed. Please try again.";
+						}
+						setTimeout(() => {
+							save_btn.innerHTML = originalText;
+							save_btn.classList.remove("btn-disabled");
+						}, 2000);
+					}
+				} else {
+					localStorage.removeItem("wizard.synccode");
+					if (progress_text) {
+						progress_text.textContent = "";
+					}
+					modal.close();
+				}
+			});
+		}
+	});
+</script>

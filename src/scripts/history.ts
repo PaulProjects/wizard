@@ -12,9 +12,67 @@ let view = 0; //0 = overview ; 1 = details
 type SortOption = "date-desc" | "date-asc" | "duration-desc" | "duration-asc" | "players-desc" | "players-asc";
 type FilterOption = "completed" | "active" | "all"; 
 
-let currentSort: SortOption = "date-desc";
-let currentFilter: FilterOption = "completed";
+const DEFAULT_SORT: SortOption = "date-desc";
+const DEFAULT_FILTER: FilterOption = "completed";
+const VALID_SORT_OPTIONS: SortOption[] = [
+	"date-desc",
+	"date-asc",
+	"duration-desc",
+	"duration-asc",
+	"players-desc",
+	"players-asc",
+];
+const VALID_FILTER_OPTIONS: FilterOption[] = ["completed", "active", "all"];
+
+let currentSort: SortOption = DEFAULT_SORT;
+let currentFilter: FilterOption = DEFAULT_FILTER;
 let currentSearch = "";
+
+const OLD_ACTIVE_GAME_LIMIT_MS = 180 * 60 * 60 * 1000;
+const FALLBACK_ENDED_DURATION_MS = 90 * 60 * 1000;
+
+function getThreeMonthsAgoTimestamp(): number {
+	const cutoff = new Date();
+	cutoff.setMonth(cutoff.getMonth() - 3);
+	return cutoff.getTime();
+}
+
+function applyListStateFromUrl() {
+	const params = new URLSearchParams(window.location.search);
+	const sort = params.get("sort");
+	const filter = params.get("filter");
+	const search = params.get("search");
+
+	currentSort = VALID_SORT_OPTIONS.includes(sort as SortOption)
+		? (sort as SortOption)
+		: DEFAULT_SORT;
+	currentFilter = VALID_FILTER_OPTIONS.includes(filter as FilterOption)
+		? (filter as FilterOption)
+		: DEFAULT_FILTER;
+	currentSearch = search ?? "";
+}
+
+function writeListStateToUrl(options?: { push?: boolean }) {
+	const url = new URL(window.location.href);
+
+	if (currentSearch.trim()) url.searchParams.set("search", currentSearch);
+	else url.searchParams.delete("search");
+
+	if (currentSort !== DEFAULT_SORT) url.searchParams.set("sort", currentSort);
+	else url.searchParams.delete("sort");
+
+	if (currentFilter !== DEFAULT_FILTER)
+		url.searchParams.set("filter", currentFilter);
+	else url.searchParams.delete("filter");
+
+	if (options?.push) {
+		history.pushState({}, "", url);
+	} else {
+		history.replaceState({}, "", url);
+	}
+}
+
+applyListStateFromUrl();
 
 // Load all games
 let allGames: gamedata[] = [];
@@ -195,13 +253,25 @@ function renderGames() {
 		card.innerHTML = `
             <div class="w-full h-full">
               <div class="flex justify-between items-center pl-3 pt-3 pr-3">
-                 <span class="inline-block font-bold">${date_string}</span>
-                 ${isActive ? '<span class="badge badge-primary">Active</span>' : ''}
-                 ${
-					!isActive && !isNaN(time_diff_minutes)
-						? `<span class="">${time_diff_minutes} Minutes</span>`
-						: ""
-				}
+								 <span class="inline-block font-bold">${date_string}</span>
+								 <div class="flex items-center gap-2">
+									 ${isActive ? '<span class="badge badge-primary">Active</span>' : ''}
+									 ${
+						!isActive && !isNaN(time_diff_minutes)
+							? `<span class="">${time_diff_minutes} Minutes</span>`
+							: ""
+					}
+									 <div class="dropdown dropdown-end history-card-menu" id="menu-${gameId}">
+										 <button class="btn btn-ghost btn-sm btn-circle" tabindex="0" aria-label="Game actions" id="menu-btn-${gameId}">
+											 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-5 w-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h.01M12 12h.01M12 18h.01"/></svg>
+										 </button>
+										 <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[5] w-52 p-2 shadow" id="menu-list-${gameId}">
+											 ${isActive ? `<li><button id="menu-end-${gameId}">End game</button></li>` : ""}
+											 <li><button id="menu-export-${gameId}">Export game</button></li>
+											 <li><button class="text-error" id="menu-delete-${gameId}">Delete this game</button></li>
+										 </ul>
+									 </div>
+								 </div>
               </div>
               <div class="card-body">
                 <div class="overflow-x-auto">
@@ -280,6 +350,37 @@ function renderGames() {
 				clicked_more_game(game);
 			});
 		}
+
+		const menuElement = document.getElementById(`menu-${gameId}`);
+		if (menuElement) {
+			menuElement.addEventListener("click", (event) => {
+				event.stopPropagation();
+			});
+		}
+
+		const exportButton = document.getElementById(`menu-export-${gameId}`);
+		if (exportButton) {
+			exportButton.addEventListener("click", (event) => {
+				event.stopPropagation();
+				exportSingleGame(game);
+			});
+		}
+
+		const deleteButton = document.getElementById(`menu-delete-${gameId}`);
+		if (deleteButton) {
+			deleteButton.addEventListener("click", (event) => {
+				event.stopPropagation();
+				confirmDeleteGame(game);
+			});
+		}
+
+		const endGameButton = document.getElementById(`menu-end-${gameId}`);
+		if (endGameButton) {
+			endGameButton.addEventListener("click", (event) => {
+				event.stopPropagation();
+				confirmEndGame(game);
+			});
+		}
     });
 
     if (displayedGames.length === 0) {
@@ -290,24 +391,30 @@ function renderGames() {
 // New logic for controls
 const searchInput = document.getElementById("history-search") as HTMLInputElement;
 const sortSelect = document.getElementById("history-sort") as HTMLSelectElement;
-const activeToggle = document.getElementById("history-active-toggle") as HTMLInputElement;
+const filterSelect = document.getElementById("history-filter") as HTMLSelectElement;
+
+if (searchInput) searchInput.value = currentSearch;
+if (sortSelect) sortSelect.value = currentSort;
+if (filterSelect) filterSelect.value = currentFilter;
 
 if (searchInput) {
     searchInput.addEventListener("input", (e) => {
         currentSearch = (e.target as HTMLInputElement).value;
+		writeListStateToUrl();
         renderGames();
     });
 }
 if (sortSelect) {
     sortSelect.addEventListener("change", (e) => {
         currentSort = (e.target as HTMLSelectElement).value as SortOption;
+		writeListStateToUrl();
         renderGames();
     });
 }
-const filterSelect = document.getElementById("history-filter") as HTMLSelectElement;
 if (filterSelect) {
     filterSelect.addEventListener("change", (e) => {
         currentFilter = (e.target as HTMLSelectElement).value as FilterOption;
+		writeListStateToUrl();
         renderGames();
     });
 }
@@ -316,7 +423,7 @@ if (filterSelect) {
 renderGames();
 
 
-let Lgame: gamedata;
+let Lgame: gamedata | undefined;
 
 function clicked_more_game(game: gamedata) {
 	document.getElementById("nav_container").classList.remove("hidden");
@@ -346,12 +453,20 @@ function clicked_more_game(game: gamedata) {
 
 	Lgame = game;
 	Lgame.setStep(3);
-	history.replaceState({}, "", `?id=${Lgame.getID()}`);
+	const detailUrl = new URL(window.location.href);
+	detailUrl.searchParams.set("id", Lgame.getID() || "");
+	if (currentSearch.trim()) detailUrl.searchParams.set("search", currentSearch);
+	else detailUrl.searchParams.delete("search");
+	if (currentSort !== DEFAULT_SORT) detailUrl.searchParams.set("sort", currentSort);
+	else detailUrl.searchParams.delete("sort");
+	if (currentFilter !== DEFAULT_FILTER) detailUrl.searchParams.set("filter", currentFilter);
+	else detailUrl.searchParams.delete("filter");
+	history.replaceState({}, "", detailUrl);
 	let players = Lgame.getPlayers();
 	updatescore(players, Lgame as any);
 
 	const shareGameLink = document.getElementById("share_game") as HTMLAnchorElement;
-	if (shareGameLink)
+	if (shareGameLink && Lgame)
 		shareGameLink.href = `${location.origin}/share?id=${Lgame.getID()}`;
 
 	updateExportButton();
@@ -359,43 +474,54 @@ function clicked_more_game(game: gamedata) {
 
 
 const tlBtn = document.getElementById("tlbtn");
+
+function switchToOverview(pushHistory: boolean) {
+	document.getElementById("nav_container")?.classList.add("hidden");
+	const scoreElement = document.getElementById("score");
+	const pastGamesElement = document.getElementById("past_games");
+	const delGameElement = document.getElementById("del_game");
+	const tabNavigationElement = document.getElementById("tab_navigation_container");
+
+	(globalThis as any).historyPageViewing = false;
+	(globalThis as any).historyConfettiShown = false;
+
+	const pastGamesTab = document.getElementById("past-games-tab");
+	const playerAnalyticsTab = document.getElementById("player-analytics-tab");
+	const gameAnalyticsTab = document.getElementById("game-analytics-tab");
+
+	if (pastGamesTab) pastGamesTab.classList.add("active");
+	if (playerAnalyticsTab) playerAnalyticsTab.classList.remove("active");
+	if (gameAnalyticsTab) gameAnalyticsTab.classList.remove("active");
+
+	const gameAnalyticsView = document.getElementById("game_analytics");
+	const playerAnalyticsView = document.getElementById("player_analytics");
+
+	if (scoreElement) scoreElement.classList.add("hidden");
+	if (pastGamesElement) pastGamesElement.classList.remove("hidden");
+	if (playerAnalyticsView) playerAnalyticsView.classList.add("hidden");
+	if (gameAnalyticsView) gameAnalyticsView.classList.add("hidden");
+
+	if (delGameElement) delGameElement.classList.add("hidden");
+	if (tabNavigationElement) tabNavigationElement.classList.remove("hidden");
+
+	view = 0;
+	confetti.reset();
+
+	const overviewUrl = new URL(`${location.origin}/history/`);
+	if (currentSearch.trim()) overviewUrl.searchParams.set("search", currentSearch);
+	if (currentSort !== DEFAULT_SORT) overviewUrl.searchParams.set("sort", currentSort);
+	if (currentFilter !== DEFAULT_FILTER) overviewUrl.searchParams.set("filter", currentFilter);
+
+	if (pushHistory) history.pushState({}, "", overviewUrl);
+	else history.replaceState({}, "", overviewUrl);
+
+	updateExportButton();
+}
+
 if (tlBtn) {
 	tlBtn.addEventListener("click", () => {
 		if (view == 1) {
-			document.getElementById("nav_container").classList.add("hidden");
-			const scoreElement = document.getElementById("score");
-			const pastGamesElement = document.getElementById("past_games");
-			const delGameElement = document.getElementById("del_game");
-			const tabNavigationElement = document.getElementById("tab_navigation_container");
-
-			(globalThis as any).historyPageViewing = false;
-			(globalThis as any).historyConfettiShown = false;
-
-			const pastGamesTab = document.getElementById("past-games-tab");
-			const playerAnalyticsTab = document.getElementById("player-analytics-tab");
-            const gameAnalyticsTab = document.getElementById("game-analytics-tab");
-
-            // Reset tabs to default (Past Games)
-			if (pastGamesTab) pastGamesTab.classList.add("active");
-			if (playerAnalyticsTab) playerAnalyticsTab.classList.remove("active");
-            if (gameAnalyticsTab) gameAnalyticsTab.classList.remove("active");
-
-            // Reset views
-            const gameAnalyticsView = document.getElementById("game_analytics");
-            const playerAnalyticsView = document.getElementById("player_analytics");
-            
-			if (scoreElement) scoreElement.classList.add("hidden");
-			if (pastGamesElement) pastGamesElement.classList.remove("hidden");
-            if (playerAnalyticsView) playerAnalyticsView.classList.add("hidden");
-            if (gameAnalyticsView) gameAnalyticsView.classList.add("hidden");
-
-			if (delGameElement) delGameElement.classList.add("hidden");
-			if (tabNavigationElement) tabNavigationElement.classList.remove("hidden");
-
-			view = 0;
-			confetti.reset();
-			history.pushState({}, "", "/history/");
-			updateExportButton();
+			switchToOverview(true);
 		} else {
 			location.href = "/";
 		}
@@ -411,83 +537,60 @@ if (titleElement) {
 	});
 }
 
-const delGameButton = document.getElementById("del_game");
-if (delGameButton) {
-	delGameButton.addEventListener("click", () => {
-		let id = Lgame.getID();
-		const rremoveDataButton = document.getElementById("rremovedata");
-
-		if (rremoveDataButton) {
-			rremoveDataButton.removeAttribute("onclick");
-			const newButton = rremoveDataButton.cloneNode(true);
-			rremoveDataButton.parentNode?.replaceChild(newButton, rremoveDataButton);
-		}
-
-		(document.getElementById("modal_delete") as HTMLDialogElement).open = true;
-		const modalDelText = document.getElementById("modal_del_text");
-		const modalDelInfoText = document.getElementById("modal_del_infotext");
-
-		if (modalDelText)
-			modalDelText.textContent = "Do you really want to delete this game?";
-		if (modalDelInfoText)
-			modalDelInfoText.textContent = "This will remove all stored data about this game permanently!";
-
-		const newRremoveDataButton = document.getElementById("rremovedata");
-		if (newRremoveDataButton) {
-			newRremoveDataButton.addEventListener("click", () => {
-				try {
-					const stored = localStorage.getItem("wizard.games");
-					if (stored) {
-						const all = JSON.parse(stored);
-						const newAll = all.filter((g: any) => g.id !== id);
-						localStorage.setItem("wizard.games", JSON.stringify(newAll));
-					}
-				} catch (e) {
-					console.error("Failed to delete local game", e);
-				}
-
-				SyncManager.delete(id)
-					.then(() => {
-						Logger.info("Success deleting", { id });
-					})
-					.catch((error) => {
-						Logger.error("Error deleting", { error: error?.message });
-					})
-					.finally(() => {
-						location.reload();
-					});
-			});
-		}
+const settingsButton = document.getElementById("settings_btn");
+if (settingsButton) {
+	settingsButton.addEventListener("click", () => {
+		(document.getElementById("modal_settings") as HTMLDialogElement).open = true;
+		Logger.event("settings.open.button");
 	});
 }
 
-const delAllButton = document.getElementById("del_all");
-if (delAllButton) {
-	delAllButton.addEventListener("click", () => {
-		const rremoveDataButton = document.getElementById("rremovedata");
+const endOldGamesButton = document.getElementById("end_old_games");
+if (endOldGamesButton) {
+	endOldGamesButton.addEventListener("click", () => {
+		const threshold = getThreeMonthsAgoTimestamp();
+		const oldActiveGames = allGames.filter(
+			(game) => game.isActive && game.getTimeStarted() < threshold
+		);
 
-		if (rremoveDataButton) {
-			rremoveDataButton.removeAttribute("onclick");
-			const newButton = rremoveDataButton.cloneNode(true);
-			rremoveDataButton.parentNode?.replaceChild(newButton, rremoveDataButton);
+		if (oldActiveGames.length === 0) {
+			showConfirmModal(
+				"No active games older than 3 months were found.",
+				"Only active games with a start date older than 3 months are ended automatically.",
+				"OK",
+				"Close",
+				"Nothing To End",
+				() => {}
+			);
+			return;
 		}
 
-		(document.getElementById("modal_delete") as HTMLDialogElement).open = true;
-		const modalDelText = document.getElementById("modal_del_text");
-		const modalDelInfoText = document.getElementById("modal_del_infotext");
+		showConfirmModal(
+			`End ${oldActiveGames.length} active game(s) older than 3 months?`,
+			"These games will be marked as completed automatically.",
+			`End ${oldActiveGames.length} Games`,
+			"Cancel",
+			"Auto End Old Games",
+			() => {
+				autoEndOldGames(oldActiveGames);
+			}
+		);
+	});
+}
 
-		if (modalDelText)
-			modalDelText.textContent = "Do you really want to delete all data?";
-		if (modalDelInfoText)
-			modalDelInfoText.textContent = "This will remove all locally stored data about current and past games permanently!";
-
-		const newRremoveDataButton = document.getElementById("rremovedata");
-		if (newRremoveDataButton) {
-			newRremoveDataButton.addEventListener("click", () => {
-				localStorage.clear();
-				location.reload();
-			});
-		}
+const delAllLocalButton = document.getElementById("del_all_local");
+if (delAllLocalButton) {
+	delAllLocalButton.addEventListener("click", () => {
+		showConfirmModal(
+			"Delete all local data on this device?",
+			"Cloud games are not deleted. This only removes local Wizard data in this browser.",
+			"Delete Local Data",
+			"Keep Data",
+			"Delete Local Data",
+			() => {
+				deleteAllLocalData();
+			}
+		);
 	});
 }
 
@@ -582,12 +685,9 @@ function updateExportButton() {
 	exportBtn.parentNode?.replaceChild(newBtn, exportBtn);
 
 	if (view === 1 && Lgame) {
-		newBtn.textContent = "Export Current Game";
+		newBtn.textContent = "Export this game";
 		newBtn.addEventListener("click", () => {
-			const exportData = {
-				"wizard.games": JSON.stringify([Lgame]),
-			};
-			downloadJSON(exportData, `wizard_game_${Lgame.getID()}.json`);
+			exportSingleGame(Lgame);
 		});
 	} else {
 		newBtn.textContent = "Export All Data";
@@ -596,6 +696,199 @@ function updateExportButton() {
 			downloadJSON(exportData, "wizard_data_all.json");
 		});
 	}
+}
+
+function showConfirmModal(
+	title: string,
+	infoText: string,
+	confirmLabel: string,
+	cancelLabel: string,
+	modalTitle: string,
+	onConfirm: () => void
+) {
+	const modal = document.getElementById("modal_delete") as HTMLDialogElement;
+	const modalTitleElement = modal?.querySelector(".modal-box > div h2");
+	const modalDelText = document.getElementById("modal_del_text");
+	const modalDelInfoText = document.getElementById("modal_del_infotext");
+	const cancelButton = document.getElementById("cancel_delete_action");
+
+	if (modalTitleElement) modalTitleElement.textContent = modalTitle;
+
+	if (modalDelText) modalDelText.textContent = title;
+	if (modalDelInfoText) modalDelInfoText.textContent = infoText;
+	if (cancelButton) cancelButton.textContent = cancelLabel;
+
+	const confirmButton = document.getElementById("rremovedata");
+	if (confirmButton) {
+		confirmButton.textContent = confirmLabel;
+		confirmButton.removeAttribute("onclick");
+		const newButton = confirmButton.cloneNode(true) as HTMLElement;
+		confirmButton.parentNode?.replaceChild(newButton, confirmButton);
+		newButton.addEventListener("click", () => {
+			onConfirm();
+			modal.open = false;
+		});
+	}
+
+	modal.open = true;
+}
+
+function exportSingleGame(game: gamedata) {
+	const exportData = {
+		"wizard.games": JSON.stringify([game]),
+	};
+	downloadJSON(exportData, `wizard_game_${game.getID()}.json`);
+}
+
+function confirmDeleteGame(game: gamedata) {
+	showConfirmModal(
+		"Do you really want to delete this game?",
+		"This will remove all stored data about this game permanently!",
+		"Delete Game",
+		"Keep Game",
+		"Delete Game",
+		() => {
+			deleteGame(game);
+		}
+	);
+}
+
+function deleteGame(game: gamedata) {
+	const id = game.getID();
+	if (!id) return;
+
+	try {
+		const stored = localStorage.getItem("wizard.games");
+		if (stored) {
+			const all = JSON.parse(stored);
+			const newAll = all.filter((g: any) => g.id !== id);
+			localStorage.setItem("wizard.games", JSON.stringify(newAll));
+		}
+
+		if (localStorage.getItem("wizard.activegame") === id) {
+			localStorage.removeItem("wizard.activegame");
+		}
+	} catch (e) {
+		console.error("Failed to delete local game", e);
+	}
+
+	allGames = allGames.filter((g) => g.getID() !== id);
+
+	if (view === 1 && Lgame?.getID() === id) {
+		switchToOverview(false);
+	}
+
+	if (allGames.length === 0) {
+		location.href = "/";
+		return;
+	}
+
+	renderGames();
+
+	SyncManager.delete(id)
+		.then(() => {
+			Logger.info("Success deleting", { id });
+		})
+		.catch((error) => {
+			Logger.error("Error deleting", { error: error?.message });
+		});
+}
+
+function confirmEndGame(game: gamedata) {
+	showConfirmModal(
+		"End this active game?",
+		"The game will be marked as completed and moved to the completed list.",
+		"End Game",
+		"Continue Playing",
+		"End Active Game",
+		() => {
+			endGame(game);
+		}
+	);
+}
+
+function endGameInternal(game: gamedata, shouldRender: boolean) {
+	const now = Date.now();
+	const startedAt = game.getTimeStarted();
+	const existingEnd = game.getTimeEnded();
+
+	let endedAt = now;
+	if (typeof existingEnd === "number") {
+		endedAt = existingEnd;
+	} else if (now - startedAt > OLD_ACTIVE_GAME_LIMIT_MS) {
+		endedAt = startedAt + FALLBACK_ENDED_DURATION_MS;
+	}
+
+	game.setTimeEnded(endedAt);
+	game.isActive = false;
+	game.save();
+
+	if (localStorage.getItem("wizard.activegame") === game.getID()) {
+		localStorage.removeItem("wizard.activegame");
+	}
+
+	SyncManager.sync(game)
+		.then(() => {
+			Logger.info("Success ending active game", {
+				id: game.getID(),
+				endedAt,
+			});
+		})
+		.catch((error) => {
+			Logger.error("Error syncing ended game", {
+				error: error?.message,
+				id: game.getID(),
+			});
+		});
+
+	if (shouldRender) {
+		renderGames();
+	}
+}
+
+function endGame(game: gamedata) {
+	endGameInternal(game, true);
+
+	if (view === 1 && Lgame?.getID() === game.getID()) {
+		updateExportButton();
+	}
+}
+
+function autoEndOldGames(games: gamedata[]) {
+	games.forEach((game) => {
+		endGameInternal(game, false);
+	});
+
+	renderGames();
+
+	if (view === 1 && Lgame && !Lgame.isActive) {
+		updateExportButton();
+	}
+}
+
+function deleteAllLocalData() {
+	try {
+		const keysToRemove: string[] = [];
+		for (let i = 0; i < localStorage.length; i++) {
+			const key = localStorage.key(i);
+			if (key?.startsWith("wizard.")) {
+				keysToRemove.push(key);
+			}
+		}
+
+		keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+		Logger.info("Deleted all local wizard data", {
+			removedKeys: keysToRemove,
+		});
+	} catch (error) {
+		Logger.error("Failed to delete local wizard data", {
+			error: (error as Error)?.message,
+		});
+	}
+
+	allGames = [];
+	location.href = "/";
 }
 
 function downloadJSON(data: any, fileName: string) {
