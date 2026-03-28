@@ -100,8 +100,9 @@ document.addEventListener("DOMContentLoaded", () => {
 				(globalThis as any).game
 			) {
 				(globalThis as any).game.setScoreDisplay(viewNumber);
-				// Save to localStorage immediately
+				// Save the game
 				(globalThis as any).game.save();
+
 				Logger.event("tab.switch.click", { panelId, view: viewNumber });
 			}
 		});
@@ -449,13 +450,12 @@ export function updatescore(players: any, game: gamedata) {
 	// Data
 	const bets = [...game.getBets()];
 	const isTricksStep = game.getStep() === GameStep.ENTER_TRICKS;
-	const showBetsOnOverview =
-		!(
-			game.getRuleBlindentry() &&
-			game.getRuleFullblind() &&
-			isTricksStep &&
-			!game.getFullblindBetsRevealed()
-		);
+	const showBetsOnOverview = !(
+		game.getRuleBlindentry() &&
+		game.getRuleFullblind() &&
+		isTricksStep &&
+		!game.getFullblindBetsRevealed()
+	);
 	const gameScore: number[][] = game.getRuleAltcount()
 		? [...game.getAltScore()]
 		: [...game.getScore()];
@@ -1284,10 +1284,10 @@ function showPlayerStatsModal(
 	for (let round = 0; round < roundsToShow; round++) {
 		const bet = bets.length > round ? bets[round][actualPlayerIndex] : "-";
 		const shouldMaskBet =
-			hideLatestBetInModal &&
-			round === bets.length - 1 &&
-			bet !== "-";
-		const betDisplay = shouldMaskBet ? '<span role="img" aria-label="Hidden bet">🔒</span>' : bet;
+			hideLatestBetInModal && round === bets.length - 1 && bet !== "-";
+		const betDisplay = shouldMaskBet
+			? '<span role="img" aria-label="Hidden bet">🔒</span>'
+			: bet;
 		const trick =
 			tricks.length > round ? tricks[round][actualPlayerIndex] : "-";
 		const points =

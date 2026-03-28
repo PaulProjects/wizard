@@ -107,9 +107,10 @@ const { title } = Astro.props;
 <script>
   import OpenReplay from '@openreplay/tracker';
   
-  // Check for demo mode
+  // Check for demo mode and expose globally
   const urlParams = new URLSearchParams(window.location.search);
   const demomode = urlParams.has("demo");
+  (globalThis as any).demomode = demomode;
   
   // Only initialize tracking if not in demo mode
   let tracker;

@@ -578,6 +578,8 @@ export class GameData implements GameState {
 
 	// Demo data factory
 	static demo(view: ScoreView = ScoreView.ANALYTICS): GameData {
+		const startTime = Date.now() - 3600000; // Started 1 hour ago
+		
 		const config: GameState = {
 			dealer: 2,
 			rule_1: true,
@@ -598,6 +600,7 @@ export class GameData implements GameState {
 				[2, 0, 1, 0],
 				[0, 4, 1, 0],
 				[2, 1, 1, 0],
+				[2, 3, 0, 2],
 			],
 			tricks: [
 				[0, 0, 1, 0],
@@ -645,10 +648,19 @@ export class GameData implements GameState {
 				[40, 30, 30, 20],
 			],
 			color: {},
-			step: GameStep.PLACE_BETS,
+			round_timestamps: [
+				startTime + 420000,   // Round 1: 7 minutes
+				startTime + 900000,   // Round 2: 15 minutes
+				startTime + 1320000,  // Round 3: 22 minutes
+				startTime + 1800000,  // Round 4: 30 minutes
+				startTime + 2280000,  // Round 5: 38 minutes
+				startTime + 2700000,  // Round 6: 45 minutes
+				startTime + 3300000,  // Round 7: 55 minutes
+			],
+			step: GameStep.ENTER_TRICKS,
 			display: GameDisplay.SCORE_OVERVIEW,
 			score_display: view,
-			time_started: Date.now() - 3600000, // Started 1 hour ago
+			time_started: startTime,
 		};
 
 		return new GameData(config);
@@ -656,6 +668,11 @@ export class GameData implements GameState {
 
 	// Instance methods
 	save(): void {
+		// Don't save demo mode games to localStorage
+		if ((globalThis as any).demomode) {
+			return;
+		}
+
 		try {
 			if (!this.id) {
 				this.id = GameData.generateUUID();

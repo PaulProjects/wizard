@@ -31,13 +31,13 @@ export class GameAnalyticsUI {
         const completedGames = this.games.filter(g => !g.isActive);
         
         // Total Games
-        const totalGames = completedGames.length;
+        const totalGames = this.games.length;
         const elTotalGames = document.getElementById("ga-total-games");
         if(elTotalGames) elTotalGames.innerText = totalGames.toString();
 
         // Unique Players
         const uniquePlayers = new Set<string>();
-        completedGames.forEach(g => {
+        this.games.forEach(g => {
             g.getPlayers().forEach(p => uniquePlayers.add(p));
         });
         const elTotalPlayers = document.getElementById("ga-total-players");
@@ -61,7 +61,7 @@ export class GameAnalyticsUI {
 
         // Total Rounds
         let totalRounds = 0;
-        completedGames.forEach(g => {
+        this.games.forEach(g => {
             // Use score length as proxy for completed rounds to be safe
              totalRounds += g.getScore().length;
         });
@@ -76,7 +76,7 @@ export class GameAnalyticsUI {
         if (this.charts['gamesOverTime']) this.charts['gamesOverTime'].destroy();
 
         // Sort games by date
-        const sortedGames = [...this.games].filter(g => !g.isActive).sort((a,b) => a.getTimeStarted() - b.getTimeStarted());
+        const sortedGames = [...this.games].sort((a,b) => a.getTimeStarted() - b.getTimeStarted());
         
         if (sortedGames.length === 0) return;
 
@@ -243,7 +243,7 @@ export class GameAnalyticsUI {
         const countsMap = new Map<number, number>();
         let totalGames = 0;
 
-        this.games.filter(g => !g.isActive).forEach(g => {
+        this.games.forEach(g => {
             const c = g.getPlayers().length;
             countsMap.set(c, (countsMap.get(c) || 0) + 1);
             totalGames++;
@@ -321,11 +321,13 @@ export class GameAnalyticsUI {
         
         if (this.charts['betting']) this.charts['betting'].destroy();
 
+        const completedGames = this.games.filter(g => !g.isActive);
+
         let totalRoundEntries = 0;
         let sumAbsoluteDeviation = 0;
         const deviationDist = new Map<number, number>();
 
-        this.games.filter(g => !g.isActive).forEach(g => {
+        completedGames.forEach(g => {
             const bets = g.bets || [];
             const tricks = g.tricks || [];
              // Bets/tricks are array of arrays [round][player]

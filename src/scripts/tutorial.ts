@@ -5,14 +5,27 @@ import "driver.js/dist/driver.css";
 export class TutorialManager {
 	private driver: any;
 	private seenTours: Set<string> = new Set();
-	private readonly TOUR_KEYS = ["game", "input_bets", "input_tricks", "blindentry_bets", "blindentry_tricks", "graph", "bet_display"];
+	private readonly TOUR_KEYS = [
+		"game",
+		"input_bets",
+		"input_tricks",
+		"blindentry_bets",
+		"blindentry_tricks",
+		"graph",
+		"bet_display",
+		"demo",
+	];
 	private readonly DEV_ALWAYS_RUN_TOURS = false; // Set to true to force tours to run every time
 	private readonly TOUR_DELAY = 1;
 	private currentHighlightedElement: HTMLElement | null = null;
 	private isTourActive: boolean = false;
 	private allowClick: boolean = false;
+	private isDemoMode: boolean = false;
 
 	constructor() {
+		// Detect demo mode from globalThis
+		this.isDemoMode = !!(globalThis as any).demomode;
+
 		this.driver = driver({
 			showProgress: true,
 			animate: true,
@@ -69,13 +82,14 @@ export class TutorialManager {
 				e.stopPropagation();
 				e.stopImmediatePropagation();
 			},
-			true
+			true,
 		);
 
 		if (this.DEV_ALWAYS_RUN_TOURS) {
 			this.seenTours.clear();
-		} else {
-			this.TOUR_KEYS.forEach(key => {
+		} else if (!this.isDemoMode) {
+			// Skip loading saved tours in demo mode - always show fresh demo tour
+			this.TOUR_KEYS.forEach((key) => {
 				if (localStorage.getItem(`tour_${key}`) === "true") {
 					this.seenTours.add(key);
 				}
@@ -84,8 +98,13 @@ export class TutorialManager {
 	}
 
 	public reset() {
-		this.TOUR_KEYS.forEach(key => localStorage.removeItem(`tour_${key}`));
+		this.TOUR_KEYS.forEach((key) => localStorage.removeItem(`tour_${key}`));
 		this.seenTours.clear();
+	}
+
+	private isDemoModeActive(): boolean {
+		// Re-check on each call in case demo mode was set after initialization
+		return !!(globalThis as any).demomode;
 	}
 
 	private isElementVisible(selector: string): boolean {
@@ -94,6 +113,9 @@ export class TutorialManager {
 	}
 
 	public runGameTour(force: boolean = false) {
+		// Skip all tours in demo mode - user gets the demo tour instead
+		if (this.isDemoModeActive()) return;
+
 		if (this.seenTours.has("game") && !force) return;
 		if (this.isTourActive) return;
 
@@ -164,6 +186,9 @@ export class TutorialManager {
 	}
 
 	public runInputBetsTour() {
+		// Skip all tours in demo mode
+		if (this.isDemoModeActive()) return;
+
 		if (this.seenTours.has("input_bets")) return;
 
 		// Wait a brief moment for the input screen to be fully rendered
@@ -241,6 +266,9 @@ export class TutorialManager {
 	}
 
 	public runInputTricksTour() {
+		// Skip all tours in demo mode
+		if (this.isDemoModeActive()) return;
+
 		if (this.seenTours.has("input_tricks")) return;
 
 		if (this.isTourActive) return;
@@ -304,6 +332,9 @@ export class TutorialManager {
 	}
 
 	public runBlindEntryBetsTour() {
+		// Skip all tours in demo mode
+		if (this.isDemoModeActive()) return;
+
 		if (this.seenTours.has("blindentry_bets")) return;
 		if (!this.isElementVisible("#input")) return;
 		if (!this.isElementVisible("#players")) return;
@@ -358,6 +389,9 @@ export class TutorialManager {
 	}
 
 	public runBlindEntryTricksTour() {
+		// Skip all tours in demo mode
+		if (this.isDemoModeActive()) return;
+
 		if (this.seenTours.has("blindentry_tricks")) return;
 		if (!this.isElementVisible("#input")) return;
 		if (!this.isElementVisible("#players")) return;
@@ -401,6 +435,9 @@ export class TutorialManager {
 	}
 
 	public runGraphTour() {
+		// Skip all tours in demo mode
+		if (this.isDemoModeActive()) return;
+
 		if (this.seenTours.has("graph")) return;
 
 		const tabContainer = document.getElementById("tab_navigation");
@@ -525,6 +562,9 @@ export class TutorialManager {
 	}
 
 	public runBetDisplayTour() {
+		// Skip all tours in demo mode
+		if (this.isDemoModeActive()) return;
+
 		if (this.seenTours.has("bet_display")) return;
 
 		if (!this.isElementVisible("#bet_display_container")) return;
@@ -549,5 +589,147 @@ export class TutorialManager {
 
 		localStorage.setItem("tour_bet_display", "true");
 		this.seenTours.add("bet_display");
+	}
+
+	public runDemoTour() {
+		// Only run in demo mode
+		if (!this.isDemoModeActive()) return;
+
+		if (this.seenTours.has("demo")) return;
+		if (this.isTourActive) return;
+
+		// Ensure we're on the score view to start
+		if (!this.isElementVisible("#score")) return;
+
+		const steps = [
+			{
+				popover: {
+					title: "Welcome to the Wizard Demo",
+					description:
+						"This is a demonstration of the Wizard Score Counter. The game is already in progress (round 8 of 12).",
+				},
+			},
+			{
+				element: "#s_round",
+				popover: {
+					title: "Round Info",
+					description: "The current round is displayed here.",
+					side: "bottom",
+					align: "start",
+				},
+			},
+			{
+				element: "#bet_display_container",
+				popover: {
+					title: "Bet vs Tricks",
+					description:
+						"This shows if players want to make more tricks then possible (^) or less (v). In this round, there is one trick more then players bet, so someone is going to lose points!",
+					side: "bottom",
+					align: "start",
+				},
+			},
+			{
+				element: "#top_players",
+				popover: {
+					title: "Current Leaderboard",
+					description:
+						"See all players and their scores. The player with the crown is currently winning. Click any player after this tour for detailed statistics.",
+					side: "top",
+					align: "center",
+				},
+			},
+			{
+				element: "#nav_button",
+				popover: {
+					title: "Action Button",
+					description:
+						"This main button changes based on game state: place bets, enter tricks, or continue to the next round.",
+					side: "top",
+					align: "center",
+				},
+			},
+			{
+				element: "#tab_chart",
+				popover: {
+					title: "Score Chart",
+					description:
+						"Click to see a line chart showing how scores evolved throughout the game.",
+					side: "bottom",
+					align: "center",
+					onNextClick: () => {
+						const btn = document.getElementById("tab_chart");
+						if (btn) {
+							this.allowClick = true;
+							btn.click();
+							this.allowClick = false;
+						}
+						this.driver.moveNext();
+					},
+				},
+			},
+			{
+				element: "#chart_container",
+				popover: {
+					title: "Score Progression",
+					description:
+						"Each line represents a player's score journey.",
+					side: "top",
+					align: "center",
+				},
+			},
+			{
+				element: "#tab_analytics",
+				popover: {
+					title: "Analytics Tab",
+					description:
+						"Dive into detailed game statistics including total duration, round breakdowns, and player performance.",
+					side: "bottom",
+					align: "center",
+					onNextClick: () => {
+						const btn = document.getElementById("tab_analytics");
+						if (btn) {
+							this.allowClick = true;
+							btn.click();
+							this.allowClick = false;
+						}
+						this.driver.moveNext();
+					},
+				},
+			},
+			{
+				element: "#analytics",
+				popover: {
+					title: "Detailed Analytics",
+					description:
+						"See round durations, timing stats, and a breakdown for each player. Perfect for understanding game flow!",
+					side: "top",
+					align: "center",
+				},
+			},
+			{
+				element: "#settings_btn",
+				popover: {
+					title: "Settings & Options",
+					description:
+						"Customize your game experience with rules, dealer changes, and more. You can also restart this tour here or leave the demo.",
+					side: "bottom",
+					align: "end",
+				},
+			},
+			{
+				popover: {
+					title: "Demo Complete!",
+					description:
+						"You now understand the basics of Wizard Score Counter. Start a real game or explore the features!",
+				},
+			},
+		];
+
+		this.isTourActive = true;
+		this.driver.setSteps(steps);
+		this.driver.drive();
+
+		localStorage.setItem("tour_demo", "true");
+		this.seenTours.add("demo");
 	}
 }

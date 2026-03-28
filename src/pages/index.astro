@@ -44,6 +44,11 @@ import SyncModal from "../components/SyncModal.astro";
 						id="past_games"
 						><a href="/history"><span>Past games</span></a></button
 					>
+					<button
+						class="btn btn-accent mb-2 btn-block hidden"
+						id="demo_mode"
+						><a href="/game?demo"><span>Try the demo</span></a></button
+					>
 				</nav>
 			</main>
 		</div>
@@ -107,7 +112,7 @@ import SyncModal from "../components/SyncModal.astro";
 					class="underline pr-2"
 					href="https://paulbertram.de/impressum/">Impressum</a
 				>
-				<a class="underline" href="https://paulbertram.de/datenschutz/"
+				<a class="underline" href="https://paulbertram.de/wizard_datenschutz/"
 					>Datenschutz</a
 				>
 			</div>
@@ -326,15 +331,23 @@ import SyncModal from "../components/SyncModal.astro";
 
 		gamedata.migrate();
 
-		function getActiveGames() {
+		function getAllGames() {
 			try {
 				const stored = localStorage.getItem("wizard.games");
 				if (!stored) return [];
 				const games = JSON.parse(stored);
-				return games.filter((g: any) => g.isActive);
+				return Array.isArray(games) ? games : [];
 			} catch (e) {
 				return [];
 			}
+		}
+
+		function getActiveGames() {
+			return getAllGames().filter((g: any) => g.isActive);
+		}
+
+		function hasSavedGames(): boolean {
+			return getAllGames().length > 0;
 		}
 
 		//* Function to validate game data stored in local storage */
@@ -415,9 +428,10 @@ import SyncModal from "../components/SyncModal.astro";
 					.catch(console.error);
 			}
 
-			//hide past games button if no past games are stored
-			if (!localStorage.getItem("wizard.games")) {
-				document.getElementById("past_games").classList.add("hidden");
+			// Hide/show history and demo actions based on stored games
+			if (!hasSavedGames()) {
+				document.getElementById("past_games")?.classList.add("hidden");
+				document.getElementById("demo_mode")?.classList.remove("hidden");
 			}
 
 			//hide resume game button if no valid game is stored
@@ -427,10 +441,10 @@ import SyncModal from "../components/SyncModal.astro";
 
 			//hide export data button if there is nothing to export
 			if (
-				!localStorage.getItem("wizard.games") &&
+				!hasSavedGames() &&
 				!localStorage.getItem("playerlist")
 			) {
-				document.getElementById("export_data").classList.add("hidden");
+				document.getElementById("export_data")?.classList.add("hidden");
 			}
 		};
 

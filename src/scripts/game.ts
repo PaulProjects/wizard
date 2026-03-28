@@ -36,6 +36,9 @@ export class GameController {
 		this.colorManager = new ColorManager(this.game as any, this.isDemoMode);
 		this.tutorialManager = new TutorialManager();
 
+		// Setup demo-specific UI
+		this.setupDemoMode();
+
 		// Setup callbacks
 		this.setupCallbacks();
 
@@ -47,9 +50,13 @@ export class GameController {
 		// Initial update
 		this.update();
 
-		// Trigger initial game tour
+		// Trigger initial tour based on mode
 		if (this.game.getDisplay() === GameDisplay.SCORE_OVERVIEW) {
-			this.tutorialManager.runGameTour();
+			if (this.isDemoMode) {
+				this.tutorialManager.runDemoTour();
+			} else {
+				this.tutorialManager.runGameTour();
+			}
 		}
 	}
 
@@ -66,14 +73,7 @@ export class GameController {
 				const viewParam = parseInt(urlParams.get("view") || "3");
 				view = viewParam as ScoreView;
 			}
-
-			const demoGame = GameData.demo(view);
-
-			// Hide/show demo-specific elements
-			this.uiManager.hideElement("endgame");
-			this.uiManager.setElementText("savequit", "Exit Demo Mode");
-
-			return demoGame;
+			return GameData.demo(view);
 		} else {
 			try {
 				return GameData.load();
@@ -85,6 +85,14 @@ export class GameController {
 				throw error;
 			}
 		}
+	}
+
+	private setupDemoMode(): void {
+		if (!this.isDemoMode) return;
+
+		// Configure UI for demo mode
+		this.uiManager.hideElement("endgame");
+		this.uiManager.setElementText("savequit", "Exit Demo Mode");
 	}
 
 	private setupCallbacks(): void {
@@ -111,6 +119,7 @@ export class GameController {
 
 	private setupGlobalAccess(): void {
 		(globalThis as any).game = this.game;
+		(globalThis as any).demomode = this.isDemoMode;
 	}
 
 	private initializeEventListeners(): void {

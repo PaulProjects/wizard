@@ -27,6 +27,7 @@ const VALID_FILTER_OPTIONS: FilterOption[] = ["completed", "active", "all"];
 let currentSort: SortOption = DEFAULT_SORT;
 let currentFilter: FilterOption = DEFAULT_FILTER;
 let currentSearch = "";
+const syncCodeAtLoad = localStorage.getItem("wizard.synccode");
 
 const OLD_ACTIVE_GAME_LIMIT_MS = 180 * 60 * 60 * 1000;
 const FALLBACK_ENDED_DURATION_MS = 90 * 60 * 1000;
@@ -121,7 +122,7 @@ try {
 	console.error("Failed to load games", e);
 }
 
-if (allGames.length === 0) {
+if (allGames.length === 0 && !syncCodeAtLoad) {
 	location.href = "/";
 }
 
@@ -388,6 +389,33 @@ function renderGames() {
     }
 }
 
+async function syncGamesFromServerOnHistoryOpen() {
+	if (!syncCodeAtLoad) {
+		return;
+	}
+
+	const beforeCount = JSON.parse(localStorage.getItem("wizard.games") || "[]")
+		.length;
+
+	try {
+		await SyncManager.syncAccount(syncCodeAtLoad);
+		const afterCount = JSON.parse(localStorage.getItem("wizard.games") || "[]")
+			.length;
+
+		if (afterCount > beforeCount) {
+			Logger.info("Imported remote games on history open", {
+				beforeCount,
+				afterCount,
+			});
+			location.reload();
+		}
+	} catch (error) {
+		Logger.warn("History page sync on open failed", {
+			error: (error as Error)?.message,
+		});
+	}
+}
+
 // New logic for controls
 const searchInput = document.getElementById("history-search") as HTMLInputElement;
 const sortSelect = document.getElementById("history-sort") as HTMLSelectElement;
@@ -421,6 +449,8 @@ if (filterSelect) {
 
 // Initial render
 renderGames();
+
+void syncGamesFromServerOnHistoryOpen();
 
 
 let Lgame: gamedata | undefined;
