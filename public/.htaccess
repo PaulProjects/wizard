@@ -1,4 +1,0 @@
-<IfModule mod_headers.c>
-  Header always unset X-Frame-Options
-  Header always set Content-Security-Policy "frame-ancestors 'self' https://paulbertram.de https://www.paulbertram.de"
-</IfModule>

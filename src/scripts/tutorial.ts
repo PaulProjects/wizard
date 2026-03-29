@@ -107,12 +107,19 @@ export class TutorialManager {
 		return !!(globalThis as any).demomode;
 	}
 
+	private shouldSkipTutorials(): boolean {
+		const urlParams = new URLSearchParams(window.location.search);
+		return this.isDemoModeActive() && urlParams.has("skiptutorial");
+	}
+
 	private isElementVisible(selector: string): boolean {
 		const el = document.querySelector(selector) as HTMLElement;
 		return !!(el && el.offsetParent !== null);
 	}
 
 	public runGameTour(force: boolean = false) {
+		if (this.shouldSkipTutorials()) return;
+
 		// Skip all tours in demo mode - user gets the demo tour instead
 		if (this.isDemoModeActive()) return;
 
@@ -186,6 +193,8 @@ export class TutorialManager {
 	}
 
 	public runInputBetsTour() {
+		if (this.shouldSkipTutorials()) return;
+
 		// Skip all tours in demo mode
 		if (this.isDemoModeActive()) return;
 
@@ -266,6 +275,8 @@ export class TutorialManager {
 	}
 
 	public runInputTricksTour() {
+		if (this.shouldSkipTutorials()) return;
+
 		// Skip all tours in demo mode
 		if (this.isDemoModeActive()) return;
 
@@ -332,6 +343,8 @@ export class TutorialManager {
 	}
 
 	public runBlindEntryBetsTour() {
+		if (this.shouldSkipTutorials()) return;
+
 		// Skip all tours in demo mode
 		if (this.isDemoModeActive()) return;
 
@@ -389,6 +402,8 @@ export class TutorialManager {
 	}
 
 	public runBlindEntryTricksTour() {
+		if (this.shouldSkipTutorials()) return;
+
 		// Skip all tours in demo mode
 		if (this.isDemoModeActive()) return;
 
@@ -435,6 +450,8 @@ export class TutorialManager {
 	}
 
 	public runGraphTour() {
+		if (this.shouldSkipTutorials()) return;
+
 		// Skip all tours in demo mode
 		if (this.isDemoModeActive()) return;
 
@@ -562,6 +579,8 @@ export class TutorialManager {
 	}
 
 	public runBetDisplayTour() {
+		if (this.shouldSkipTutorials()) return;
+
 		// Skip all tours in demo mode
 		if (this.isDemoModeActive()) return;
 
@@ -592,6 +611,8 @@ export class TutorialManager {
 	}
 
 	public runDemoTour() {
+		if (this.shouldSkipTutorials()) return;
+
 		// Only run in demo mode
 		if (!this.isDemoModeActive()) return;
 
