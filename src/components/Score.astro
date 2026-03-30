@@ -2,6 +2,8 @@
 import { Icon } from "astro-icon/components";
 import Celebration from "./Celebration.astro";
 import Modal from "./Modal.astro";
+
+const { showSettingsButton = true } = Astro.props;
 ---
 
 <div class="wrapper flex justify-center items-center w-screen h-full">
@@ -118,13 +120,17 @@ import Modal from "./Modal.astro";
 
 					<!-- Right: Settings Button -->
 					<div class="flex justify-end flex-shrink-0">
-						<button
-							class="btn h-10 px-3"
-							id="settings_btn"
-							onclick="modal_settings.showModal(); try { window.wizardLogger && window.wizardLogger.event && window.wizardLogger.event('settings.open'); } catch (e) {}"
-						>
-							<Icon name="mdi:cog" class="w-5 h-5" />
-						</button>
+						{
+							showSettingsButton && (
+								<button
+									class="btn h-10 px-3"
+									id="settings_btn"
+									onclick="modal_settings.showModal(); try { window.wizardLogger && window.wizardLogger.event && window.wizardLogger.event('settings.open'); } catch (e) {}"
+								>
+									<Icon name="mdi:cog" class="w-5 h-5" />
+								</button>
+							)
+						}
 					</div>
 				</div>
 			</div>

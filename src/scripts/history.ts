@@ -268,8 +268,9 @@ function renderGames() {
 										 </button>
 										 <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[5] w-52 p-2 shadow" id="menu-list-${gameId}">
 											 ${isActive ? `<li><button id="menu-end-${gameId}">End game</button></li>` : ""}
+											 <li><button id="menu-share-${gameId}">Share game</button></li>
 											 <li><button id="menu-export-${gameId}">Export game</button></li>
-											 <li><button class="text-error" id="menu-delete-${gameId}">Delete this game</button></li>
+											 <li><button class="text-error" id="menu-delete-${gameId}">Delete game</button></li>
 										 </ul>
 									 </div>
 								 </div>
@@ -364,6 +365,14 @@ function renderGames() {
 			exportButton.addEventListener("click", (event) => {
 				event.stopPropagation();
 				exportSingleGame(game);
+			});
+		}
+
+		const shareButton = document.getElementById(`menu-share-${gameId}`);
+		if (shareButton) {
+			shareButton.addEventListener("click", (event) => {
+				event.stopPropagation();
+				openShareGame(game);
 			});
 		}
 
@@ -567,7 +576,7 @@ if (titleElement) {
 	});
 }
 
-const settingsButton = document.getElementById("settings_btn");
+const settingsButton = document.getElementById("nav_settings_btn");
 if (settingsButton) {
 	settingsButton.addEventListener("click", () => {
 		(document.getElementById("modal_settings") as HTMLDialogElement).open = true;
@@ -768,6 +777,16 @@ function exportSingleGame(game: gamedata) {
 		"wizard.games": JSON.stringify([game]),
 	};
 	downloadJSON(exportData, `wizard_game_${game.getID()}.json`);
+}
+
+function openShareGame(game: gamedata) {
+	const gameId = game.getID();
+	if (!gameId) {
+		Logger.warn("Cannot share game without id", { game });
+		return;
+	}
+
+	window.open(`${location.origin}/share?id=${gameId}`, "_blank");
 }
 
 function confirmDeleteGame(game: gamedata) {

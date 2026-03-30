@@ -40,7 +40,7 @@ import SyncModal from "../components/SyncModal.astro";
 				<div class="flex justify-end gap-2">
 					<button
 						class="btn btn-square btn-outline"
-						id="settings_btn"
+						id="nav_settings_btn"
 						title="Settings"
 					>
 						<Icon name="mdi:cog-outline" class="w-6 h-6" />
@@ -326,7 +326,7 @@ import SyncModal from "../components/SyncModal.astro";
 			</div>
 		</div>
 	</div>
-	<div class="hidden" id="score"><Score /></div>
+	<div class="hidden" id="score"><Score showSettingsButton={false} /></div>
 	<!-- Settings modal -->
 	<Modal id="modal_settings" title="Advanced Options" icon="mdi:tune-variant">
 		<div class="flex flex-col justify-center items-center">
