@@ -123,7 +123,7 @@ try {
 }
 
 if (allGames.length === 0 && !syncCodeAtLoad) {
-	location.href = "/";
+	location.href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
 }
 
 // Log information about skipped games
@@ -562,7 +562,7 @@ if (tlBtn) {
 		if (view == 1) {
 			switchToOverview(true);
 		} else {
-			location.href = "/";
+			location.href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
 		}
 	});
 }
@@ -828,7 +828,7 @@ function deleteGame(game: gamedata) {
 	}
 
 	if (allGames.length === 0) {
-		location.href = "/";
+		location.href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
 		return;
 	}
 
@@ -937,7 +937,7 @@ function deleteAllLocalData() {
 	}
 
 	allGames = [];
-	location.href = "/";
+	location.href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
 }
 
 function downloadJSON(data: any, fileName: string) {

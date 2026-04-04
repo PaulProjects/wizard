@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /$
+Allow: /de/$
+Allow: /de$
+Disallow: /setup
+Disallow: /game
+Disallow: /history
+Disallow: /share
+
+Sitemap: https://wizard.paulbertram.de/sitemap-index.xml

@@ -207,3 +207,9 @@ if (gameId === null) {
 		navigator.clipboard.writeText(window.location.href);
 	});
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+	document.querySelectorAll('a[href="/"]').forEach((link) => {
+		(link as HTMLAnchorElement).href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
+	});
+});

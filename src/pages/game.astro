@@ -61,7 +61,7 @@ import Modal from "../components/Modal.astro";
 					>
 					<button
 						class="btn btn-info btn-block mt-5"
-						onclick="location.href = '/';"
+						onclick="location.href = localStorage.getItem('lang') === 'de' ? '/de/' : '/';"
 						id="savequit"
 					>
 						Save and Quit

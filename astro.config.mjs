@@ -5,10 +5,17 @@ import icon from "astro-icon";
 
 // https://astro.build/config
 export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "de"],
+    routing: {
+      prefixDefaultLocale: false
+    }
+  },
   integrations: [tailwind(), 
     sitemap({
 			filter: (page) =>
-				page == "https://wizard.paulbertram.de/"
+				page == "https://wizard.paulbertram.de/" || page == "https://wizard.paulbertram.de/de/"
 		}),
     icon({
       include: {

@@ -356,11 +356,6 @@ startButton.addEventListener("click", function () {
 	location.href = "/game/";
 });
 
-const tlBtn = document.getElementById("tlbtn");
-tlBtn.addEventListener("click", function () {
-	location.href = "/";
-});
-
 let modal_edit = document.getElementById("modal_edit") as HTMLDialogElement;
 const presetToast = document.getElementById("preset_toast") as HTMLElement;
 const openPresetsToastBtn = document.getElementById(

@@ -81,7 +81,7 @@ export class GameController {
 				Logger.error("Error loading game", {
 					error: (error as Error)?.message,
 				});
-				window.location.href = "/";
+				window.location.href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
 				throw error;
 			}
 		}
@@ -455,7 +455,7 @@ export class GameController {
 	private handleEndGame(): void {
 		if (this.game.getRound() === 1) {
 			localStorage.removeItem("game");
-			location.href = "/";
+			location.href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
 		} else {
 			this.game.setStep(GameStep.CELEBRATION);
 			this.game.setDisplay(GameDisplay.SCORE_OVERVIEW);
@@ -632,7 +632,7 @@ export class GameController {
 			});
 		} finally {
 			Logger.event("game.saved.local");
-			location.href = "/";
+			location.href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
 		}
 	}
 
@@ -796,7 +796,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 		// Fallback to redirect if initialization fails
 		if (!window.location.href.includes("demo")) {
-			window.location.href = "/";
+			window.location.href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
 		}
 	}
 });

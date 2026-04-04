@@ -1,0 +1,423 @@
+---
+import { Icon } from "astro-icon/components";
+import BentoCard from "./BentoCard.astro";
+import { useTranslations } from "../i18n/utils";
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const GAME_COUNT_URL = "https://s.paulbertram.de/wizardstats.php?action=count";
+const PLAYTIME_URL = "https://s.paulbertram.de/wizardstats.php?action=playtime";
+const statsRootId = `wizard-stats-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<div
+	id={statsRootId}
+	data-game-count-url={GAME_COUNT_URL}
+	data-playtime-url={PLAYTIME_URL}
+	class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mx-auto w-11/12 z-10 relative"
+>
+	<!-- Description & SEO Bento (Spans 2 columns) -->
+	<BentoCard
+		class="col-span-1 md:col-span-2 p-6 flex flex-col"
+		title={t("index.seo.h2")}
+		icon="mdi:gamepad-variant-outline"
+		iconColor="text-secondary"
+		description={t("index.seo.p1")}
+		headerClass="flex flex-col gap-2 mb-3"
+		titleClass="font-bold text-2xl"
+		descClass="text-lg text-base-content/80 mb-3 leading-relaxed"
+	/>
+
+	<!-- Sync Feature Bento -->
+	<BentoCard
+		class="p-6 flex flex-col justify-between"
+		title={t("bento.syncFeature.title")}
+		icon="mdi:cloud-sync-outline"
+		iconColor="text-info"
+		description={t("bento.syncFeature.desc")}
+		headerClass="flex flex-col gap-2 mb-3"
+		titleClass="font-bold text-2xl"
+		descClass="text-lg text-base-content/80 mb-3 leading-relaxed"
+	/>
+
+	<!-- Global Stats Bento -->
+	<BentoCard
+		class="p-6 flex flex-col justify-around"
+		tooltip={t("bento.stats.tooltip")}
+	>
+		<div class="flex flex-col items-center text-center">
+			<span
+				data-stat="games"
+				class="text-3xl font-bold font-ostrich text-secondary">...</span
+			>
+			<div class="text-xs text-base-content/60 mt-1">
+				{t("bento.gamesPlayed")}
+			</div>
+		</div>
+
+		<div class="w-2/3 h-px bg-base-content/10 mx-auto my-2"></div>
+
+		<div class="flex flex-col items-center text-center">
+			<span
+				data-stat="playtime"
+				class="text-3xl font-bold font-ostrich text-secondary">...</span
+			>
+			<div class="text-xs text-base-content/60 mt-1">
+				{t("bento.playtime")}
+			</div>
+		</div>
+	</BentoCard>
+
+	<!-- Feature 2: Analyze Players -->
+	<BentoCard
+		class="p-6 flex flex-col justify-between overflow-hidden"
+		title={t("bento.features.players.title")}
+		icon="mdi:account-group"
+		iconColor="text-secondary"
+		description={t("bento.features.players.desc")}
+		headerClass="flex flex-col gap-2 mb-3"
+		titleClass="font-bold text-2xl"
+		descClass="text-lg text-base-content/80 mb-3 leading-relaxed"
+	>
+		<!-- Mock Player Card UI -->
+		<div
+			class="w-full mt-auto bg-base-300/50 rounded-xl p-3 flex items-center gap-3"
+		>
+			<div
+				class="w-10 h-10 rounded-full bg-primary/20 flex flex-col items-center justify-center border border-primary/30"
+			>
+				<Icon name="mdi:account" class="w-6 h-6 text-primary" />
+			</div>
+			<div class="flex flex-col flex-grow">
+				<div class="text-sm font-bold">Max</div>
+				<div class="text-[10px] text-base-content/60">
+					{t("bento.features.players.winrate")}: 42%
+				</div>
+			</div>
+			<div class="text-right">
+				<div class="text-[10px] text-base-content/60">
+					{t("bento.features.players.points")}
+				</div>
+				<div class="text-lg font-bold font-ostrich text-secondary">
+					240
+				</div>
+			</div>
+		</div>
+	</BentoCard>
+
+	<!-- Feature 1: Track Scores (Linegraph) -->
+	<BentoCard
+		class="col-span-1 md:col-span-2 xl:col-span-2 p-6 flex flex-col justify-between overflow-hidden"
+		title={t("bento.features.scores.title")}
+		icon="mdi:chart-line"
+		iconColor="text-secondary"
+		description={t("bento.features.scores.desc")}
+		headerClass="flex flex-col gap-2 mb-3"
+		titleClass="font-bold text-2xl"
+		descClass="text-lg text-base-content/80 mb-3 leading-relaxed"
+	>
+		<!-- Mock Linegraph UI -->
+		<div
+			class="w-full h-32 mt-auto bg-base-300/50 rounded-xl relative overflow-hidden flex items-end justify-between px-2 pb-2"
+		>
+			<!-- Graph Grids -->
+			<div
+				class="absolute inset-x-0 bottom-1/4 border-b border-base-content/10"
+			>
+			</div>
+			<div
+				class="absolute inset-x-0 bottom-2/4 border-b border-base-content/10"
+			>
+			</div>
+			<div
+				class="absolute inset-x-0 bottom-3/4 border-b border-base-content/10"
+			>
+			</div>
+			<!-- SVG Line Graph overlay -->
+			<svg
+				class="absolute inset-0 w-full h-full drop-shadow-md"
+				preserveAspectRatio="none"
+				viewBox="0 0 100 50"
+			>
+				<!-- Player 1 -->
+				<polyline
+					points="0,40 20,35 40,20 60,30 80,10 100,15"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					vector-effect="non-scaling-stroke"
+					stroke-linejoin="round"
+					stroke-linecap="round"
+					class="text-primary"></polyline>
+				<!-- Player 2 -->
+				<polyline
+					points="0,45 20,40 40,45 60,35 80,40 100,30"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					vector-effect="non-scaling-stroke"
+					stroke-linejoin="round"
+					stroke-linecap="round"
+					class="text-secondary"></polyline>
+				<!-- Player 3 -->
+				<polyline
+					points="0,35 20,25 40,30 60,20 80,25 100,5"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					vector-effect="non-scaling-stroke"
+					stroke-linejoin="round"
+					stroke-linecap="round"
+					class="text-accent"></polyline>
+			</svg>
+			<!-- Points Player 1 -->
+			<div
+				class="absolute w-2 h-2 rounded-full bg-primary ring-2 ring-base-200"
+				style="left: 20%; top: 70%; transform: translate(-50%, -50%);"
+			>
+			</div>
+			<div
+				class="absolute w-2 h-2 rounded-full bg-primary ring-2 ring-base-200"
+				style="left: 40%; top: 40%; transform: translate(-50%, -50%);"
+			>
+			</div>
+			<div
+				class="absolute w-2 h-2 rounded-full bg-primary ring-2 ring-base-200"
+				style="left: 60%; top: 60%; transform: translate(-50%, -50%);"
+			>
+			</div>
+			<div
+				class="absolute w-2 h-2 rounded-full bg-primary ring-2 ring-base-200"
+				style="left: 80%; top: 20%; transform: translate(-50%, -50%);"
+			>
+			</div>
+		</div>
+	</BentoCard>
+
+	<!-- Feature 3: Game Duration -->
+	<BentoCard
+		class="p-6 flex flex-col justify-between overflow-hidden"
+		title={t("bento.features.games.title")}
+		icon="mdi:chart-bar"
+		iconColor="text-accent"
+		description={t("bento.features.games.desc")}
+		headerClass="flex flex-col gap-2 mb-3"
+		titleClass="font-bold text-2xl"
+		descClass="text-lg text-base-content/80 mb-3 leading-relaxed"
+	>
+		<!-- Mock Duration UI -->
+		<div
+			class="w-full h-24 mt-auto rounded-xl flex items-end justify-between gap-2 px-2 pb-1 relative"
+		>
+			<div
+				class="w-1/4 h-[30%] bg-base-300 rounded-t-md relative group-hover:bg-primary/40 transition-colors"
+			>
+			</div>
+			<div
+				class="w-1/4 h-[80%] bg-primary/70 rounded-t-md relative transition-transform group-hover:scale-y-105 origin-bottom"
+			>
+			</div>
+			<div
+				class="w-1/4 h-[50%] bg-base-300 rounded-t-md relative group-hover:bg-primary/40 transition-colors"
+			>
+			</div>
+			<div
+				class="w-1/4 h-[20%] bg-base-300 rounded-t-md relative group-hover:bg-primary/40 transition-colors"
+			>
+			</div>
+		</div>
+	</BentoCard>
+
+	<!-- Credits Bento -->
+	<BentoCard
+		class="col-span-1 md:col-span-2 p-6 flex flex-col"
+		title={t("bento.credits.title")}
+		icon="mdi:account-heart-outline"
+		iconColor="text-secondary"
+		headerClass="flex flex-col gap-2 mb-3"
+		titleClass="font-bold text-2xl"
+	>
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<a
+				class="text-sm hover:text-primary transition-colors flex items-center justify-between group p-4 bg-base-300/30 hover:bg-base-300/50 rounded-xl"
+				href="https://codepen.io/jackrugile/pen/kQwPRO"
+				target="_blank"
+			>
+				{t("bento.credits.lightning")}
+				<Icon
+					name="mdi:open-in-new"
+					class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity"
+				/>
+			</a>
+			<a
+				class="text-sm hover:text-primary transition-colors flex items-center justify-between group p-4 bg-base-300/30 hover:bg-base-300/50 rounded-xl"
+				href="https://codepen.io/jmolund/pen/jBqyqK"
+				target="_blank"
+			>
+				{t("bento.credits.scoreboard")}
+				<Icon
+					name="mdi:open-in-new"
+					class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity"
+				/>
+			</a>
+		</div>
+	</BentoCard>
+
+	<!-- Development Bento -->
+	<BentoCard
+		class="p-6 flex flex-col justify-between"
+		title={t("bento.development.title")}
+		icon="mdi:hammer-wrench"
+		iconColor="text-secondary"
+		description={t("bento.development.desc")}
+		headerClass="flex flex-col gap-2 mb-3"
+		titleClass="font-bold text-2xl"
+		descClass="text-lg text-base-content/80 mb-3 leading-relaxed"
+	>
+		<a
+			class="btn btn-outline btn-sm btn-secondary w-full text-xs"
+			href="mailto:hi@paulbertram.de"
+		>
+			<Icon name="mdi:email-outline" class="w-4 h-4 mr-1" />
+			{t("bento.development.contact")}
+		</a>
+	</BentoCard>
+
+	<!-- GitHub & Legal Links Bento -->
+	<BentoCard class="p-2 flex flex-row items-center justify-evenly">
+		<!-- GitHub Side -->
+		<a
+			href="https://github.com/PaulProjects/wizard"
+			target="_blank"
+			aria-label="GitHub"
+			class="flex flex-col items-center justify-center w-1/2 hover:text-primary transition-colors text-center cursor-pointer"
+		>
+			<Icon name="mdi:github" class="w-9 h-9 mb-1 text-base-content/80" />
+			<span class="text-sm text-base-content/80">{t("bento.source")}</span
+			>
+		</a>
+		<div class="w-[1px] h-3/4 bg-base-content/10 mx-1"></div>
+		<!-- Legal Side -->
+		<div class="flex flex-col items-center justify-center w-1/2 px-1">
+			<a
+				class="text-sm text-base-content/80 hover:text-base-content transition-colors mb-2 underline w-full text-center"
+				href="https://paulbertram.de/impressum/">Impressum</a
+			>
+			<a
+				class="text-sm text-base-content/80 hover:text-base-content transition-colors underline w-full text-center"
+				href="https://paulbertram.de/wizard_datenschutz/">Datenschutz</a
+			>
+		</div>
+	</BentoCard>
+
+	<!-- Legal Notice (Amigo) Bento -->
+	<BentoCard
+		class="col-span-1 md:col-span-2 xl:col-span-4 p-4 !bg-warning/10 !border-warning/30 flex flex-col sm:flex-row items-start sm:items-center gap-3"
+	>
+		<Icon
+			name="mdi:scale-balance"
+			class="w-6 h-6 text-warning flex-shrink-0"
+		/>
+		<p class="text-xs text-base-content/70 leading-relaxed">
+			{t("bento.legal.notice")}
+		</p>
+	</BentoCard>
+</div>
+
+<script is:inline define:vars={{ statsRootId }}>
+	(function () {
+		const root = document.getElementById(statsRootId);
+		if (!root) return;
+
+		const gamesEl = root.querySelector('[data-stat="games"]');
+		const playtimeEl = root.querySelector('[data-stat="playtime"]');
+		const gameCountUrl = root.getAttribute("data-game-count-url");
+		const playtimeUrl = root.getAttribute("data-playtime-url");
+		const numberFormatter = new Intl.NumberFormat("de-DE");
+
+		function parseInteger(value) {
+			if (typeof value !== "string") return null;
+			const cleaned = value.trim().replace(/[^0-9-]/g, "");
+			if (!cleaned) return null;
+			const parsed = Number.parseInt(cleaned, 10);
+			return Number.isFinite(parsed) ? parsed : null;
+		}
+
+		function parsePlaytimeInSeconds(value) {
+			if (typeof value !== "string") return null;
+			const trimmed = value.trim();
+
+			if (/^\d+$/.test(trimmed)) {
+				const minutes = Number.parseInt(trimmed, 10);
+				return Number.isFinite(minutes) ? minutes * 60 : null;
+			}
+
+			const timeMatch = trimmed.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+			if (!timeMatch) return null;
+
+			const first = Number.parseInt(timeMatch[1], 10);
+			const second = Number.parseInt(timeMatch[2], 10);
+			const third = timeMatch[3] ? Number.parseInt(timeMatch[3], 10) : 0;
+			if (
+				!Number.isFinite(first) ||
+				!Number.isFinite(second) ||
+				!Number.isFinite(third)
+			) {
+				return null;
+			}
+
+			if (timeMatch[3]) {
+				return first * 3600 + second * 60 + third;
+			}
+
+			return first * 60 + second;
+		}
+
+		function formatPlaytime(totalSeconds) {
+			if (!Number.isFinite(totalSeconds) || totalSeconds < 0)
+				return "n/a";
+
+			const days = Math.floor(totalSeconds / 86400);
+			const hours = Math.floor((totalSeconds % 86400) / 3600);
+			const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+			if (days > 0) return `${days}d ${hours}h`;
+			if (hours > 0) return `${hours}h ${minutes}m`;
+			return `${minutes}m`;
+		}
+
+		async function fetchText(url) {
+			if (!url) return null;
+			try {
+				const response = await fetch(url, { cache: "no-store" });
+				if (!response.ok) return null;
+				return (await response.text()).trim();
+			} catch {
+				return null;
+			}
+		}
+
+		Promise.all([fetchText(gameCountUrl), fetchText(playtimeUrl)]).then(
+			([gamesRaw, playtimeRaw]) => {
+				if (gamesEl) {
+					const games = parseInteger(gamesRaw || "");
+					gamesEl.textContent =
+						games === null
+							? "n/a"
+							: `${numberFormatter.format(games)}+`;
+				}
+
+				if (playtimeEl) {
+					const playtimeSeconds = parsePlaytimeInSeconds(
+						playtimeRaw || "",
+					);
+					playtimeEl.textContent =
+						playtimeSeconds === null
+							? "n/a"
+							: `${formatPlaytime(playtimeSeconds)}+`;
+				}
+			},
+		);
+	})();
+</script>

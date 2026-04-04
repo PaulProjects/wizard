@@ -328,19 +328,35 @@ import SyncModal from "../components/SyncModal.astro";
 	</div>
 	<div class="hidden" id="score"><Score showSettingsButton={false} /></div>
 	<!-- Settings modal -->
-	<Modal id="modal_settings" title="Advanced Options" icon="mdi:tune-variant">
-		<div class="flex flex-col justify-center items-center">
-			<div>
+	<Modal id="modal_settings" title="Data Management" icon="mdi:database-outline">
+		<div class="space-y-4">
+			<p class="text-base-content/80 text-sm">
+				Manage your locally stored game data.
+			</p>
+			
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+				<button class="btn btn-outline btn-sm import_data">
+					<Icon name="mdi:import" class="w-4 h-4" />
+					Import
+				</button>
+				<button id="export_data" class="btn btn-outline btn-sm">
+					<Icon name="mdi:export" class="w-4 h-4" />
+					Export
+				</button>
+			</div>
+
+			<div class="divider my-2"></div>
+
+			<div class="space-y-2">
 				<button
 					id="end_old_games"
-					class="btn btn-secondary btn-block mt-2"
+					class="btn btn-secondary btn-outline btn-block btn-sm"
 				>
+					<Icon name="mdi:clock-outline" class="w-4 h-4" />
 					End Games Older Than 3 Months
 				</button>
-				<button class="btn btn-secondary btn-block mt-2 import_data">
-					Import Games
-				</button>
-				<button id="del_all_local" class="btn btn-primary btn-block mt-2">
+				<button id="del_all_local" class="btn btn-error btn-outline btn-block btn-sm">
+					<Icon name="mdi:delete-outline" class="w-4 h-4" />
 					Delete All Local Data
 				</button>
 			</div>

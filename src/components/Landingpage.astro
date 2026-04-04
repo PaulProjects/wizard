@@ -1,0 +1,273 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Icon } from "astro-icon/components";
+import Lightning from "../components/Lightning.astro";
+import ImportGame from "../components/ImportGame.astro";
+import Modal from "../components/Modal.astro";
+import IndexBento from "../components/IndexBento.astro";
+import { useTranslations } from "../i18n/utils";
+
+interface Props {
+	lang: "en" | "de";
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<Layout
+	title={t("index.title")}
+	description={t("index.description")}
+	lang={lang}
+>
+	<main
+		class="wrapper flex flex-col justify-between w-screen min-h-screen pb-10"
+	>
+		<div
+			class="box w-full p-5 md:w-1/2 lg:mt-10 mx-auto flex-grow flex items-center justify-center"
+		>
+			<div class="w-full">
+				<div class="h-80 flex items-center justify-center">
+					<img
+						class="mt-0 w-full h-full lg:w-4/5"
+						src="/witch.svg"
+						alt="logo"
+					/>
+				</div>
+				<h1
+					class="text-center h-28 text-5xl md:text-6xl flex items-center justify-center"
+				>
+					{t("index.h1")}
+				</h1>
+				<p
+					class="text-center text-base-content/70 mt-3 md:block"
+					id="subtext"
+				>
+					{t("index.subtext")}
+				</p>
+				<div
+					class="text-center text-2xl font-bold font-ostrich mt-2"
+					id="loading"
+				>
+					{t("index.loading")}
+				</div>
+				<nav class="boxbuttons mt-10">
+					<button
+						class="btn btn-secondary mb-2 btn-block"
+						id="new_game"
+						><a href="/setup" class="w-full block"
+							><span id="new_game_text">{t("index.newGame")}</span
+							></a
+						></button
+					>
+					<button
+						class="btn btn-neutral mb-2 btn-block"
+						id="resume_game"
+						><span>{t("index.resumeGame")}</span></button
+					>
+					<button
+						class="btn btn-neutral mb-2 btn-block"
+						id="past_games"
+						><a href="/history" class="w-full block" rel="nofollow"
+							><span>{t("index.pastGames")}</span></a
+						></button
+					>
+					<button
+						class="btn btn-neutral mb-2 btn-block hidden"
+						id="demo_mode"
+						><a
+							href="/game?demo"
+							class="w-full block"
+							rel="nofollow"><span>{t("index.tryDemo")}</span></a
+						></button
+					>
+				</nav>
+
+				<!-- Desktop Scroll Nudge -->
+				<div class="flex not:md:hidden flex-col items-center justify-center mb-0 opacity-50 hover:opacity-100 transition-opacity cursor-pointer animate-subtle-bounce" onclick="window.scrollBy({top: window.innerHeight, behavior: 'smooth'})">
+					<span class="text-sm font-semibold">{t("index.learnMore")}</span>
+					<Icon name="mdi:chevron-down" class="w-6 h-6 mt-1" />
+				</div>
+			</div>
+
+		</div>
+		<!-- Bento Footer Actions -->
+		<IndexBento lang={lang} />
+	</main>
+	<!-- Resume Game Modal -->
+	<Modal
+		id="resume_modal"
+		title="Resume Game"
+		icon="mdi:play-circle-outline"
+		iconClass="text-secondary"
+		modalClass="modal modal-bottom sm:modal-middle"
+	>
+		<p class="py-4 text-base-content/70">
+			Select a game to continue playing:
+		</p>
+
+		<ul id="active_games_list" class="flex flex-col gap-3">
+			<!-- List items here -->
+		</ul>
+	</Modal>
+
+	<ImportGame />
+	<Lightning />
+	<style>
+		.boxbuttons {
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+
+		@keyframes subtle-bounce {
+			0%, 100% {
+				transform: translateY(0);
+			}
+			50% {
+				transform: translateY(5px);
+			}
+		}
+
+		.animate-subtle-bounce {
+			animation: subtle-bounce 2s ease-in-out infinite;
+		}
+	</style>
+	<script>
+		import { gamedata } from "../scripts/game/gamedata";
+
+		const currentLang = document.documentElement.lang || "en";
+		localStorage.setItem("lang", currentLang);
+
+		gamedata.migrate();
+
+		function getAllGames() {
+			try {
+				const stored = localStorage.getItem("wizard.games");
+				if (!stored) return [];
+				const games = JSON.parse(stored);
+				return Array.isArray(games) ? games : [];
+			} catch (e) {
+				return [];
+			}
+		}
+
+		function getActiveGames() {
+			return getAllGames().filter((g: any) => g.isActive);
+		}
+
+		function hasSavedGames(): boolean {
+			return getAllGames().length > 0;
+		}
+
+		//* Function to validate game data stored in local storage */
+		function validateGame(): boolean {
+			return getActiveGames().length > 0;
+		}
+
+		document
+			.getElementById("resume_game")
+			?.addEventListener("click", () => {
+				const active = getActiveGames();
+				if (active.length === 1) {
+					localStorage.setItem("wizard.activegame", active[0].id);
+					location.href = "/game";
+				} else if (active.length > 1) {
+					const modal = document.getElementById(
+						"resume_modal",
+					) as HTMLDialogElement;
+					const list = document.getElementById("active_games_list");
+					if (list) {
+						list.innerHTML = "";
+						active.forEach((g: any) => {
+							const li = document.createElement("li");
+							li.className = "w-full";
+
+							const btn = document.createElement("button");
+							btn.className =
+								"btn btn-outline btn-block h-auto py-3 flex flex-col items-start gap-1 normal-case hover:btn-secondary transition-all";
+
+							const date = new Date(
+								g.time_started,
+							).toLocaleDateString();
+							const names = (g.players || []).join(", ");
+
+							btn.innerHTML = `
+	  <div class="flex items-center justify-between w-full">
+		<span class="font-bold text-lg">${names}</span>
+		<span class="badge badge-sm">${date}</span>
+	  </div>
+	  <div class="text-sm opacity-70 truncate w-full text-left">
+		Round ${g.round}
+	  </div>
+	`;
+
+							btn.onclick = () => {
+								localStorage.setItem("wizard.activegame", g.id);
+								location.href = "/game";
+							};
+							li.appendChild(btn);
+							list.appendChild(li);
+						});
+					}
+					modal.showModal();
+				}
+			});
+
+		document.onreadystatechange = function () {
+			//hide loading text when page is loaded
+			if (document.readyState === "complete") {
+				document.getElementById("loading").classList.add("hidden");
+			}
+
+			//fetch total games count
+			if (document.readyState === "complete") {
+				fetch("https://s.paulbertram.de/wizardsync.php?action=count")
+					.then((response) => response.text())
+					.then((count) => {
+						const el = document.getElementById(
+							"games-played-container",
+						);
+						const countEl =
+							document.getElementById("games-played-count");
+						if (el && countEl && count && !isNaN(parseInt(count))) {
+							countEl.textContent = count;
+							// Show the count visually instead of standard hidden
+							el.classList.remove("hidden");
+							el.classList.add("block");
+						}
+					})
+					.catch(console.error);
+			}
+
+			// Hide/show history and demo actions based on stored games
+			if (!hasSavedGames()) {
+				document.getElementById("past_games")?.classList.add("hidden");
+				document
+					.getElementById("demo_mode")
+					?.classList.remove("hidden");
+			}
+
+			//hide resume game button if no valid game is stored
+			if (!validateGame()) {
+				document.getElementById("resume_game").classList.add("hidden");
+			}
+		};
+
+		//loading indicator when new game is clicked
+		document
+			.getElementById("new_game")
+			.addEventListener("click", function () {
+				location.href = "/setup";
+				document.getElementById("new_game_text").innerHTML =
+					`Loading...`;
+			});
+
+		// Sync Account Logic
+		import { SyncManager } from "../scripts/sync";
+
+		void SyncManager.maybeAutoAssignSyncCode();
+	</script>
+</Layout>
