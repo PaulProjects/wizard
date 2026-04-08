@@ -1,6 +1,6 @@
 export const languages = {
 	en: "English",
-	de: "Deutsch",
+	de: "German",
 };
 
 export const defaultLang = "en";
@@ -55,6 +55,26 @@ export const ui = {
 		en: "Learn more",
 		de: "Mehr erfahren",
 		info: "Scroll nudge text at the bottom of the hero section.",
+	},
+	"index.languagePrompt.title": {
+		en: "Switch language?",
+		de: "Sprache wechseln?",
+		info: "Title for the browser language suggestion modal on the index page.",
+	},
+	"index.languagePrompt.body": {
+		en: "Your browser appears to prefer German. Would you like to switch to the German version?",
+		de: "Dein Browser scheint Englisch zu bevorzugen. Möchtest du zur englischen Version wechseln?",
+		info: "Body text for the browser language suggestion modal on the index page.",
+	},
+	"index.languagePrompt.accept": {
+		en: "Switch now",
+		de: "Jetzt wechseln",
+		info: "Primary action text for the browser language suggestion modal.",
+	},
+	"index.languagePrompt.decline": {
+		en: "No, thanks",
+		de: "Nein, danke",
+		info: "Secondary action text for the browser language suggestion modal.",
 	},
 	"index.seo.h2": {
 		en: "The Digital Score Sheet for Wizard",

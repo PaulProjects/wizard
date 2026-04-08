@@ -5,6 +5,7 @@ import Lightning from "../components/Lightning.astro";
 import ImportGame from "../components/ImportGame.astro";
 import Modal from "../components/Modal.astro";
 import IndexBento from "../components/IndexBento.astro";
+import { languages } from "../i18n/ui";
 import { useTranslations } from "../i18n/utils";
 
 interface Props {
@@ -21,8 +22,36 @@ const t = useTranslations(lang);
 	lang={lang}
 >
 	<main
-		class="wrapper flex flex-col justify-between w-screen min-h-screen pb-10"
+			class="wrapper relative flex flex-col justify-between w-screen min-h-screen pb-10"
 	>
+			<nav
+				class="absolute right-4 top-4 z-20 inline-flex items-center gap-1 rounded-full border border-base-content/10 bg-base-100/80 px-2 py-1 text-xs font-semibold shadow-lg backdrop-blur"
+				aria-label="Language switcher"
+			>
+				<a
+					href="/de/"
+					aria-current={lang === "de" ? "page" : undefined}
+					class:list={{
+						"rounded-full px-3 py-1 transition-colors": true,
+						"border border-base-content/30 bg-transparent text-base-content": lang === "de",
+						"bg-transparent text-base-content": lang !== "de",
+					}}
+				>
+					{languages.de}
+				</a>
+				<span class="px-1 text-base-content/30">/</span>
+				<a
+					href="/"
+					aria-current={lang === "en" ? "page" : undefined}
+					class:list={{
+						"rounded-full px-3 py-1 transition-colors": true,
+						"border border-base-content/30 bg-transparent text-base-content": lang === "en",
+						"bg-transparent text-base-content": lang !== "en",
+					}}
+				>
+					{languages.en}
+				</a>
+			</nav>
 		<div
 			class="box w-full p-5 md:w-1/2 lg:mt-10 mx-auto flex-grow flex items-center justify-center"
 		>
@@ -111,6 +140,34 @@ const t = useTranslations(lang);
 		</ul>
 	</Modal>
 
+	<Modal
+		id="language_modal"
+		title={t("index.languagePrompt.title")}
+		icon="mdi:translate"
+		iconClass="text-secondary"
+		modalClass="modal modal-bottom sm:modal-middle"
+	>
+		<p class="py-4 text-base-content/70">
+			{t("index.languagePrompt.body")}
+		</p>
+		<div class="flex flex-col sm:flex-row gap-3 justify-end h-10">
+			<button
+				id="language_decline"
+				type="button"
+				class="btn btn-sm w-1/2 h-full"
+			>
+				{t("index.languagePrompt.decline")}
+			</button>
+			<button
+				id="language_accept"
+				type="button"
+				class="btn btn-secondary btn-sm w-1/2 h-full"
+			>
+				{t("index.languagePrompt.accept")}
+			</button>
+		</div>
+	</Modal>
+
 	<ImportGame />
 	<Lightning />
 	<style>
@@ -139,9 +196,57 @@ const t = useTranslations(lang);
 		import { gamedata } from "../scripts/game/gamedata";
 
 		const currentLang = document.documentElement.lang || "en";
+		const languagePromptDeclinedKey = "wizard.languagePromptDeclined";
 		localStorage.setItem("lang", currentLang);
 
 		gamedata.migrate();
+
+		function detectBrowserLanguage() {
+			const browserLanguage = (navigator.languages?.[0] || navigator.language || "")
+				.toLowerCase();
+			return browserLanguage.startsWith("de") ? "de" : "en";
+		}
+
+		function maybeShowLanguagePrompt() {
+			let declined = false;
+			try {
+				declined = localStorage.getItem(languagePromptDeclinedKey) === "true";
+			} catch {
+				declined = true;
+			}
+
+			if (declined) return;
+
+			const browserLang = detectBrowserLanguage();
+			if (browserLang === currentLang) return;
+
+			const modal = document.getElementById("language_modal");
+			if (!(modal instanceof HTMLDialogElement)) return;
+
+			const acceptButton = document.getElementById("language_accept");
+			const declineButton = document.getElementById("language_decline");
+			const targetHref = browserLang === "de" ? "/de/" : "/";
+
+			acceptButton?.addEventListener("click", () => {
+				modal.close();
+				location.href = targetHref;
+			});
+
+			declineButton?.addEventListener("click", () => {
+				try {
+					localStorage.setItem(languagePromptDeclinedKey, "true");
+				} catch {
+					// Ignore storage failures and just close the modal.
+				}
+				modal.close();
+			});
+
+			if (!modal.open) {
+				modal.showModal();
+			}
+		}
+
+		maybeShowLanguagePrompt();
 
 		function getAllGames() {
 			try {
