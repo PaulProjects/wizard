@@ -233,6 +233,8 @@ function renderGames() {
     displayedGames.forEach(game => {
         const gameId = game.getID();
         const players = game.getPlayers();
+		const score = game.getScore();
+		const roundsPlayed = score.length;
 		const time_started = game.getTimeStarted();
 		const time_ended = game.getTimeEnded();
 		const time_diff = time_ended ? (time_ended - time_started) : 0;
@@ -257,6 +259,7 @@ function renderGames() {
 								 <span class="inline-block font-bold">${date_string}</span>
 								 <div class="flex items-center gap-2">
 									 ${isActive ? '<span class="badge badge-primary">Active</span>' : ''}
+									 <span class="badge badge-outline">${roundsPlayed} Round${roundsPlayed === 1 ? '' : 's'}</span>
 									 ${
 						!isActive && !isNaN(time_diff_minutes)
 							? `<span class="">${time_diff_minutes} Minutes</span>`
@@ -298,7 +301,6 @@ function renderGames() {
         listContainer.appendChild(card);
 
         // Populate table
-		let score = game.getScore();
 		let last_row =
 			score.length > 0
 				? score[score.length - 1]
@@ -393,9 +395,29 @@ function renderGames() {
 		}
     });
 
-    if (displayedGames.length === 0) {
-        listContainer.innerHTML = `<div class="p-10 opacity-50 text-center">No games found matching your filters.</div>`;
-    }
+	if (displayedGames.length === 0) {
+		listContainer.innerHTML = `
+			<div class="p-10 text-center">
+				<div class="opacity-50">No games found matching your filters.</div>
+				<button id="history-clear-options" class="btn btn-sm mt-4">Clear options</button>
+			</div>`;
+
+		const clearOptionsButton = document.getElementById("history-clear-options");
+		if (clearOptionsButton) {
+			clearOptionsButton.addEventListener("click", () => {
+				currentSearch = "";
+				currentSort = DEFAULT_SORT;
+				currentFilter = "all";
+
+				if (searchInput) searchInput.value = currentSearch;
+				if (sortSelect) sortSelect.value = currentSort;
+				if (filterSelect) filterSelect.value = currentFilter;
+
+				writeListStateToUrl();
+				renderGames();
+			});
+		}
+	}
 }
 
 async function syncGamesFromServerOnHistoryOpen() {
