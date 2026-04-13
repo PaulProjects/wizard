@@ -670,7 +670,7 @@ export class GameController {
 		this.uiManager.updateUIForStep(step!);
 
 		if (step === GameStep.ENTER_TRICKS) {
-			if (!this.shouldRevealFullBlindBetsFirst()) {
+			if (!this.isFullBlindActive() && !this.shouldRevealFullBlindBetsFirst()) {
 				this.updateBetDisplay();
 				this.tutorialManager.runBetDisplayTour();
 			} else {
