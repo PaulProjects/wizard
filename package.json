@@ -14,7 +14,7 @@
     "@astrojs/tailwind": "^6.0.2",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify-json/mi": "^1.2.2",
-    "@openreplay/tracker": "^16.4.7",
+    "@openreplay/tracker": "^18.0.5",
     "astro": "^5.12.8",
     "astro-icon": "^1.1.5",
     "astro-seo": "^0.8.4",
