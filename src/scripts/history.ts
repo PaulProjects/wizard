@@ -258,8 +258,8 @@ function renderGames() {
               <div class="flex justify-between items-center pl-3 pt-3 pr-3">
 								 <span class="inline-block font-bold">${date_string}</span>
 								 <div class="flex items-center gap-2">
-									 ${isActive ? '<span class="badge badge-primary">Active</span>' : ''}
-									 <span class="badge badge-outline">${roundsPlayed} Round${roundsPlayed === 1 ? '' : 's'}</span>
+									 ${isActive ? '<span class="badge badge-primary badge-outline">Active</span>' : ''}
+									 <span class="badge badge-outline">${roundsPlayed}</span>
 									 ${
 						!isActive && !isNaN(time_diff_minutes)
 							? `<span class="">${time_diff_minutes} Minutes</span>`
