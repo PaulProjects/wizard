@@ -440,6 +440,10 @@ export class GameController {
 			this.game.setMaxRounds(Number.MAX_SAFE_INTEGER); // Infinite rounds
 		}
 
+		// Re-activate the game if it was ended
+		this.game.isActive = true;
+		this.game.setTimeEnded(undefined);
+
 		this.uiManager.showElement("endgame");
 		this.uiManager.showElement("savequit");
 		this.uiManager.hideElement("continuegame");
@@ -452,14 +456,38 @@ export class GameController {
 		this.update();
 	}
 
+	private transitionToCelebration(): void {
+		this.game.setStep(GameStep.CELEBRATION);
+		this.game.setDisplay(GameDisplay.SCORE_OVERVIEW);
+		this.uiManager.updateNavigationStyle(true);
+		
+		if (this.game.isActive) {
+			this.game.setTimeEnded(Date.now());
+			this.game.isActive = false;
+			
+			Logger.event("game.finish", {
+				id: this.game.getID(),
+				rounds: this.game.getRound(),
+				players: this.players,
+			});
+
+			// Save the ended state
+			this.game.save();
+
+			SyncManager.sync(this.game).catch(e => {
+				Logger.error("Background sync error on game end", { error: (e as Error)?.message });
+			});
+		}
+	}
+
 	private handleEndGame(): void {
 		if (this.game.getRound() === 1) {
-			localStorage.removeItem("game");
+			localStorage.removeItem("wizard.activegame");
+			this.game.isActive = false;
+			this.game.save();
 			location.href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
 		} else {
-			this.game.setStep(GameStep.CELEBRATION);
-			this.game.setDisplay(GameDisplay.SCORE_OVERVIEW);
-			this.uiManager.updateNavigationStyle(true);
+			this.transitionToCelebration();
 			this.saveGame();
 			this.update();
 		}
@@ -574,7 +602,7 @@ export class GameController {
 
 		// Check if game should end or continue
 		if (this.game.getRound() >= this.game.getMaxRounds()) {
-			this.game.setStep(GameStep.CELEBRATION);
+			this.transitionToCelebration();
 		} else {
 			// Advance to next round
 			this.game.nextRound();
@@ -611,15 +639,8 @@ export class GameController {
 
 	private async finishGame(): Promise<void> {
 		this.uiManager.setNavigationText("Saving...");
-		this.game.setTimeEnded(Date.now());
-		this.game.isActive = false;
 		this.game.save();
 		localStorage.removeItem("wizard.activegame");
-		Logger.event("game.finish", {
-			id: this.game.getID(),
-			rounds: this.game.getRound(),
-			players: this.players,
-		});
 
 		try {
 			await SyncManager.sync(this.game);

@@ -1009,7 +1009,7 @@ export class GameData implements GameState {
 	setTimeStarted(timeStarted: number): void {
 		this.time_started = timeStarted;
 	}
-	setTimeEnded(timeEnded: number): void {
+	setTimeEnded(timeEnded: number | undefined): void {
 		this.time_ended = timeEnded;
 	}
 	setId(id: string): void {
