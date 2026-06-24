@@ -40,3 +40,12 @@ jobs:
                   pass: ${{ secrets.SFTP_PASSWORD }}
                   localDir: "./dist"
                   remoteDir: "./www"
+    indexnow:
+        runs-on: ubuntu-latest
+        steps:
+            - name: indexnow-action
+              uses: bojieyang/indexnow-action@v2
+              with:
+                sitemap-location: 'https://wizard.paulbertram.de/sitemap-0.xml'
+                key: ${{ secrets.INDEXNOW_KEY }}
+                lastmod-required: false
