@@ -1,87 +1,134 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { Icon } from "astro-icon/components";
+import Modal from "../components/Modal.astro";
 ---
 
-<Layout title="Wizard - shared game">
-  <div id="start" class="hidden max-w-2xl mx-auto">
-    <div class="flex pt-5 justify-center h-screen">
-      <div class="text-center w-full px-10">
-        <h1 class="text-4xl font-bold">Shared Wizard Game</h1>
-        <p id="import_id" class="text-md inline font-sans">Loading...</p>
-        <canvas
-          id="qr_canvas"
-          class="mx-auto border-2 border-gray-300 rounded-md mt-5"></canvas>
-        <div class="card mt-10 bg-base-200 w-full" id="import_card">
-          <div class="card-body w-full h-full">
-            <div class="w-full h-8">
-              <span class="float-left" id="date"></span>
-              <span class="float-right" id="duration"> Minutes</span>
+<Layout title="Wizard - Shared Game">
+  <div id="start" class="hidden max-w-2xl mx-auto px-4 py-6">
+    <div class="flex flex-col min-h-screen">
+      <!-- Top Bar Navigation -->
+      <div class="flex items-center justify-between mb-6">
+        <div id="tl_container">
+          <button
+            class="btn btn-square btn-outline"
+            id="tlbtn"
+            aria-label="Back"
+          >
+            <Icon name="mdi:chevron-left" class="w-6 h-6" />
+          </button>
+        </div>
+        <div
+          id="title"
+          class="prose prose-sm md:prose-base flex-grow text-center"
+        >
+          <h1 class="text-3xl font-bold m-0">Shared Game</h1>
+        </div>
+        <div class="w-10"></div>
+      </div>
+
+      <div class="text-center w-full">
+        <!-- Game Info Card -->
+        <div class="card bg-base-200 w-full shadow-sm" id="import_card">
+          <div class="card-body p-4 sm:p-6">
+            <div
+              class="flex justify-between items-center text-sm font-semibold pb-3 border-b border-base-300"
+            >
+              <div class="flex items-center gap-1.5 opacity-80">
+                <Icon name="mdi:calendar-outline" class="w-4 h-4" />
+                <span id="date">--.--.----</span>
+              </div>
+              <div class="flex items-center gap-1.5 opacity-80">
+                <Icon name="mdi:clock-outline" class="w-4 h-4" />
+                <span id="duration">-- Minutes</span>
+              </div>
             </div>
-            <div class="overflow-x-auto">
-              <table class="table">
-                <!-- head -->
+
+            <div class="overflow-x-auto mt-2">
+              <table class="table table-zebra w-full">
                 <thead>
                   <tr>
-                    <th>Position</th>
-                    <th>Name</th>
-                    <th>Points</th>
+                    <th class="w-16 text-center">Rank</th>
+                    <th class="text-left">Name</th>
+                    <th class="text-right">Points</th>
                   </tr>
                 </thead>
-                <tbody id="import_table"> </tbody>
+                <tbody id="import_table"></tbody>
               </table>
             </div>
           </div>
         </div>
-        <br />
-        <button class="btn btn-block btn-secondary" id="copy-url"
-          >Copy link</button
-        >
-        <div class="pt-4"></div>
-        <button class="btn btn-block btn-secondary" id="import-game"
-          >Import the game</button
-        >
-        <div class="pt-4"></div>
-        <a href="/" class="btn btn-block btn-secondary">Back to home</a>
+
+        <!-- Action Buttons -->
+        <div class="mt-6 flex flex-col gap-3">
+          <button
+            class="btn btn-secondary btn-block text-base font-semibold shadow-md"
+            id="view-game"
+          >
+            <Icon name="mdi:eye-outline" class="w-5 h-5 mr-1" />
+            Add Game
+          </button>
+
+          <button
+            class="btn btn-secondary btn-outline btn-block"
+            id="share-btn"
+          >
+            <Icon name="mdi:share-variant-outline" class="w-5 h-5 mr-1" />
+            Share
+          </button>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Loading State -->
   <div class="flex items-center justify-center h-screen" id="loading">
     <div class="text-center">
-      <span class="loading loading-infinity loading-lg"></span>
-      <h1 class="text-2xl font-bold">Loading game...</h1>
+      <span class="loading loading-infinity loading-lg text-primary"></span>
+      <h1 class="text-2xl font-bold mt-4">Loading game...</h1>
     </div>
   </div>
+
+  <!-- Error State -->
   <div id="error" class="hidden">
-    <div class="flex items-center justify-center h-screen">
-      <div class="text-center">
-        <Icon name="mdi:alert-circle-outline" class="text-red-500 w-16 h-16" />
-        <br />
-        <h1 class="text-2xl font-bold">Error</h1>
-        <p id="errorcode"></p>
-        <br />
-        <a href="/" class="btn btn-block btn-secondary">Back to home</a>
-      </div>
-    </div>
-  </div>
-  <div class="hidden" id="success">
-    <div class="flex items-center justify-center h-screen">
-      <div class="text-center">
+    <div class="flex items-center justify-center h-screen px-4">
+      <div class="text-center max-w-md">
         <Icon
-          name="mdi:check-circle-outline"
-          class="text-green-500 w-16 h-16"
+          name="mdi:alert-circle-outline"
+          class="text-error w-16 h-16 mx-auto mb-2"
         />
-        <h1 class="text-2xl font-bold">Success</h1>
-        <p id="success_message">The game has been imported successfully.</p>
-        <br />
-        <a href="/history" id="view_game" class="btn btn-block btn-secondary"
-          >View Game</a
-        >
-        <div class="pt-4"></div>
-        <a href="/" class="btn btn-block btn-secondary">Back to home</a>
+        <h1 class="text-2xl font-bold">Unable to load game</h1>
+        <p id="errorcode" class="text-base-content/70 mt-2 mb-6"></p>
+        <button class="btn btn-outline btn-block" id="error_back_btn">
+          <Icon name="mdi:chevron-left" class="w-5 h-5 mr-1" />
+          Back
+        </button>
       </div>
     </div>
   </div>
+
+  <!-- Share / QR Code Modal -->
+  <Modal id="qr_modal" title="Share Game" icon="mdi:share-variant-outline">
+    <div class="flex flex-col items-center justify-center py-2 space-y-4">
+      <div class="bg-white p-3 rounded-2xl shadow-inner border border-base-300">
+        <canvas id="qr_modal_canvas" class="mx-auto block"></canvas>
+      </div>
+      <p class="text-sm text-center text-base-content/70 max-w-xs">
+        Scan this QR code with another camera to view this game, or copy the
+        link below.
+      </p>
+      <div class="w-full max-w-xs space-y-2">
+        <button class="btn btn-secondary btn-outline w-full" id="qr_modal_copy">
+          <Icon name="mdi:content-copy" class="w-4 h-4 mr-1" />
+          Copy link
+        </button>
+        <button class="btn btn-secondary w-full hidden" id="native-share">
+          <Icon name="mdi:share-variant-outline" class="w-4 h-4 mr-1" />
+          Share via...
+        </button>
+      </div>
+    </div>
+  </Modal>
 </Layout>
 
 <script>

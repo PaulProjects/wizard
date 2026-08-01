@@ -3,18 +3,16 @@ import QRCode from "qrcode";
 import { SyncManager } from "./sync.ts";
 import { Logger } from "./logger.ts";
 
-function error(error: any) {
-	document.getElementById("loading").classList.add("hidden");
-	document.getElementById("start").classList.add("hidden");
-	document.getElementById("error").classList.remove("hidden");
-	document.getElementById("errorcode").textContent = error;
-}
-function success(msg: string) {
-	document.getElementById("loading").classList.add("hidden");
-	document.getElementById("start").classList.add("hidden");
-	document.getElementById("success_message").textContent =
-		msg || "The game has been imported successfully.";
-	document.getElementById("success").classList.remove("hidden");
+function showError(msg: any) {
+	const loadingElement = document.getElementById("loading");
+	const startElement = document.getElementById("start");
+	const errorElement = document.getElementById("error");
+	const errorcodeElement = document.getElementById("errorcode");
+
+	if (loadingElement) loadingElement.classList.add("hidden");
+	if (startElement) startElement.classList.add("hidden");
+	if (errorElement) errorElement.classList.remove("hidden");
+	if (errorcodeElement) errorcodeElement.textContent = String(msg);
 }
 
 function gameExists(id: string): boolean {
@@ -28,49 +26,94 @@ function gameExists(id: string): boolean {
 	}
 }
 
-//read the game id from the url
+function goBack() {
+	if (window.history.length > 1 && document.referrer) {
+		window.history.back();
+	} else {
+		const isDe = localStorage.getItem("lang") === "de";
+		window.location.href = isDe ? "/de/" : "/";
+	}
+}
+
+function copyToClipboard(button: HTMLElement | null) {
+	if (!button) return;
+	navigator.clipboard.writeText(window.location.href).then(() => {
+		const originalHTML = button.innerHTML;
+		button.innerHTML = `<span class="text-success font-bold">Copied!</span>`;
+		setTimeout(() => {
+			button.innerHTML = originalHTML;
+		}, 2000);
+	}).catch((err) => {
+		Logger.error("Failed to copy URL", { error: err });
+	});
+}
+
+function setupShareModal() {
+	const qrModalCanvas = document.getElementById("qr_modal_canvas") as HTMLCanvasElement | null;
+	const shareBtn = document.getElementById("share-btn");
+	const qrModal = document.getElementById("qr_modal") as HTMLDialogElement | null;
+
+	if (qrModalCanvas) {
+		QRCode.toCanvas(qrModalCanvas, window.location.href, { width: 260, margin: 2 })
+			.then(() => Logger.debug("Modal QR generated"))
+			.catch((err) => Logger.error("Modal QR generation failed", { error: err?.message }));
+	}
+
+	const openModal = () => {
+		if (qrModal) {
+			if (typeof qrModal.showModal === "function") {
+				qrModal.showModal();
+			} else {
+				qrModal.open = true;
+			}
+		}
+	};
+
+	shareBtn?.addEventListener("click", openModal);
+
+	const qrModalCopyBtn = document.getElementById("qr_modal_copy");
+	qrModalCopyBtn?.addEventListener("click", () => copyToClipboard(qrModalCopyBtn));
+
+	const nativeShareBtn = document.getElementById("native-share");
+	if (nativeShareBtn && typeof navigator.share === "function") {
+		nativeShareBtn.classList.remove("hidden");
+		nativeShareBtn.addEventListener("click", () => {
+			navigator.share({
+				title: "Wizard Game",
+				url: window.location.href,
+			}).catch(() => { });
+		});
+	}
+}
+
+// Read game ID from URL
 const gameId = new URLSearchParams(window.location.search).get("id");
 
 if (gameId === null) {
-	error("Not a valid link");
+	showError("Not a valid share link");
 } else {
-	const importIdElement = document.getElementById("import_id");
-	if (importIdElement) {
-		importIdElement.textContent = "Game id: " + gameId;
-	}
-
 	SyncManager.load(gameId)
 		.then(async (result) => {
 			if (Array.isArray(result)) {
 				// Status 210: List of games
-				Logger.info("Importing multiple games", {
-					count: result.length,
-				});
-				let importedCount = 0;
+				Logger.info("Importing multiple games", { count: result.length });
 
 				for (const id of result) {
-					if (gameExists(id)) {
-						Logger.info("Game already exists, skipping", { id });
-						continue;
-					}
+					if (gameExists(id)) continue;
 					try {
 						const game = await SyncManager.load(id);
 						if (game instanceof GameData) {
 							game.isActive = false;
 							game.save();
-							importedCount++;
-							Logger.info("Imported game", { id });
 						}
 					} catch (e) {
-						Logger.error("Failed to import individual game", {
-							id,
-							error: e,
-						});
+						Logger.error("Failed to import game from list", { id, error: e });
 					}
 				}
-				success(
-					`${importedCount} games have been imported successfully.`
-				);
+
+				// Open history page directly
+				const isDe = localStorage.getItem("lang") === "de";
+				window.location.href = isDe ? "/de/history" : "/history";
 			} else {
 				// Single game
 				const game = result as GameData;
@@ -80,136 +123,107 @@ if (gameId === null) {
 				if (startElement) startElement.classList.remove("hidden");
 
 				try {
-					Logger.debug("Imported game json", { game });
+					const players = game.getPlayers();
+					const timeStarted = game.getTimeStarted();
+					const timeEnded = game.getTimeEnded();
+					const timeDiffMinutes = Math.floor((timeEnded - timeStarted) / 60000);
 
-					let players = game.getPlayers();
-
-					let time_started = game.getTimeStarted();
-					Logger.debug("Game time started", { time_started });
-					let time_ended = game.getTimeEnded();
-					Logger.debug("Game time ended", { time_ended });
-					let time_diff = time_ended - time_started;
-					let time_diff_minutes = Math.floor(time_diff / 60000);
-
-					//Extract date from time_ended
-					let date = new Date(time_ended);
-					let day = date.getDate();
-					//write month as string
-					let month = date.toLocaleString("default", {
-						month: "short",
-					});
-					let year = date.getFullYear();
-					let date_string = `${day}.${month}.${year}`;
+					const date = new Date(timeEnded);
+					const day = date.getDate();
+					const month = date.toLocaleString("default", { month: "short" });
+					const year = date.getFullYear();
+					const dateString = `${day}. ${month} ${year}`;
 
 					const dateElement = document.getElementById("date");
 					const durationElement = document.getElementById("duration");
-					if (dateElement) dateElement.textContent = date_string;
-					if (durationElement)
-						durationElement.textContent =
-							time_diff_minutes + " Minutes";
+					if (dateElement) dateElement.textContent = dateString;
+					if (durationElement) durationElement.textContent = `${timeDiffMinutes} Minutes`;
 
-					let score = game.getScore();
-					//extract last row of score
-					let last_row = score[score.length - 1];
-					//create a new array with the players and their points
-					let p_s = [];
-					for (let j = 0; j < players.length; j++) {
-						p_s.push({
-							name: players[j],
-							points: last_row[j],
-						});
-					}
+					const score = game.getScore();
+					const lastRow = score[score.length - 1] || [];
+					const playerStats = players.map((name, idx) => ({
+						name,
+						points: lastRow[idx] ?? 0,
+						position: 1,
+					}));
 
-					//sort by points
-					p_s.sort((a, b) => {
-						return b.points - a.points;
-					});
+					// Sort by points descending
+					playerStats.sort((a, b) => b.points - a.points);
 
-					//give them a position number, two players with the same points will have the same position
-					for (let j = 0; j < p_s.length; j++) {
-						if (j > 0) {
-							if (p_s[j].points === p_s[j - 1].points) {
-								p_s[j].position = p_s[j - 1].position;
-							} else {
-								p_s[j].position = j + 1;
-							}
+					// Assign positions (ties get same position)
+					for (let i = 0; i < playerStats.length; i++) {
+						if (i > 0 && playerStats[i].points === playerStats[i - 1].points) {
+							playerStats[i].position = playerStats[i - 1].position;
 						} else {
-							p_s[j].position = j + 1;
+							playerStats[i].position = i + 1;
 						}
 					}
 
-					// loop through players and add them to the table
+					// Populate leaderboard table
 					const importTable = document.getElementById("import_table");
 					if (importTable) {
-						// clear existing if any
 						importTable.innerHTML = "";
-						for (let j = 0; j < p_s.length; j++) {
+						playerStats.forEach((p) => {
 							const row = document.createElement("tr");
 
-							const positionCell = document.createElement("th");
-							positionCell.textContent =
-								p_s[j].position.toString();
-							row.appendChild(positionCell);
+							const posCell = document.createElement("th");
+							posCell.className = "text-center font-bold";
+							if (p.position === 1) {
+								posCell.innerHTML = `<span class="badge badge-secondary badge-sm">1</span>`;
+							} else {
+								posCell.textContent = p.position.toString();
+							}
+							row.appendChild(posCell);
 
 							const nameCell = document.createElement("td");
-							nameCell.textContent = p_s[j].name;
+							nameCell.className = "text-left font-medium";
+							nameCell.textContent = p.name;
 							row.appendChild(nameCell);
 
 							const pointsCell = document.createElement("td");
-							pointsCell.textContent = p_s[j].points.toString();
+							pointsCell.className = "text-right font-bold";
+							pointsCell.textContent = p.points.toString();
 							row.appendChild(pointsCell);
 
-							if (importTable) importTable.appendChild(row);
+							if (p.position === 1) {
+								row.classList.add("bg-primary/10");
+							}
 
-							if (j === 0) row.classList.add("bg-info");
-						}
+							importTable.appendChild(row);
+						});
 					}
 
-					const importGameButton =
-						document.getElementById("import-game");
-					if (importGameButton) {
-						importGameButton.addEventListener("click", function () {
+					// "View Game" Button handler
+					const viewGameButton = document.getElementById("view-game");
+					if (viewGameButton) {
+						viewGameButton.addEventListener("click", () => {
 							if (!gameExists(game.id!)) {
 								game.isActive = false;
 								game.save();
-							} else {
-								Logger.info("Game already exists", {
-									id: game.id,
-								});
+								Logger.info("Game saved to local storage", { id: game.id });
 							}
-
-							const viewGameLink = document.getElementById(
-								"view_game"
-							) as HTMLAnchorElement;
-							if (viewGameLink)
-								viewGameLink.href = "/history?id=" + gameId;
-							success("The game has been imported successfully");
+							window.location.href = `/history?id=${encodeURIComponent(gameId)}`;
 						});
 					}
 				} catch (e) {
-					error("Invalid game data" + e);
+					showError("Invalid game data: " + e);
 				}
 			}
 		})
 		.catch((err) => {
-			error(err.message);
+			showError(err.message || "Failed to load game");
 		});
 
-	QRCode.toCanvas(document.getElementById("qr_canvas"), window.location.href)
-		.then((url) => {
-			Logger.debug("QR generated");
-		})
-		.catch((err) => {
-			Logger.error("QR generation failed", { error: err?.message });
-		});
-
-	document.getElementById("copy-url").addEventListener("click", function () {
-		navigator.clipboard.writeText(window.location.href);
-	});
+	setupShareModal();
 }
 
+// Global button handlers
 document.addEventListener("DOMContentLoaded", () => {
-	document.querySelectorAll('a[href="/"]').forEach((link) => {
-		(link as HTMLAnchorElement).href = localStorage.getItem("lang") === "de" ? "/de/" : "/";
-	});
+	// Top left back button
+	const tlBtn = document.getElementById("tlbtn");
+	tlBtn?.addEventListener("click", goBack);
+
+	// Error view back button
+	const errorBackBtn = document.getElementById("error_back_btn");
+	errorBackBtn?.addEventListener("click", goBack);
 });
