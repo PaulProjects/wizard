@@ -428,8 +428,19 @@ async function syncGamesFromServerOnHistoryOpen() {
 	const beforeCount = JSON.parse(localStorage.getItem("wizard.games") || "[]")
 		.length;
 
+	const syncBtn = document.getElementById("sync_btn");
+	// Push phase fills the first half of the ring, pull/import the second half.
+	const phaseStart = { waiting: 0, pushing: 0, pulling: 0.5, importing: 0.5, done: 1 };
+
 	try {
-		await SyncManager.syncAccount(syncCodeAtLoad);
+		await SyncManager.syncAccount(syncCodeAtLoad, (progress) => {
+			if (!syncBtn) return;
+			const done = progress.total > 0 ? progress.processed / progress.total : 1;
+			const start = phaseStart[progress.phase];
+			const fraction = progress.phase === "done" ? 1 : start + 0.5 * done;
+			syncBtn.dataset.syncing = "";
+			syncBtn.style.setProperty("--sync-progress", `${Math.round(fraction * 100)}%`);
+		});
 		const afterCount = JSON.parse(localStorage.getItem("wizard.games") || "[]")
 			.length;
 
@@ -444,6 +455,8 @@ async function syncGamesFromServerOnHistoryOpen() {
 		Logger.warn("History page sync on open failed", {
 			error: (error as Error)?.message,
 		});
+	} finally {
+		setTimeout(() => syncBtn?.removeAttribute("data-syncing"), 600);
 	}
 }
 

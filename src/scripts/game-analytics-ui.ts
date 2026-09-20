@@ -1,558 +1,549 @@
-import Chart from 'chart.js/auto';
+import Chart from "chart.js/auto";
 import { GameData as gamedata } from "./game/gamedata.ts";
 import { Logger } from "./logger.ts";
+import {
+	crosshair,
+	hoverInteraction,
+	valueLabels,
+	zoomOptions,
+} from "./chart-helpers.ts";
+import {
+	bucketKey,
+	bucketRange,
+	startOfBucket,
+	type Granularity,
+} from "./date-buckets.ts";
+
+const PALETTE = [
+	"rgba(255, 99, 132, 0.7)",
+	"rgba(54, 162, 235, 0.7)",
+	"rgba(255, 206, 86, 0.7)",
+	"rgba(75, 192, 192, 0.7)",
+	"rgba(153, 102, 255, 0.7)",
+	"rgba(255, 159, 64, 0.7)",
+	"rgba(99, 102, 241, 0.7)",
+	"rgba(34, 197, 94, 0.7)",
+];
+
+const BASE_OPTIONS = {
+	responsive: true,
+	maintainAspectRatio: false,
+	interaction: hoverInteraction,
+	layout: { padding: { top: 28, left: 8, right: 8 } },
+	scales: {
+		y: {
+			beginAtZero: true,
+			grace: "12%",
+			ticks: { precision: 0 },
+			grid: { color: "rgba(255, 255, 255, 0.05)" },
+		},
+		x: { grid: { display: false } },
+	},
+} as const;
 
 export class GameAnalyticsUI {
-    private games: gamedata[];
-    private charts: { [key: string]: Chart } = {};
-    private isInitialized = false;
+	private games: gamedata[];
+	private charts: Record<string, Chart<any, any, any>> = {};
+	private isInitialized = false;
+	private deviations?: { dist: Map<number, number>; entries: number; sum: number };
 
-    constructor(games: gamedata[]) {
-        this.games = games;
-    }
+	private opts: Record<string, string> = {
+		gamesOverTime: "month",
+		duration: "buckets",
+		betting: "detail",
+	};
 
-    public render() {
-        if (this.isInitialized) return; // Or maybe update? For now assume static data
-        
-        try {
-            this.renderSummary();
-            this.renderGamesOverTime();
-            this.renderDurationDistribution();
-            this.renderPlayerCounts();
-            this.renderBettingBehavior();
-            this.renderRuleUsage();
-            this.isInitialized = true;
-        } catch (e) {
-            Logger.error("Failed to render game analytics", { error: (e as Error).message });
-        }
-    }
+	private renderers: Record<string, () => void> = {
+		gamesOverTime: () => this.renderGamesOverTime(),
+		duration: () => this.renderDurationDistribution(),
+		playerCounts: () => this.renderPlayerCounts(),
+		betting: () => this.renderBettingBehavior(),
+		rules: () => this.renderRuleUsage(),
+	};
 
-    private renderSummary() {
-        const completedGames = this.games.filter(g => !g.isActive);
-        
-        // Total Games
-        const totalGames = this.games.length;
-        const elTotalGames = document.getElementById("ga-total-games");
-        if(elTotalGames) elTotalGames.innerText = totalGames.toString();
+	constructor(games: gamedata[]) {
+		this.games = games;
+	}
 
-        // Unique Players
-        const uniquePlayers = new Set<string>();
-        this.games.forEach(g => {
-            g.getPlayers().forEach(p => uniquePlayers.add(p));
-        });
-        const elTotalPlayers = document.getElementById("ga-total-players");
-        if(elTotalPlayers) elTotalPlayers.innerText = uniquePlayers.size.toString();
+	public render() {
+		if (this.isInitialized) return;
 
-        // Total Playtime
-        let totalMs = 0;
-        completedGames.forEach(g => {
-             const start = g.getTimeStarted();
-             const end = g.getTimeEnded();
-             if (start && end) {
-                 totalMs += (end - start);
-             }
-        });
-        // Check if > 100 hours, then no decimals
-        const hours = totalMs / (1000 * 60 * 60);
-        const displayHours = hours > 100 ? hours.toFixed(0) : hours.toFixed(1);
-        
-        const elTotalPlaytime = document.getElementById("ga-total-playtime");
-        if(elTotalPlaytime) elTotalPlaytime.innerText = `${displayHours}h`;
+		try {
+			this.renderSummary();
+			Object.values(this.renderers).forEach((fn) => fn());
+			this.bindControls();
+			this.isInitialized = true;
+		} catch (e) {
+			Logger.error("Failed to render game analytics", {
+				error: (e as Error).message,
+			});
+		}
+	}
 
-        // Total Rounds
-        let totalRounds = 0;
-        this.games.forEach(g => {
-            // Use score length as proxy for completed rounds to be safe
-             totalRounds += g.getScore().length;
-        });
-        const elTotalRounds = document.getElementById("ga-total-rounds");
-        if(elTotalRounds) elTotalRounds.innerText = totalRounds.toString();
-    }
+	private bindControls() {
+		document.querySelectorAll<HTMLElement>("[data-toggle]").forEach((group) => {
+			group.addEventListener("click", (event) => {
+				const btn = (event.target as HTMLElement).closest<HTMLElement>(
+					"[data-value]",
+				);
+				const name = group.dataset.toggle;
+				if (!btn || !name || this.opts[name] === btn.dataset.value) return;
 
-    private renderGamesOverTime() {
-        const ctx = document.getElementById('chart-games-over-time') as HTMLCanvasElement;
-        if (!ctx) return;
-        
-        if (this.charts['gamesOverTime']) this.charts['gamesOverTime'].destroy();
+				group
+					.querySelectorAll("[data-value]")
+					.forEach((b) => b.classList.remove("btn-active"));
+				btn.classList.add("btn-active");
+				this.opts[name] = btn.dataset.value!;
+				this.renderers[name]?.();
+			});
+		});
 
-        // Sort games by date
-        const sortedGames = [...this.games].sort((a,b) => a.getTimeStarted() - b.getTimeStarted());
-        
-        if (sortedGames.length === 0) return;
+		document
+			.querySelectorAll<HTMLElement>("[data-reset-zoom]")
+			.forEach((btn) => {
+				btn.addEventListener("click", () =>
+					this.charts[btn.dataset.resetZoom!]?.resetZoom(),
+				);
+			});
+	}
 
-        // Group by Month or Week? Month seems good
-        const dataMap = new Map<string, number>();
-        
-        // Find min and max date to fill gaps
-        const firstGame = sortedGames[0];
-        const lastGame = sortedGames[sortedGames.length - 1];
-        
-        if (firstGame && lastGame) {
-            let currentDate = new Date(firstGame.getTimeStarted());
-            // Reset to first day of month
-            currentDate.setDate(1); 
-            const endDate = new Date(lastGame.getTimeStarted());
-            
-            while (currentDate <= endDate || (currentDate.getMonth() === endDate.getMonth() && currentDate.getFullYear() === endDate.getFullYear())) {
-                const key = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`;
-                dataMap.set(key, 0); // Initialize with 0
-                // Next month
-                currentDate.setMonth(currentDate.getMonth() + 1);
-            }
-        }
+	private canvas(id: string): HTMLCanvasElement | null {
+		return document.getElementById(id) as HTMLCanvasElement | null;
+	}
 
-        // Fill user data
-        sortedGames.forEach(g => {
-            const d = new Date(g.getTimeStarted());
-            const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`; // YYYY-MM
-            dataMap.set(key, (dataMap.get(key) || 0) + 1);
-        });
+	private swap(key: string, ctx: HTMLCanvasElement, config: ConstructorParameters<typeof Chart>[1]) {
+		this.charts[key]?.destroy();
+		this.charts[key] = new Chart(ctx, config);
+	}
 
-        const labels = Array.from(dataMap.keys());
-        const values = Array.from(dataMap.values());
+	private renderSummary() {
+		const completedGames = this.games.filter((g) => !g.isActive);
 
-        this.charts['gamesOverTime'] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Games Played',
-                    data: values,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.3,
-                    fill: true,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        ticks: { precision: 0 },
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' } 
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
+		const set = (id: string, value: string) => {
+			const el = document.getElementById(id);
+			if (el) el.innerText = value;
+		};
 
-    private renderDurationDistribution() {
-         const ctx = document.getElementById('chart-duration-distribution') as HTMLCanvasElement;
-        if (!ctx) return;
-        
-        if (this.charts['duration']) this.charts['duration'].destroy();
+		set("ga-total-games", this.games.length.toString());
 
-        // durations in minutes
-        const durations = this.games
-            .filter(g => !g.isActive && g.getTimeEnded())
-            .map(g => {
-                return (g.getTimeEnded()! - g.getTimeStarted()) / 60000;
-            })
-            .filter(d => d > 0 && d < 600); // Filter unrealistic ones
+		const uniquePlayers = new Set<string>();
+		this.games.forEach((g) => g.getPlayers().forEach((p) => uniquePlayers.add(p)));
+		set("ga-total-players", uniquePlayers.size.toString());
 
-        // Buckets: <30, 30-45, 45-60, 60-90, 90+
-        const buckets = { '< 30': 0, '30-45': 0, '45-60': 0, '60-90': 0, '90+': 0 };
-        durations.forEach(d => {
-            if (d < 30) buckets['< 30']++;
-            else if (d < 45) buckets['30-45']++;
-            else if (d < 60) buckets['45-60']++;
-            else if (d < 90) buckets['60-90']++;
-            else buckets['90+']++;
-        });
+		let totalMs = 0;
+		completedGames.forEach((g) => {
+			const start = g.getTimeStarted();
+			const end = g.getTimeEnded();
+			if (start && end) totalMs += end - start;
+		});
+		const hours = totalMs / (1000 * 60 * 60);
+		set("ga-total-playtime", `${hours > 100 ? hours.toFixed(0) : hours.toFixed(1)}h`);
 
-        this.charts['duration'] = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: Object.keys(buckets),
-                datasets: [{
-                    label: 'Games',
-                    data: Object.values(buckets),
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.6)',
-                        'rgba(54, 162, 235, 0.6)',
-                        'rgba(255, 206, 86, 0.6)',
-                        'rgba(75, 192, 192, 0.6)',
-                        'rgba(153, 102, 255, 0.6)',
-                    ],
-                }]
-            },
-            plugins: [{
-                id: 'barLabels',
-                afterDatasetsDraw(chart) {
-                    const { ctx } = chart;
-                    ctx.save();
-                    chart.data.datasets.forEach((dataset, i) => {
-                        const meta = chart.getDatasetMeta(i);
-                        meta.data.forEach((element, index) => {
-                            const data = dataset.data[index] as number;
-                            if (data > 0) {
-                                ctx.fillStyle = 'gray';
-                                ctx.font = 'bold 12px sans-serif';
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'bottom';
-                                ctx.fillText(data.toString(), element.x, element.y - 5);
-                            }
-                        });
-                    });
-                    ctx.restore();
-                }
-            }],
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                 scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        ticks: { precision: 0 },
-                        grid: { display: false }
-                    },
-                    x: {
-                        grid: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Duration (Minutes)'
-                        }
-                    }
-                },
-                layout: {
-                    padding: {
-                        top: 20
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
+		set(
+			"ga-total-rounds",
+			this.games.reduce((acc, g) => acc + g.getScore().length, 0).toString(),
+		);
+	}
 
-    private renderPlayerCounts() {
-        const ctx = document.getElementById('chart-player-counts') as HTMLCanvasElement;
-        if (!ctx) return;
-        
-        if (this.charts['playerCounts']) this.charts['playerCounts'].destroy();
+	private renderGamesOverTime() {
+		const ctx = this.canvas("chart-games-over-time");
+		if (!ctx) return;
 
-        const countsMap = new Map<number, number>();
-        let totalGames = 0;
+		const granularity = this.opts.gamesOverTime as Granularity;
+		const sortedGames = [...this.games].sort(
+			(a, b) => a.getTimeStarted() - b.getTimeStarted(),
+		);
+		if (sortedGames.length === 0) return;
 
-        this.games.forEach(g => {
-            const c = g.getPlayers().length;
-            countsMap.set(c, (countsMap.get(c) || 0) + 1);
-            totalGames++;
-        });
+		const dataMap = new Map<string, number>(
+			bucketRange(
+				sortedGames[0]!.getTimeStarted(),
+				sortedGames[sortedGames.length - 1]!.getTimeStarted(),
+				granularity,
+			).map((key) => [key, 0]),
+		);
+		sortedGames.forEach((g) => {
+			const key = bucketKey(startOfBucket(g.getTimeStarted(), granularity), granularity);
+			dataMap.set(key, (dataMap.get(key) || 0) + 1);
+		});
 
-        const sortedKeys = Array.from(countsMap.keys()).sort((a,b) => a - b);
-        const labels = sortedKeys.map(k => `${k} Players`);
-        const values = sortedKeys.map(k => countsMap.get(k)!);
-        const maxVal = Math.max(...values, 0);
+		const labels = Array.from(dataMap.keys());
+		const dense = labels.length > 60;
 
-        this.charts['playerCounts'] = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Games',
-                    data: values,
-                    backgroundColor: [
-                         'rgba(255, 99, 132, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                         'rgba(75, 192, 192, 0.7)',
-                         'rgba(153, 102, 255, 0.7)',
-                         'rgba(255, 159, 64, 0.7)'
-                    ],
-                }]
-            },
-            plugins: [{
-                id: 'playerCountLabels',
-                afterDatasetsDraw(chart) {
-                    const { ctx } = chart;
-                    ctx.save();
-                    chart.data.datasets.forEach((dataset, i) => {
-                        const meta = chart.getDatasetMeta(i);
-                        meta.data.forEach((element, index) => {
-                            const data = dataset.data[index] as number;
-                            if (data > 0) {
-                                const percentage = ((data / totalGames) * 100).toFixed(1);
-                                ctx.fillStyle = 'gray';
-                                ctx.font = 'bold 12px sans-serif';
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'bottom';
-                                ctx.fillText(`${data} (${percentage}%)`, element.x, element.y - 5);
-                            }
-                        });
-                    });
-                    ctx.restore();
-                }
-            }],
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        ticks: { precision: 0 },
-                        grid: { display: false },
-                        suggestedMax: maxVal * 1.2
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
+		this.swap("gamesOverTime", ctx, {
+			type: "line",
+			data: {
+				labels,
+				datasets: [
+					{
+						label: "Games Played",
+						data: Array.from(dataMap.values()),
+						borderColor: "rgb(75, 192, 192)",
+						backgroundColor: "rgba(75, 192, 192, 0.2)",
+						borderWidth: 2,
+						tension: 0.3,
+						fill: true,
+						pointRadius: dense ? 0 : 3,
+						pointHoverRadius: 5,
+					},
+				],
+			},
+			plugins: [crosshair, valueLabels((v) => v.toString())],
+			options: {
+				...BASE_OPTIONS,
+				plugins: {
+					legend: { display: false },
+					zoom: zoomOptions,
+					tooltip: {
+						callbacks: {
+							label: (item) => `${item.parsed.y} games`,
+						},
+					},
+				},
+			},
+		});
+	}
 
-    private renderBettingBehavior() {
-       const ctx = document.getElementById('chart-betting-accuracy') as HTMLCanvasElement;
-       const statEl = document.getElementById('stat-avg-deviation');
-        if (!ctx) return;
-        
-        if (this.charts['betting']) this.charts['betting'].destroy();
+	private renderDurationDistribution() {
+		const ctx = this.canvas("chart-duration-distribution");
+		if (!ctx) return;
 
-        const completedGames = this.games.filter(g => !g.isActive);
+		const durations = this.games
+			.filter((g) => !g.isActive && g.getTimeEnded())
+			.map((g) => (g.getTimeEnded()! - g.getTimeStarted()) / 60000)
+			.filter((d) => d > 0 && d < 600);
 
-        let totalRoundEntries = 0;
-        let sumAbsoluteDeviation = 0;
-        const deviationDist = new Map<number, number>();
+		let labels: string[];
+		let values: number[];
+		const raw = this.opts.duration === "raw";
 
-        completedGames.forEach(g => {
-            const bets = g.bets || [];
-            const tricks = g.tricks || [];
-             // Bets/tricks are array of arrays [round][player]
-             for(let r=0; r < g.round; r++) {
-                 if (!bets[r] || !tricks[r]) continue;
-                 for(let p=0; p < g.players.length; p++) {
-                     if (bets[r][p] === undefined || tricks[r][p] === undefined) continue;
+		if (raw) {
+			const step = 10;
+			const max = Math.max(...durations, step);
+			const binCount = Math.ceil(max / step);
+			values = new Array(binCount).fill(0);
+			durations.forEach((d) => {
+				values[Math.min(Math.floor(d / step), binCount - 1)]!++;
+			});
+			labels = values.map((_, i) => `${i * step}-${(i + 1) * step}`);
+		} else {
+			const buckets = { "< 30": 0, "30-45": 0, "45-60": 0, "60-90": 0, "90+": 0 };
+			durations.forEach((d) => {
+				if (d < 30) buckets["< 30"]++;
+				else if (d < 45) buckets["30-45"]++;
+				else if (d < 60) buckets["45-60"]++;
+				else if (d < 90) buckets["60-90"]++;
+				else buckets["90+"]++;
+			});
+			labels = Object.keys(buckets);
+			values = Object.values(buckets);
+		}
 
-                     // Deviation is bet minus tricks:
-                     // negative = underestimated, 0 = spot on, positive = overestimated.
-                     const deviation = bets[r][p] - tricks[r][p];
+		this.swap("duration", ctx, {
+			type: "bar",
+			data: {
+				labels,
+				datasets: [
+					{
+						label: "Games",
+						data: values,
+						// A histogram is one series; only the coarse buckets are categorical.
+						backgroundColor: raw
+							? PALETTE[3]
+							: labels.map((_, i) => PALETTE[i % PALETTE.length]!),
+						borderRadius: 4,
+					},
+				],
+			},
+			plugins: [crosshair, valueLabels((v) => v.toString())],
+			options: {
+				...BASE_OPTIONS,
+				scales: {
+					...BASE_OPTIONS.scales,
+					x: {
+						grid: { display: false },
+						title: { display: true, text: "Duration (Minutes)" },
+					},
+				},
+				plugins: {
+					legend: { display: false },
+					zoom: zoomOptions,
+					tooltip: {
+						callbacks: { label: (item) => `${item.parsed.y} games` },
+					},
+				},
+			},
+		});
+	}
 
-                     sumAbsoluteDeviation += Math.abs(deviation);
-                     totalRoundEntries++;
-                     deviationDist.set(
-                        deviation,
-                        (deviationDist.get(deviation) || 0) + 1
-                     );
-                 }
-             }
-        });
+	private renderPlayerCounts() {
+		const ctx = this.canvas("chart-player-counts");
+		if (!ctx) return;
 
-        if (statEl) {
-            statEl.innerText = totalRoundEntries > 0
-                ? (sumAbsoluteDeviation / totalRoundEntries).toFixed(2)
-                : '0.00';
-        }
+		const countsMap = new Map<number, number>();
+		this.games.forEach((g) => {
+			const c = g.getPlayers().length;
+			countsMap.set(c, (countsMap.get(c) || 0) + 1);
+		});
 
-        const hasData = deviationDist.size > 0;
-        const sortedDeviations = hasData
-            ? Array.from(deviationDist.keys()).sort((a, b) => a - b)
-            : [-1, 0, 1];
+		const total = this.games.length || 1;
+		const sortedKeys = Array.from(countsMap.keys()).sort((a, b) => a - b);
+		const values = sortedKeys.map((k) => countsMap.get(k)!);
 
-        const minDeviation = Math.min(...sortedDeviations, 0);
-        const maxDeviation = Math.max(...sortedDeviations, 0);
+		this.swap("playerCounts", ctx, {
+			type: "bar",
+			data: {
+				labels: sortedKeys.map((k) => `${k} Players`),
+				datasets: [
+					{
+						label: "Games",
+						data: values,
+						backgroundColor: sortedKeys.map(
+							(_, i) => PALETTE[i % PALETTE.length]!,
+						),
+						borderRadius: 4,
+					},
+				],
+			},
+			plugins: [
+				crosshair,
+				valueLabels((v) => `${v} (${((v / total) * 100).toFixed(1)}%)`),
+			],
+			options: {
+				...BASE_OPTIONS,
+				plugins: {
+					legend: { display: false },
+					tooltip: {
+						callbacks: {
+							label: (item) =>
+								`${item.parsed.y} games (${((item.parsed.y / total) * 100).toFixed(1)}%)`,
+						},
+					},
+				},
+			},
+		});
+	}
 
-        const points: { x: number; y: number }[] = [];
-        for (let d = minDeviation; d <= maxDeviation; d++) {
-            points.push({ x: d, y: deviationDist.get(d) || 0 });
-        }
+	private getDeviations() {
+		if (this.deviations) return this.deviations;
 
-        const maxVal = Math.max(...points.map(point => point.y), 0);
+		const dist = new Map<number, number>();
+		let entries = 0;
+		let sum = 0;
 
-        this.charts['betting'] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: 'Rounds',
-                    data: points,
-                    parsing: false,
-                    borderColor: 'rgba(54, 162, 235, 0.9)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    pointBorderColor: 'rgba(54, 162, 235, 1)',
-                    pointBackgroundColor: (context) => {
-                        const value = context.raw as { x: number; y: number };
-                        return value.x === 0
-                            ? 'rgba(75, 192, 192, 1)'
-                            : 'rgba(54, 162, 235, 1)';
-                    },
-                    pointRadius: (context) => {
-                        const value = context.raw as { x: number; y: number };
-                        return value.x === 0 ? 5 : 4;
-                    },
-                    tension: 0.25,
-                    fill: true,
-                }]
-            },
-            plugins: [{
-                id: 'linePointLabels',
-                afterDatasetsDraw(chart) {
-                    const { ctx } = chart;
-                    ctx.save();
-                    chart.data.datasets.forEach((dataset, i) => {
-                        const meta = chart.getDatasetMeta(i);
-                        meta.data.forEach((element, index) => {
-                            const data = dataset.data[index] as { x: number; y: number };
-                            if (data.y > 0) {
-                                ctx.fillStyle = 'gray';
-                                ctx.font = 'bold 12px sans-serif';
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'bottom';
-                                ctx.fillText(data.y.toString(), element.x, element.y - 7);
-                            }
-                        });
-                    });
-                    ctx.restore();
-                }
-            }],
-            options: {
-                 responsive: true,
-                maintainAspectRatio: false,
-                 scales: {
-                    x: {
-                        type: 'linear',
-                        min: minDeviation - 0.5,
-                        max: maxDeviation + 0.5,
-                        ticks: {
-                            stepSize: 1,
-                            callback: (value) => {
-                                const num = Number(value);
-                                if (!Number.isInteger(num)) return '';
-                                if (num === 0) return 'Spot On (0)';
-                                if (num < 0) return `${num} (Under)`;
-                                return `+${num} (Over)`;
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Difference between Bet and actual Tricks'
-                        },
-                        grid: { display: false }
-                    },
-                    y: { 
-                        beginAtZero: true,
-                        ticks: { precision: 0 },
-                        grid: { display: false },
-                        suggestedMax: maxVal * 1.15
-                    },
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            title: (items) => {
-                                const x = (items[0].raw as { x: number; y: number }).x;
-                                if (x === 0) return 'Spot on';
-                                return x < 0
-                                    ? `${Math.abs(x)} too low (underestimated)`
-                                    : `${x} too high (overestimated)`;
-                            },
-                            label: (item) => `Rounds: ${item.parsed.y}`
-                        }
-                    }
-                }
-            }
-        });
+		this.games
+			.filter((g) => !g.isActive)
+			.forEach((g) => {
+				const bets = g.bets || [];
+				const tricks = g.tricks || [];
+				for (let r = 0; r < g.round; r++) {
+					if (!bets[r] || !tricks[r]) continue;
+					for (let p = 0; p < g.players.length; p++) {
+						if (bets[r]![p] === undefined || tricks[r]![p] === undefined) continue;
+						const deviation = bets[r]![p]! - tricks[r]![p]!;
+						sum += Math.abs(deviation);
+						entries++;
+						dist.set(deviation, (dist.get(deviation) || 0) + 1);
+					}
+				}
+			});
 
-    }
+		this.deviations = { dist, entries, sum };
+		return this.deviations;
+	}
 
-    private renderRuleUsage() {
-        const ctx = document.getElementById('chart-rules-usage') as HTMLCanvasElement;
-        if (!ctx) return;
+	private renderBettingBehavior() {
+		const ctx = this.canvas("chart-betting-accuracy");
+		if (!ctx) return;
 
-        if (this.charts['rulesUsage']) this.charts['rulesUsage'].destroy();
+		const { dist, entries, sum } = this.getDeviations();
 
-        const completedGames = this.games.filter(g => !g.isActive);
-        if (completedGames.length === 0) return;
+		const statEl = document.getElementById("stat-avg-deviation");
+		if (statEl) {
+			statEl.innerText = entries > 0 ? (sum / entries).toFixed(2) : "0.00";
+		}
 
-        const rules = [
-            { key: 'rule_1', label: '+-1 Rule' },
-            { key: 'rule_random_dealer', label: 'Random Dealer' },
-            { key: 'rule_expansion', label: 'Expansion' },
-            { key: 'rule_custom_rounds', label: 'Custom Rounds' },
-            { key: 'rule_altcount', label: 'Alt Count' },
-            { key: 'rule_blindentry', label: 'Blind Entry' },
-            { key: 'rule_fullblind', label: 'Full Blind' },
-        ] as const;
+		if (this.opts.betting === "grouped") {
+			let under = 0;
+			let spotOn = 0;
+			let over = 0;
+			dist.forEach((count, deviation) => {
+				if (deviation < 0) under += count;
+				else if (deviation === 0) spotOn += count;
+				else over += count;
+			});
+			const values = [under, spotOn, over];
+			const total = entries || 1;
 
-        // Count only active rule values (true) across completed games.
-        const counts = rules.map((rule) => {
-            return completedGames.reduce((acc, game) => {
-                const gameWithRules = game as unknown as Record<string, unknown>;
-                return gameWithRules[rule.key] === true ? acc + 1 : acc;
-            }, 0);
-        });
+			this.swap("betting", ctx, {
+				type: "bar",
+				data: {
+					labels: ["Underestimated", "Spot On", "Overestimated"],
+					datasets: [
+						{
+							label: "Rounds",
+							data: values,
+							backgroundColor: [
+								"rgba(54, 162, 235, 0.7)",
+								"rgba(75, 192, 192, 0.7)",
+								"rgba(255, 99, 132, 0.7)",
+							],
+							borderRadius: 4,
+						},
+					],
+				},
+				plugins: [
+					crosshair,
+					valueLabels((v) => `${v} (${((v / total) * 100).toFixed(1)}%)`),
+				],
+				options: {
+					...BASE_OPTIONS,
+					plugins: {
+						legend: { display: false },
+						tooltip: {
+							callbacks: { label: (item) => `${item.parsed.y} rounds` },
+						},
+					},
+				},
+			});
+			return;
+		}
 
-        const labels = rules.map((rule) => rule.label);
-        const maxVal = Math.max(...counts, 0);
+		const keys = dist.size ? Array.from(dist.keys()) : [-1, 0, 1];
+		const min = Math.min(...keys, 0);
+		const max = Math.max(...keys, 0);
+		const points = [];
+		for (let d = min; d <= max; d++) points.push({ x: d, y: dist.get(d) || 0 });
 
-        this.charts['rulesUsage'] = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Games with Rule Enabled',
-                    data: counts,
-                    backgroundColor: [
-                        'rgba(99, 102, 241, 0.7)',
-                        'rgba(34, 197, 94, 0.7)',
-                        'rgba(245, 158, 11, 0.7)',
-                        'rgba(14, 165, 233, 0.7)',
-                        'rgba(168, 85, 247, 0.7)',
-                    ],
-                }]
-            },
-            plugins: [{
-                id: 'ruleUsageLabels',
-                afterDatasetsDraw(chart) {
-                    const { ctx } = chart;
-                    ctx.save();
-                    chart.data.datasets.forEach((dataset, i) => {
-                        const meta = chart.getDatasetMeta(i);
-                        meta.data.forEach((element, index) => {
-                            const data = dataset.data[index] as number;
-                            if (data > 0) {
-                                const percentage = ((data / completedGames.length) * 100).toFixed(1);
-                                ctx.fillStyle = 'gray';
-                                ctx.font = 'bold 12px sans-serif';
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'bottom';
-                                ctx.fillText(`${data} (${percentage}%)`, element.x, element.y - 5);
-                            }
-                        });
-                    });
-                    ctx.restore();
-                }
-            }],
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { precision: 0 },
-                        grid: { display: false },
-                        suggestedMax: maxVal * 1.2
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
+		this.swap("betting", ctx, {
+			type: "line",
+			data: {
+				datasets: [
+					{
+						label: "Rounds",
+						data: points,
+						parsing: false,
+						borderColor: "rgba(54, 162, 235, 0.9)",
+						backgroundColor: "rgba(54, 162, 235, 0.2)",
+						borderWidth: 2,
+						pointBackgroundColor: (context) =>
+							(context.raw as { x: number }).x === 0
+								? "rgba(75, 192, 192, 1)"
+								: "rgba(54, 162, 235, 1)",
+						pointRadius: (context) =>
+							(context.raw as { x: number }).x === 0 ? 5 : 3,
+						pointHoverRadius: 6,
+						tension: 0.25,
+						fill: true,
+					},
+				],
+			},
+			plugins: [crosshair, valueLabels((v) => v.toLocaleString())],
+			options: {
+				...BASE_OPTIONS,
+				scales: {
+					...BASE_OPTIONS.scales,
+					x: {
+						type: "linear",
+						min: min - 0.5,
+						max: max + 0.5,
+						grid: { display: false },
+						title: {
+							display: true,
+							text: "Difference between Bet and actual Tricks",
+						},
+						ticks: {
+							stepSize: 1,
+							callback: (value) => {
+								const num = Number(value);
+								if (!Number.isInteger(num)) return "";
+								if (num === 0) return "Spot On (0)";
+								return num < 0 ? `${num} (Under)` : `+${num} (Over)`;
+							},
+						},
+					},
+				},
+				plugins: {
+					legend: { display: false },
+					zoom: zoomOptions,
+					tooltip: {
+						callbacks: {
+							title: (items) => {
+								const x = (items[0]!.raw as { x: number }).x;
+								if (x === 0) return "Spot on";
+								return x < 0
+									? `${Math.abs(x)} too low (underestimated)`
+									: `${x} too high (overestimated)`;
+							},
+							label: (item) => `Rounds: ${item.parsed.y.toLocaleString()}`,
+						},
+					},
+				},
+			},
+		});
+	}
+
+	private renderRuleUsage() {
+		const ctx = this.canvas("chart-rules-usage");
+		if (!ctx) return;
+
+		const completedGames = this.games.filter((g) => !g.isActive);
+		if (completedGames.length === 0) return;
+
+		const rules = [
+			{ key: "rule_1", label: "+-1 Rule" },
+			{ key: "rule_random_dealer", label: "Random Dealer" },
+			{ key: "rule_expansion", label: "Expansion" },
+			{ key: "rule_custom_rounds", label: "Custom Rounds" },
+			{ key: "rule_altcount", label: "Alt Count" },
+			{ key: "rule_blindentry", label: "Blind Entry" },
+			{ key: "rule_fullblind", label: "Full Blind" },
+		] as const;
+
+		const counts = rules.map((rule) =>
+			completedGames.reduce((acc, game) => {
+				const gameWithRules = game as unknown as Record<string, unknown>;
+				return gameWithRules[rule.key] === true ? acc + 1 : acc;
+			}, 0),
+		);
+
+		const total = completedGames.length;
+		const order = counts
+			.map((_, i) => i)
+			.sort((a, b) => counts[b]! - counts[a]!);
+
+		const labels = order.map((i) => rules[i]!.label);
+		const values = order.map((i) => counts[i]!);
+
+		this.swap("rules", ctx, {
+			type: "bar",
+			data: {
+				labels,
+				datasets: [
+					{
+						label: "Games with Rule Enabled",
+						data: values,
+						backgroundColor: labels.map((_, i) => PALETTE[i % PALETTE.length]!),
+						borderRadius: 4,
+					},
+				],
+			},
+			plugins: [
+				crosshair,
+				valueLabels((v) => `${v} (${((v / total) * 100).toFixed(1)}%)`),
+			],
+			options: {
+				...BASE_OPTIONS,
+				plugins: {
+					legend: { display: false },
+					tooltip: {
+						callbacks: {
+							label: (item) =>
+								`${item.parsed.y} games (${((item.parsed.y / total) * 100).toFixed(1)}%)`,
+						},
+					},
+				},
+			},
+		});
+	}
 }
