@@ -120,33 +120,7 @@ const { title, description = "Track and visualize your Wizard card game scores w
   </style>
 </html>
 <script>
-  import OpenReplay from '@openreplay/tracker';
-  
   // Check for demo mode and expose globally
   const urlParams = new URLSearchParams(window.location.search);
-  const demomode = urlParams.has("demo");
-  (globalThis as any).demomode = demomode;
-  
-  // Only initialize tracking if not in demo mode
-  let tracker;
-  if (!demomode) {
-    tracker = new OpenReplay({
-      projectKey: "wK6Af6wnN7o3nHIMRgGC",
-      obscureTextNumbers: false,
-      obscureTextEmails: false,
-      obscureInputDates: false,
-      obscureInputEmails: false,
-      obscureInputNumbers: false,
-    });
-    tracker.start();
-    tracker.setMetadata('dev', !import.meta.env.PROD ? 'true' : 'false');
-    tracker.setMetadata('referrer', document.referrer);
-    tracker.setMetadata('userAgent', navigator.userAgent);
-  }
-  
-  document.addEventListener('astro:page-load', () => {
-    if (tracker) {
-      tracker.setMetadata('page', window.location.pathname);
-    }
-  });
+  (globalThis as any).demomode = urlParams.has("demo");
 </script>
